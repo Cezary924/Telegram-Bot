@@ -1,0 +1,2 @@
+# Ignore secret.txt file containing Telegram API token
+secret.txt
