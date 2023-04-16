@@ -20,8 +20,8 @@ def start(message):
     bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot!")
 
 # handle /help command
-@bot.message_handler(commands=['start'])
-def start(message):
+@bot.message_handler(commands=['help'])
+def help(message):
     bot.send_message(message.chat.id, "Oto lista dostępnych poleceń:\n\n" + 
                      "/start - Zaczęcie rozmowy z botem\n" + 
                      "/help - Lista dostępnych komend")
