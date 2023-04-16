@@ -1,8 +1,12 @@
 import telebot
 
 # opening the file containing the token and reading from it
-with open("../secret.txt") as f:
-    token = f.readlines()
+try:
+    with open("../secret.txt") as f:
+        token = f.readlines()
+    f.close()
+except OSError:
+    print("Could not open the file.")
 
 # preparing the token
 token = str(token[0])
