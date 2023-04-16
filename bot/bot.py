@@ -17,7 +17,10 @@ bot = telebot.TeleBot(token)
 # handle /start command
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot!")
+    markup = telebot.types.InlineKeyboardMarkup()
+    help_button = telebot.types.InlineKeyboardButton(text = "Lista komend", callback_data = "help")
+    markup.add(help_button)
+    bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot!", reply_markup = markup)
 
 # handle /help command
 @bot.message_handler(commands=['help'])
