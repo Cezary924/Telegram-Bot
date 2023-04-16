@@ -14,6 +14,11 @@ token = str(token[0])
 # create bot instance
 bot = telebot.TeleBot(token)
 
+# handle callback queries
+@bot.callback_query_handler(func=lambda call: True)
+def test_callback(call):
+    globals()[str(call.data)](call.message)
+
 # handle /start command
 @bot.message_handler(commands=['start'])
 def start(message):
