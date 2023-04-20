@@ -14,7 +14,8 @@ pip install pyTelegramBotAPI
 ```
 
 ## 🚀 Starting</h3>
-To start, execute this command in the main directory:
+1. To start, execute this command in the main directory:
 ```
 python bot/bot.py
 ```
+2. Enjoy!
