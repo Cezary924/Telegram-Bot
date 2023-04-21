@@ -1,4 +1,10 @@
-import telebot
+import telebot, os
+
+# get path of the directory containing the bot script
+dir = os.path.dirname(os.path.realpath(__file__)) + "/"
+
+# change current working directory to 'dir'
+os.chdir(dir)
 
 # open file containing the token and read from it
 try:
