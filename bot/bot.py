@@ -40,4 +40,5 @@ def echo_all(message):
 	bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
 # infinite loop
+print("Cezary924-Telegram-Bot has been started.")
 bot.infinity_polling()
