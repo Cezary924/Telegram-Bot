@@ -1,4 +1,10 @@
-import telebot
+import telebot, os
+
+# get path of the directory containing the bot script
+dir = os.path.dirname(os.path.realpath(__file__)) + "/"
+
+# change current working directory to 'dir'
+os.chdir(dir)
 
 # open file containing the token and read from it
 try:
@@ -40,4 +46,5 @@ def echo_all(message):
 	bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
 # infinite loop
+print("Cezary924-Telegram-Bot has been started.")
 bot.infinity_polling()

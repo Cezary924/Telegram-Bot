@@ -8,14 +8,14 @@
 ```
 pip install pyTelegramBotAPI
 ```
-3. Create ```secret.txt``` file in the main directory.
-4. Write your token to this file, for example:
+3. Create ```secret.txt``` file in the main directory and write your token to it, for example:
 ```
 1234567890:ABCDEFGHIJKLMNOPQRSTUWXYZabcdefghijk
 ```
 
 ## 🚀 Starting</h3>
-To start, run this command:
+1. To start, execute this command in the main directory:
 ```
 python bot/bot.py
 ```
+2. Enjoy!
