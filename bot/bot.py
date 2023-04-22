@@ -1,4 +1,4 @@
-import telebot, os, TikTokApi
+import telebot, os
 
 # get path of the directory containing the bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -43,7 +43,7 @@ def help(message):
 # handle tik tok links
 @bot.message_handler(func=lambda message: message.content_type == 'text' and 'vm.tiktok.com' in message.text)
 def echo_tiktok(message):
-    bot.send_message(message.chat.id, "Odebrano link z TikToka.")
+    bot.send_message(message.chat.id, "Odebrano link z TikToka. W przyszłości będę umiał go obsłużyć 😁")
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)
