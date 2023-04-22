@@ -12,7 +12,7 @@ try:
         token = f.readlines()
     f.close()
 except OSError:
-    print("Could not open the file.")
+    print("Open error: Could not open the \'secret.txt\' file.")
 
 # prepare token
 token = str(token[0])
@@ -40,10 +40,15 @@ def help(message):
                      "/start - Zaczęcie rozmowy z botem 🤖\n" + 
                      "/help - Lista dostępnych komend 📃")
 
+# handle tik tok links
+@bot.message_handler(func=lambda message: message.content_type == 'text' and 'vm.tiktok.com' in message.text)
+def echo_tiktok(message):
+    bot.send_message(message.chat.id, "Odebrano link z TikToka. W przyszłości będę umiał go obsłużyć 😁")
+
 # handle any other message
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
-	bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
+    bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
 # infinite loop
 print("Cezary924-Telegram-Bot has been started.")
