@@ -42,12 +42,18 @@ def start(message):
     markup.add(help_button)
     bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot! 🤖👋", reply_markup = markup)
 
+# handle /tiktok command
+@bot.message_handler(commands=['tiktok'])
+def help(message):
+    bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🎵")
+
 # handle /help command
 @bot.message_handler(commands=['help'])
 def help(message):
     bot.send_message(message.chat.id, "Oto lista dostępnych poleceń 📃:\n\n" + 
                      "/start - Zaczęcie rozmowy z botem 🤖\n" + 
-                     "/help - Lista dostępnych komend 📃")
+                     "/help - Lista dostępnych komend 📃\n" +
+                     "/tiktok - Pobieranie wideo z serwisu TikTok 🎵")
 
 # handle TikTok urls
 @bot.message_handler(func=lambda message: message.content_type == 'text' and 'tiktok.com' in message.text and 'http' in message.text)
