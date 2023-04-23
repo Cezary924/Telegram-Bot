@@ -1,4 +1,5 @@
 import telebot, os
+
 import tiktok
 
 # get path of directory containing bot script
@@ -48,7 +49,7 @@ def help(message):
                      "/tiktok - Pobieranie wideo z serwisu TikTok 🎵")
 
 # handle TikTok urls
-@bot.message_handler(func=lambda message: message.content_type == 'text' and ('https://www.tiktok.com/' in message.text or 'https://vm.tiktok.com/' in message.text))
+@bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
     if tiktok.rapidapi == None:
         tiktok.read_rapidapi()

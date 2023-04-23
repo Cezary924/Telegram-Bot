@@ -1,4 +1,5 @@
 import requests, os
+from urllib.parse import urlparse
 
 rapidapi = None
 
@@ -13,10 +14,22 @@ def read_rapidapi():
         print("Open error: Could not open the \'rapidapi.txt\' file.")
     rapidapi = str(rapidapi[0])
 
+# check TikTok url
+def check_tiktok_url(message):
+    print(message.text)
+    if "http" in message.text:
+        url = urlparse(message.text)
+        print(url.scheme)
+        if url.scheme == "http" or url.scheme == "https":
+            print(url.hostname)
+            if url.hostname == "vm.tiktok.com" or url.hostname == "www.tiktok.com":
+                return True
+    return False
+
 # handle TikTok urls
 def echo_tiktok(message, bot):
     url = "https://tiktok-full-info-without-watermark.p.rapidapi.com/vid/index"
-    querystring = {"url":message.text}
+    querystring = {"url": message.text}
     headers = {
         "X-RapidAPI-Key": rapidapi,
         "X-RapidAPI-Host": "tiktok-full-info-without-watermark.p.rapidapi.com"
