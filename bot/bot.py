@@ -46,7 +46,17 @@ def help(message):
     bot.send_message(message.chat.id, "Oto lista dostępnych poleceń 📃:\n\n" + 
                      "/start - Zaczęcie rozmowy z botem 🤖\n" + 
                      "/help - Lista dostępnych komend 📃\n" +
+                     "/about - Informacje o bocie ℹ️\n" +
                      "/tiktok - Pobieranie wideo z serwisu TikTok 🎵")
+
+# handle /about command
+@bot.message_handler(commands=['about'])
+def about(message):
+    bot.send_message(message.chat.id, "*Cezary924Bot*\n"
+                    + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
+                    + "Autor: _Cezary924_\n"
+                    + "Rok powstania: _2023_\n"
+                    + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
 
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
