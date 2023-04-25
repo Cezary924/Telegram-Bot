@@ -16,12 +16,9 @@ def read_rapidapi():
 
 # check TikTok url
 def check_tiktok_url(message):
-    print(message.text)
     if "http" in message.text:
         url = urlparse(message.text)
-        print(url.scheme)
         if url.scheme == "http" or url.scheme == "https":
-            print(url.hostname)
             if url.hostname == "vm.tiktok.com" or url.hostname == "www.tiktok.com":
                 return True
     return False
