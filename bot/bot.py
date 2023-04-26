@@ -1,6 +1,6 @@
 import telebot, os
 
-import tiktok
+import tiktok, twitter
 
 # get path of directory containing bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -67,6 +67,16 @@ def echo_tiktok(message):
         tiktok.echo_tiktok(message, bot)
     else:
         bot.send_message(message.chat.id, "Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞")
+
+# handle Twitter urls
+@bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
+def echo_twitter(message):
+    if twitter.bearer_token == None:
+        twitter.read_bearer_token()
+    if twitter.bearer_token != None:
+        twitter.echo_twitter(message, bot)
+    else:
+        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)
