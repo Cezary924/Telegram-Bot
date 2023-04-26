@@ -37,8 +37,14 @@ def start(message):
 
 # handle /tiktok command
 @bot.message_handler(commands=['tiktok'])
-def help(message):
+def tiktok(message):
     bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🎵")
+
+# handle /twitter command
+@bot.message_handler(commands=['twitter'])
+def twitter(message):
+    bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🐦")
+
 
 # handle /help command
 @bot.message_handler(commands=['help'])
@@ -47,7 +53,8 @@ def help(message):
                      "/start - Zaczęcie rozmowy z botem 🤖\n" + 
                      "/help - Lista dostępnych komend 📃\n" +
                      "/about - Informacje o bocie ℹ️\n" +
-                     "/tiktok - Pobieranie wideo z serwisu TikTok 🎵")
+                     "/tiktok - Pobieranie wideo z serwisu TikTok 🎵\n" +
+                     "/twitter - Pobieranie wideo z serwisu Twitter 🐦")
 
 # handle /about command
 @bot.message_handler(commands=['about'])
