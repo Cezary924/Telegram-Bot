@@ -1,0 +1,4 @@
+To run this bot you have to prepare these files:
+    telegram.txt - a file containing your Telegram token
+    tiktok.txt - a file containing your RapidAPI key
+    twitter.txt - a file containing your Twitter Bearer Token
