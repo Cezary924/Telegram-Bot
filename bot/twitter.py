@@ -7,7 +7,7 @@ bearer_token = None
 def read_bearer_token():
     global bearer_token
     try:
-        with open("../twitter.txt") as f:
+        with open("../files/twitter.txt") as f:
             bearer_token = f.readlines()
         f.close()
     except OSError:

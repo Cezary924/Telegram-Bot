@@ -10,11 +10,11 @@ os.chdir(dir)
 
 # open file containing token and read from it
 try:
-    with open("../secret.txt") as f:
+    with open("../files/telegram.txt") as f:
         token = f.readlines()
     f.close()
 except OSError:
-    print("Open error: Could not open the \'secret.txt\' file.")
+    print("Open error: Could not open the \'telegram.txt\' file.")
 
 # prepare token and key
 token = str(token[0])

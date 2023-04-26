@@ -7,11 +7,11 @@ rapidapi = None
 def read_rapidapi():
     global rapidapi
     try:
-        with open("../rapidapi.txt") as f:
+        with open("../files/tiktok.txt") as f:
             rapidapi = f.readlines()
         f.close()
     except OSError:
-        print("Open error: Could not open the \'rapidapi.txt\' file.")
+        print("Open error: Could not open the \'tiktok.txt\' file.")
     rapidapi = str(rapidapi[0])
 
 # check TikTok url
@@ -31,7 +31,7 @@ def echo_tiktok(message, bot):
         "X-RapidAPI-Key": rapidapi,
         "X-RapidAPI-Host": "tiktok-full-info-without-watermark.p.rapidapi.com"
     }
-    
+
     bot.send_message(message.chat.id, "Przetwarzanie linku z TikToka... ⏳")
 
     response = requests.request("GET", url, headers=headers, params=querystring)
