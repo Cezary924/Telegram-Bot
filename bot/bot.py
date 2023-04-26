@@ -29,26 +29,26 @@ def test_callback(call):
 
 # handle /start command
 @bot.message_handler(commands=['start'])
-def start(message):
+def command_start(message):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Lista komend 📃", callback_data = "help")
+    help_button = telebot.types.InlineKeyboardButton(text = "Lista komend 📃", callback_data = "command_help")
     markup.add(help_button)
     bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot! 🤖👋", reply_markup = markup)
 
 # handle /tiktok command
 @bot.message_handler(commands=['tiktok'])
-def tiktok(message):
+def command_tiktok(message):
     bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🎵")
 
 # handle /twitter command
 @bot.message_handler(commands=['twitter'])
-def twitter(message):
+def command_twitter(message):
     bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🐦")
 
 
 # handle /help command
 @bot.message_handler(commands=['help'])
-def help(message):
+def command_help(message):
     bot.send_message(message.chat.id, "Oto lista dostępnych poleceń 📃:\n\n" + 
                      "/start - Zaczęcie rozmowy z botem 🤖\n" + 
                      "/help - Lista dostępnych komend 📃\n" +
@@ -58,7 +58,7 @@ def help(message):
 
 # handle /about command
 @bot.message_handler(commands=['about'])
-def about(message):
+def command_about(message):
     bot.send_message(message.chat.id, "*Cezary924Bot*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
                     + "Autor: _Cezary924_\n"
