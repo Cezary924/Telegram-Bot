@@ -1,4 +1,5 @@
 # Ignore secret.txt file containing Telegram API token
 /secret.txt
 /rapidapi.txt
+/twitter.txt
 /bot/__pycache__/
