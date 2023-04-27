@@ -8,10 +8,9 @@
 ```
 pip install pyTelegramBotAPI
 ```
-3. Create ```secret.txt``` file in the main directory and write your token to it, for example:
-```
-1234567890:ABCDEFGHIJKLMNOPQRSTUWXYZabcdefghijk
-```
+3. Create ```telegram.txt``` file in *files* folder and write your token to it.
+4. Create ```tiktok.txt``` file in *files* folder and write your RapidAPI key to it.
+5. Create ```twitter.txt``` file in *files* folder and write your bearer token to it.
 
 ## 🚀 Starting</h3>
 1. To start, execute this command in the main directory:
