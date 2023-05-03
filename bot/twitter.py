@@ -31,7 +31,7 @@ def echo_twitter(message, bot):
 
     bot.send_message(message.chat.id, "Przetwarzanie linku z Twittera... ⏳")
 
-    response = requests.request("GET", url, headers=headers)
+    response = requests.request("GET", url, headers=headers, params={"tweet_mode": "extended"})
     if response.status_code != 200:
         bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
         return
