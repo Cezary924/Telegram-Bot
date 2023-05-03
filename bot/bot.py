@@ -74,12 +74,7 @@ def echo_tiktok(message):
 # handle Twitter urls
 @bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
 def echo_twitter(message):
-    if twitter.bearer_token == None:
-        twitter.read_bearer_token()
-    if twitter.bearer_token != None:
-        twitter.echo_twitter(message, bot)
-    else:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
+    twitter.start_twitter(message, bot)
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)

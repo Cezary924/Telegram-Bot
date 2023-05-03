@@ -58,3 +58,11 @@ def echo_twitter(message, bot):
         print("Open error: Could not open the \'.mp4\' file.")
     bot.send_video(message.chat.id, open(vid_name, 'rb'))
     os.remove(vid_name)
+
+def start_twitter(message, bot):
+    if bearer_token == None:
+        read_bearer_token()
+    if bearer_token != None:
+        echo_twitter(message, bot)
+    else:
+        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
