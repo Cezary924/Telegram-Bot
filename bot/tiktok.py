@@ -54,3 +54,11 @@ def echo_tiktok(message, bot):
         print("Open error: Could not open the \'.mp4\' file.")
     bot.send_video(message.chat.id, open(vid_name, 'rb'))
     os.remove(vid_name)
+
+def start_tiktok(message, bot):
+    if rapidapi == None:
+        read_rapidapi()
+    if rapidapi != None:
+        echo_tiktok(message, bot)
+    else:
+        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞")

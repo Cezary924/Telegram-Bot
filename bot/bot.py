@@ -69,12 +69,7 @@ def command_about(message):
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
-    if tiktok.rapidapi == None:
-        tiktok.read_rapidapi()
-    if tiktok.rapidapi != None:
-        tiktok.echo_tiktok(message, bot)
-    else:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞")
+    tiktok.start_tiktok(message, bot)
 
 # handle Twitter urls
 @bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
