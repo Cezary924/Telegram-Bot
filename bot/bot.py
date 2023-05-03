@@ -61,6 +61,7 @@ def command_help(message):
 def command_about(message):
     bot.send_message(message.chat.id, "*Cezary924Bot*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
+                    + "Wersja: _Beta_\n"
                     + "Autor: _Cezary924_\n"
                     + "Rok powstania: _2023_\n"
                     + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
