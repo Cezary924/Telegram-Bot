@@ -1,4 +1,4 @@
-# Ignore secret.txt file containing Telegram API token
+# Ignore secret files containing tokens, keys, etc.
 /files/telegram.txt
 /files/tiktok.txt
 /files/twitter.txt
