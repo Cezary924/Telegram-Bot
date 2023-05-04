@@ -45,7 +45,6 @@ def command_tiktok(message):
 def command_twitter(message):
     bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🐦")
 
-
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
@@ -61,9 +60,10 @@ def command_help(message):
 def command_about(message):
     bot.send_message(message.chat.id, "*Cezary924Bot*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
-                    + "Wersja: _Beta_\n"
                     + "Autor: _Cezary924_\n"
                     + "Rok powstania: _2023_\n"
+                    + "Wersja: _Beta_\n"
+                    + "Data ost. akt.: _04.05.2023_\n"
                     + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
 
 # handle TikTok urls
