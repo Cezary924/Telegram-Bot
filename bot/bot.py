@@ -1,6 +1,6 @@
 import telebot, os
 
-import tiktok, twitter
+import basic_commands, tiktok, twitter
 
 # get path of directory containing bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -44,43 +44,27 @@ def test_callback(call):
 # handle /start command
 @bot.message_handler(commands=['start'])
 def command_start(message):
-    markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Lista komend 📃", callback_data = "command_help")
-    markup.add(help_button)
-    about_button = telebot.types.InlineKeyboardButton(text = "Informacje o bocie ℹ️", callback_data = "command_about")
-    markup.add(about_button)
-    bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot! 🤖👋", reply_markup = markup)
+    basic_commands.command_start(message, bot)
 
 # handle /tiktok command
 @bot.message_handler(commands=['tiktok'])
 def command_tiktok(message):
-    bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🎵")
+    basic_commands.command_tiktok(message, bot)
 
 # handle /twitter command
 @bot.message_handler(commands=['twitter'])
 def command_twitter(message):
-    bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🐦")
+    basic_commands.command_twitter(message, bot)
 
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
-    bot.send_message(message.chat.id, "*Oto lista dostępnych poleceń 📃*\n\n" + 
-                     "/start - _Zaczęcie rozmowy z botem 🤖_\n" + 
-                     "/help - _Lista dostępnych komend 📃_\n" +
-                     "/about - _Informacje o bocie ℹ️_\n" +
-                     "/tiktok - _Pobieranie wideo z serwisu TikTok 🎵_\n" +
-                     "/twitter - _Pobieranie wideo z serwisu Twitter 🐦_", parse_mode= 'Markdown')
+    basic_commands.command_help(message, bot)
 
 # handle /about command
 @bot.message_handler(commands=['about'])
 def command_about(message):
-    bot.send_message(message.chat.id, "*Informacje o bocie ℹ️*\n\n"
-                    + "*Cezary924Bot*\n"
-                    + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
-                    + "Autor: _@Cezary924_\n"
-                    + "Rok powstania: _2023_\n"
-                    + "Wersja: _" + str(ver) + "_\n"
-                    + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
+    basic_commands.command_about(message, bot, ver)
 
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
