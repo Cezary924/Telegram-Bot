@@ -19,6 +19,20 @@ except OSError:
 # prepare token and key
 token = str(token[0])
 
+# open file containing version number and write/read to/from it
+os.system('git rev-list --count master > ../version.txt')
+try:
+    with open("../version.txt") as f:
+        ver = f.readlines()
+    f.close()
+except OSError:
+    print("Open error: Could not open the \'version.txt\' file.")
+os.remove('../version.txt')
+
+# prepare version number
+ver = str(ver[0])
+ver = int(ver)
+
 # create bot instance
 bot = telebot.TeleBot(token)
 
@@ -33,6 +47,8 @@ def command_start(message):
     markup = telebot.types.InlineKeyboardMarkup()
     help_button = telebot.types.InlineKeyboardButton(text = "Lista komend 📃", callback_data = "command_help")
     markup.add(help_button)
+    about_button = telebot.types.InlineKeyboardButton(text = "Informacje o bocie ℹ️", callback_data = "command_about")
+    markup.add(about_button)
     bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot! 🤖👋", reply_markup = markup)
 
 # handle /tiktok command
@@ -48,22 +64,22 @@ def command_twitter(message):
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
-    bot.send_message(message.chat.id, "Oto lista dostępnych poleceń 📃:\n\n" + 
-                     "/start - Zaczęcie rozmowy z botem 🤖\n" + 
-                     "/help - Lista dostępnych komend 📃\n" +
-                     "/about - Informacje o bocie ℹ️\n" +
-                     "/tiktok - Pobieranie wideo z serwisu TikTok 🎵\n" +
-                     "/twitter - Pobieranie wideo z serwisu Twitter 🐦")
+    bot.send_message(message.chat.id, "*Oto lista dostępnych poleceń 📃*\n\n" + 
+                     "/start - _Zaczęcie rozmowy z botem 🤖_\n" + 
+                     "/help - _Lista dostępnych komend 📃_\n" +
+                     "/about - _Informacje o bocie ℹ️_\n" +
+                     "/tiktok - _Pobieranie wideo z serwisu TikTok 🎵_\n" +
+                     "/twitter - _Pobieranie wideo z serwisu Twitter 🐦_", parse_mode= 'Markdown')
 
 # handle /about command
 @bot.message_handler(commands=['about'])
 def command_about(message):
-    bot.send_message(message.chat.id, "*Cezary924Bot*\n"
+    bot.send_message(message.chat.id, "*Informacje o bocie ℹ️*\n\n"
+                    + "*Cezary924Bot*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
-                    + "Autor: _Cezary924_\n"
+                    + "Autor: _@Cezary924_\n"
                     + "Rok powstania: _2023_\n"
-                    + "Wersja: _Beta_\n"
-                    + "Data ost. akt.: _04.05.2023_\n"
+                    + "Wersja: _" + str(ver) + "_\n"
                     + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
 
 # handle TikTok urls
