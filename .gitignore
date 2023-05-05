@@ -2,4 +2,6 @@
 /files/telegram.txt
 /files/tiktok.txt
 /files/twitter.txt
+/files/users_database.db
+/files/users_database.db-journal
 /bot/__pycache__/
