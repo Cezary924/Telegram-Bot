@@ -5,18 +5,31 @@ def command_start(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     help_button = telebot.types.InlineKeyboardButton(text = "📃 Lista komend", callback_data = "command_help")
     markup.add(help_button)
-    about_button = telebot.types.InlineKeyboardButton(text = "ℹ️ Informacje o bocie", callback_data = "command_about")
+    about_button = telebot.types.InlineKeyboardButton(text = "ℹ️ Informacje o Bocie", callback_data = "command_about")
     markup.add(about_button)
     bot.send_message(message.chat.id, "Cześć, z tej strony Cezary924Bot! 🤖👋", reply_markup = markup)
 
 # handle /help command
 def command_help(message, bot):
     bot.send_message(message.chat.id, "*📃 Oto lista dostępnych poleceń*\n\n" + 
-                     "/start - _🤖 Zaczęcie rozmowy z botem_\n" + 
+                     "/start - _🤖 Zaczęcie rozmowy z Botem_\n" + 
                      "/help - _📃 Strona pomocy z listą dostępnych komend_\n" +
-                     "/about - _ℹ️ Informacje o bocie_\n" +
+                     "/contact - _🧑‍🔬 Informacje o drogach kontaktu z Administratorem_\n" +
+                     "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n" +
+                     "/about - _ℹ️ Informacje o Bocie_\n" +
                      "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
                      "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown')
+
+# handle /contact command
+def command_contact(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    report_button = telebot.types.InlineKeyboardButton(text = "✉️ Zgłoszenie do Administratora", callback_data = "command_report")
+    markup.add(report_button)
+    bot.send_message(message.chat.id, "Aby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨", reply_markup = markup)
+
+# handle /report command
+def command_report(message, bot):
+    bot.send_message(message.chat.id, "Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡")
 
 # handle /about command
 def command_about(message, bot, ver):
@@ -30,7 +43,7 @@ def command_about(message, bot, ver):
         else:
             return "Stablina, przestarzała (" + str(online_ver) + ")"
 
-    bot.send_message(message.chat.id, "*ℹ️ Informacje o bocie*\n\n"
+    bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie*\n\n"
                     + "*Cezary924Bot*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
                     + "Autor: _@Cezary924_\n"
