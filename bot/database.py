@@ -61,3 +61,16 @@ def admin_check(message):
         return True
     else:
         return False
+    
+# save last command type
+def save_current_state(message, state="0"):
+    cursor.execute("SELECT COUNT(1) FROM State WHERE user_id = ?;", (message.from_user.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("UPDATE State SET state = ? WHERE user_id = ?;", 
+                       (state, message.from_user.id))
+        db_conn.commit()
+    else:
+        cursor.execute("INSERT INTO State VALUES (?, ?); ",
+                       (message.from_user.id, state))
+        db_conn.commit()

@@ -60,24 +60,28 @@ def test_callback(call):
 @bot.message_handler(commands=['start'])
 def command_start(message):
     database.guest_check(message)
+    database.save_current_state(message, "start")
     basic_commands.command_start(message, bot)
 
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
     database.guest_check(message)
+    database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
 
 # handle /about command
 @bot.message_handler(commands=['about'])
 def command_about(message):
     database.guest_check(message)
+    database.save_current_state(message, "about")
     basic_commands.command_about(message, bot, ver)
 
 # handle /tiktok command
 @bot.message_handler(commands=['tiktok'])
 def command_tiktok(message):
     database.guest_check(message)
+    database.save_current_state(message, "tiktok")
     if database.user_check(message):
         basic_commands.command_tiktok(message, bot)
     else:
@@ -87,6 +91,7 @@ def command_tiktok(message):
 @bot.message_handler(commands=['twitter'])
 def command_twitter(message):
     database.guest_check(message)
+    database.save_current_state(message, "twitter")
     if database.user_check(message):
         basic_commands.command_twitter(message, bot)
     else:
@@ -96,6 +101,7 @@ def command_twitter(message):
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
     database.guest_check(message)
+    database.save_current_state(message, "tiktok-url")
     if database.user_check(message):
         tiktok.start_tiktok(message, bot)
     else:
@@ -105,6 +111,7 @@ def echo_tiktok(message):
 @bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
 def echo_twitter(message):
     database.guest_check(message)
+    database.save_current_state(message, "twitter-url")
     if database.user_check(message):
         twitter.start_twitter(message, bot)
     else:
@@ -114,6 +121,7 @@ def echo_twitter(message):
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     database.guest_check(message)
+    database.save_current_state(message, "0")
     bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
 # infinite loop
