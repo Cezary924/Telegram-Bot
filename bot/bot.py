@@ -70,12 +70,12 @@ def command_help(message):
     database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
 
-# handle /contact command
-@bot.message_handler(commands=['contact'])
-def command_contact(message):
+# handle /report command
+@bot.message_handler(commands=['report'])
+def command_report(message):
     database.guest_check(message)
-    database.save_current_state(message, "contact")
-    basic_commands.command_contact(message, bot)
+    database.save_current_state(message, "report")
+    basic_commands.command_report(message, bot)
 
 # handle /about command
 @bot.message_handler(commands=['about'])
@@ -125,7 +125,7 @@ def echo_twitter(message):
         permission_denied(message)
 
 # handle messages to admin
-@bot.message_handler(func=lambda message: database.get_current_state(message) == "contact")
+@bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
 def forward_message_to_admin(message):
     database.forward_message_to_admin(message, bot)
 
