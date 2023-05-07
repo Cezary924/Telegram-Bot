@@ -63,7 +63,7 @@ def admin_check(message):
     else:
         return False
     
-# save last command used by a person
+# save last command used by person
 def save_current_state(message, state="0"):
     cursor.execute("SELECT COUNT(1) FROM State WHERE user_id = ?;", (message.from_user.id, ))
     (present,)=cursor.fetchone()
@@ -76,7 +76,7 @@ def save_current_state(message, state="0"):
                        (message.from_user.id, state))
         db_conn.commit()
 
-# get last command used by a person
+# get last command used by person
 def get_current_state(message):
     cursor.execute("SELECT COUNT(1) FROM State WHERE user_id = ?;", (message.from_user.id, ))
     (present,)=cursor.fetchone()
@@ -91,14 +91,16 @@ def get_current_state(message):
         db_conn.commit()
         return "0"
 
+# forward message sent by person to admin
 def forward_message_to_admin(message, bot):
     cursor.execute("SELECT user_id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
     for admin in admins:
         markup = telebot.types.InlineKeyboardMarkup()
-        admin_reply_button = telebot.types.InlineKeyboardButton(text = "↩️ Odpowiedz na wiadomość", callback_data = "contact_admin_reply")
+        admin_reply_button = telebot.types.InlineKeyboardButton(text = "↩️ Odpowiedz na wiadomość", 
+                                                                callback_data = "contact_admin_reply")
         markup.add(admin_reply_button)
         bot.send_message(admin, "Cześć, *" + message.from_user.first_name 
                          + " (" + str(message.from_user.id) + ")* chciałby przekazać Ci tę wiadomość: \n\n_" 
                          + message.text + "_", parse_mode= 'Markdown', reply_markup = markup)
-    bot.send_message(message.chat.id, "Wiadomość została pomyślnie przekazana administratorowi 😁")
+    bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
