@@ -45,7 +45,7 @@ database.create_table_state()
 # send permission denied message
 def permission_denied(message):
     markup = telebot.types.InlineKeyboardMarkup()
-    contact_button = telebot.types.InlineKeyboardButton(text = "🧑‍🔬 Kontakt z administratorem", callback_data = "command_about")
+    contact_button = telebot.types.InlineKeyboardButton(text = "🧑‍🔬 Kontakt z administratorem", callback_data = "command_contact")
     markup.add(contact_button)
     bot.send_message(message.chat.id, "Niestety, nie możesz skorzystać z tego polecenia... 😭\n\n"
                      + "Aby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬",
