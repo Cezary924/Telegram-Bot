@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3, telebot
 
 # connect to users database
 db_conn = sqlite3.connect("../files/database.db", check_same_thread=False)
@@ -94,7 +94,10 @@ def forward_message_to_admin(message, bot):
     cursor.execute("SELECT user_id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
     for admin in admins:
+        markup = telebot.types.InlineKeyboardMarkup()
+        admin_reply_button = telebot.types.InlineKeyboardButton(text = "↩️ Odpowiedz na wiadomość", callback_data = "contact_admin_reply")
+        markup.add(admin_reply_button)
         bot.send_message(admin, "Cześć, *" + message.from_user.first_name 
                          + " (" + str(message.from_user.id) + ")* chciałby przekazać Ci tę wiadomość: \n\n_" 
-                         + message.text + "_", parse_mode= 'Markdown')
+                         + message.text + "_", parse_mode= 'Markdown', reply_markup = markup)
     bot.send_message(message.chat.id, "Wiadomość została pomyślnie przekazana administratorowi 😁")
