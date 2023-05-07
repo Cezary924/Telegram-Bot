@@ -18,6 +18,10 @@ def command_help(message, bot):
                      "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
                      "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown')
 
+# handle /contact command
+def command_contact(message, bot):
+    bot.send_message(message.chat.id, "Napisz wiadomość do administratora, a ja ją przekażę 🫡")
+
 # handle /about command
 def command_about(message, bot, ver):
     def info_about_version(ver):

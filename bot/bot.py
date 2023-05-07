@@ -70,6 +70,13 @@ def command_help(message):
     database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
 
+# handle /contact command
+@bot.message_handler(commands=['contact'])
+def command_contact(message):
+    database.guest_check(message)
+    database.save_current_state(message, "contact")
+    basic_commands.command_contact(message, bot)
+
 # handle /about command
 @bot.message_handler(commands=['about'])
 def command_about(message):
@@ -116,6 +123,11 @@ def echo_twitter(message):
         twitter.start_twitter(message, bot)
     else:
         permission_denied(message)
+
+# handle messages to admin
+@bot.message_handler(func=lambda message: database.get_current_state(message) == "contact")
+def forward_message_to_admin(message):
+    database.forward_message_to_admin(message, bot)
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)
