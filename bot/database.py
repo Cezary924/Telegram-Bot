@@ -8,6 +8,7 @@ cursor = db_conn.cursor()
 
 # create People table if it does not exist
 # Role types:
+#  -1 - banned
 #   0 - guest
 #   1 - user
 #   2 - admin
