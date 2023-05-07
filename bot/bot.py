@@ -70,6 +70,13 @@ def command_help(message):
     database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
 
+# handle /contact command
+@bot.message_handler(commands=['contact'])
+def command_contact(message):
+    database.guest_check(message)
+    database.save_current_state(message, "contact")
+    basic_commands.command_contact(message, bot)
+
 # handle /report command
 @bot.message_handler(commands=['report'])
 def command_report(message):
