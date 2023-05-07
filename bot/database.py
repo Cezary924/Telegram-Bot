@@ -74,3 +74,17 @@ def save_current_state(message, state="0"):
         cursor.execute("INSERT INTO State VALUES (?, ?); ",
                        (message.from_user.id, state))
         db_conn.commit()
+
+def get_current_state(message):
+    cursor.execute("SELECT COUNT(1) FROM State WHERE user_id = ?;", (message.from_user.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("SELECT state FROM State WHERE user_id = ?;", 
+                       (message.from_user.id, ))
+        (state,)=cursor.fetchone()
+        return state
+    else:
+        cursor.execute("INSERT INTO State VALUES (?, ?); ",
+                       (message.from_user.id, "0"))
+        db_conn.commit()
+        return "0"
