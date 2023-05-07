@@ -62,7 +62,7 @@ def admin_check(message):
     else:
         return False
     
-# save last command type
+# save last command used by a person
 def save_current_state(message, state="0"):
     cursor.execute("SELECT COUNT(1) FROM State WHERE user_id = ?;", (message.from_user.id, ))
     (present,)=cursor.fetchone()
@@ -75,6 +75,7 @@ def save_current_state(message, state="0"):
                        (message.from_user.id, state))
         db_conn.commit()
 
+# get last command used by a person
 def get_current_state(message):
     cursor.execute("SELECT COUNT(1) FROM State WHERE user_id = ?;", (message.from_user.id, ))
     (present,)=cursor.fetchone()
@@ -88,3 +89,12 @@ def get_current_state(message):
                        (message.from_user.id, "0"))
         db_conn.commit()
         return "0"
+
+def forward_message_to_admin(message, bot):
+    cursor.execute("SELECT user_id FROM People WHERE role = 2;")
+    admins=cursor.fetchone()
+    for admin in admins:
+        bot.send_message(admin, "Cześć, *" + message.from_user.first_name 
+                         + " (" + str(message.from_user.id) + ")* chciałby przekazać Ci tę wiadomość: \n\n_" 
+                         + message.text + "_", parse_mode= 'Markdown')
+    bot.send_message(message.chat.id, "Wiadomość została pomyślnie przekazana administratorowi 😁")
