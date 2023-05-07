@@ -11,7 +11,7 @@ cursor = db_conn.cursor()
 #   0 - guest
 #   1 - user
 #   2 - admin
-def create_table():
+def create_table_people():
     cursor.execute("""
         create table if not exists People (
             user_id integer primary key,
@@ -21,7 +21,16 @@ def create_table():
             language_code text,
             role integer
             ); """)
-    
+
+# create State table if it does not exist
+# A state is last run command by a person
+def create_table_state():
+    cursor.execute("""
+        create table if not exists State (
+            user_id integer primary key,
+            state text
+            ); """)
+
 # check if person is present in table
 def guest_check(message):
     cursor.execute("SELECT COUNT(1) FROM People WHERE user_id = ?;", (message.from_user.id, ))

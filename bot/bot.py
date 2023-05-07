@@ -37,7 +37,10 @@ ver = int(ver)
 bot = telebot.TeleBot(token)
 
 # create People table if it does not exist
-database.create_table()
+database.create_table_people()
+
+# create People table if it does not exist
+database.create_table_state()
 
 # send permission denied message
 def permission_denied(message):
