@@ -6,30 +6,16 @@ dir = os.path.dirname(os.path.realpath(__file__)) + "/"
 # change current working directory to 'dir'
 os.chdir(dir)
 
-import basic_commands, database, tiktok, twitter
+import func, basic_commands, database, tiktok, twitter
 
 # open file containing token and read from it
-try:
-    with open("../files/telegram.txt") as f:
-        token = f.readlines()
-    f.close()
-except OSError:
-    print("Open error: Could not open the \'telegram.txt\' file.")
-
-# prepare token and key
+token = func.read_file("telegram.txt", "../files/telegram.txt")
 token = str(token[0])
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
-try:
-    with open("../version.txt") as f:
-        ver = f.readlines()
-    f.close()
-except OSError:
-    print("Open error: Could not open the \'version.txt\' file.")
+ver = func.read_file("version.txt", "../version.txt")
 os.remove('../version.txt')
-
-# prepare version number
 ver = str(ver[0])
 ver = int(ver)
 
@@ -144,5 +130,5 @@ def echo_all(message):
     bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
 # infinite loop
-print("Cezary924-Telegram-Bot has been started.")
+print(basic_commands.bot_name + " has been started.")
 bot.infinity_polling()
