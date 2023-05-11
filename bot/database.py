@@ -40,8 +40,8 @@ def guest_check(message):
         return True
     else:
         cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?, ?); ",
-                       (message.chat.id, message.from_user.first_name, 
-                        message.from_user.last_name, message.from_user.username, 
+                       (message.chat.id, message.chat.first_name, 
+                        message.chat.last_name, message.chat.username, 
                         message.from_user.language_code, 0))
         db_conn.commit()
 
@@ -96,7 +96,7 @@ def forward_message_to_admin(message, bot):
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
     for admin in admins:
-        bot.send_message(admin, "Cześć, *" + message.from_user.first_name 
+        bot.send_message(admin, "Cześć, *" + message.chat.first_name 
                          + " (" + str(message.chat.id) + ")* chciałby przekazać Ci tę wiadomość-zgłoszenie: \n\n_" 
                          + message.text + "_", parse_mode= 'Markdown')
     bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
