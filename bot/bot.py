@@ -30,6 +30,7 @@ database.create_table_state()
 
 # send permission denied message
 def permission_denied(message):
+    func.print_log("Permission denied: " + message.from_user.first_name + " (" + message.chat.id + ").")
     markup = telebot.types.InlineKeyboardMarkup()
     contact_button = telebot.types.InlineKeyboardButton(text = "🧑‍🔬 Kontakt z administratorem", callback_data = "command_contact")
     markup.add(contact_button)
@@ -40,11 +41,13 @@ def permission_denied(message):
 # handle callback queries
 @bot.callback_query_handler(func=lambda call: True)
 def test_callback(call):
+    func.print_log("Callback query: " + call.message.from_user.first_name + " (" + call.message.chat.id + ").")
     globals()[str(call.data)](call.message)
 
 # handle /start command
 @bot.message_handler(commands=['start'])
 def command_start(message):
+    func.print_log("/start: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "start")
     basic_commands.command_start(message, bot)
@@ -52,6 +55,7 @@ def command_start(message):
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
+    func.print_log("/help: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
@@ -59,6 +63,7 @@ def command_help(message):
 # handle /contact command
 @bot.message_handler(commands=['contact'])
 def command_contact(message):
+    func.print_log("/contact: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "contact")
     basic_commands.command_contact(message, bot)
@@ -66,6 +71,7 @@ def command_contact(message):
 # handle /report command
 @bot.message_handler(commands=['report'])
 def command_report(message):
+    func.print_log("/report: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "report")
     basic_commands.command_report(message, bot)
@@ -73,6 +79,7 @@ def command_report(message):
 # handle /about command
 @bot.message_handler(commands=['about'])
 def command_about(message):
+    func.print_log("/about: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "about")
     basic_commands.command_about(message, bot, ver)
@@ -80,6 +87,7 @@ def command_about(message):
 # handle /tiktok command
 @bot.message_handler(commands=['tiktok'])
 def command_tiktok(message):
+    func.print_log("/tiktok: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "tiktok")
     if database.user_check(message):
@@ -90,6 +98,7 @@ def command_tiktok(message):
 # handle /twitter command
 @bot.message_handler(commands=['twitter'])
 def command_twitter(message):
+    func.print_log("/twitter: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "twitter")
     if database.user_check(message):
@@ -100,6 +109,7 @@ def command_twitter(message):
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
+    func.print_log("TikTok URL: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "tiktok-url")
     if database.user_check(message):
@@ -110,6 +120,7 @@ def echo_tiktok(message):
 # handle Twitter urls
 @bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
 def echo_twitter(message):
+    func.print_log("Twitter URL: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "twitter-url")
     if database.user_check(message):
@@ -120,15 +131,17 @@ def echo_twitter(message):
 # handle messages to admin
 @bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
 def forward_message_to_admin(message):
+    func.print_log("Report to admin: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.forward_message_to_admin(message, bot)
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
+    func.print_log("Misunderstood message: " + message.from_user.first_name + " (" + message.chat.id + ").")
     database.guest_check(message)
     database.save_current_state(message, "0")
     bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
 # infinite loop
-print(basic_commands.bot_name + " has been started.")
+func.print_log("", basic_commands.bot_name)
 bot.infinity_polling()
