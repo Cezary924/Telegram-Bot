@@ -135,6 +135,14 @@ def forward_message_to_admin(message):
     database.forward_message_to_admin(message, bot)
 
 # handle any other message
+@bot.message_handler(func=lambda message: message.text.startswith("/"))
+def echo_unknown_command(message):
+    func.print_log("Unknown command: " + message.from_user.first_name + " (" + message.chat.id + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "0")
+    bot.send_message(message.chat.id, "Niestety, nie znam takiej komendy... 💔")
+
+# handle any other message
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     func.print_log("Misunderstood message: " + message.from_user.first_name + " (" + message.chat.id + ").")
