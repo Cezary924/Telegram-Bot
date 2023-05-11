@@ -9,11 +9,17 @@ def read_file(name, path):
         print("Open error: Could not open the \'telegram.txt\' file.")
     return x
 
-def print_log(info, bot_name = None):
-    if bot_name != None:
+def print_log(info, bot_name = None, start = 0):
+    if bot_name != None and start == 1:
         print("|================================================================|")
         print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
         print(" " + "               " + bot_name + " has been started. ")
+        print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
+        print("|================================================================|")
+        return
+    elif bot_name != None and start == 0:
+        print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
+        print(" " + "               " + bot_name + " has been stopped. ")
         print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
         print("|================================================================|")
         return
