@@ -1,4 +1,4 @@
-import telebot, os
+import telebot, os, sys, signal
 
 # get path of directory containing bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -150,6 +150,13 @@ def echo_all(message):
     database.save_current_state(message, "0")
     bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
 
+# handle CTRL + C
+def ctrl_c(signal, frame):
+    func.print_log("", basic_commands.bot_name, 0)
+    bot.stop_polling()
+    sys.exit(0)
+signal.signal(signal.SIGINT, ctrl_c)
+
 # infinite loop
-func.print_log("", basic_commands.bot_name)
-bot.infinity_polling()
+func.print_log("", basic_commands.bot_name, 1)
+bot.polling(non_stop = True)
