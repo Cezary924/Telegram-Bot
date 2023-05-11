@@ -1,7 +1,6 @@
 import datetime
 
 def read_file(name, path):
-    print_log('')
     try:
         with open(path) as f:
             x = f.readlines()
