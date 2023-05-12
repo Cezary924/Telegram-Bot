@@ -64,6 +64,7 @@ def command_delete_data_no(message, bot):
 # handle /about command
 def command_about(message, bot, ver):
     def info_about_version(ver):
+        #TODO Check if the number from GitHub is correct
         resp = requests.request("GET", "https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=10000")
         online_ver = len(resp.json())
         if ver > online_ver:
