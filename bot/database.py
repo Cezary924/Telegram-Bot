@@ -91,6 +91,12 @@ def get_current_state(message):
         db_conn.commit()
         return "0"
 
+# delete all data collected from person
+def delete_data(message):
+    cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
+    db_conn.commit()
+
 # forward message sent by person to admin
 def forward_message_to_admin(message, bot):
     cursor.execute("SELECT id FROM People WHERE role = 2;")
