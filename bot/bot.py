@@ -38,6 +38,10 @@ def permission_denied(message):
                      + "Aby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬",
                      reply_markup=markup)
 
+# send info about buttons not working anymore
+def not_working_buttons(message):
+    bot.send_message(message.chat.id, "Niestety, ten przycisk już nie działa... 😥")
+
 # handle callback queries
 @bot.callback_query_handler(func=lambda call: True)
 def test_callback(call):
@@ -75,6 +79,26 @@ def command_report(message):
     database.guest_check(message)
     database.save_current_state(message, "report")
     basic_commands.command_report(message, bot)
+
+# handle /delete_data command
+@bot.message_handler(commands=['delete_data'])
+def command_delete_data(message):
+    func.print_log("/delete-data: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "delete_data")
+    basic_commands.command_delete_data(message, bot)
+def command_delete_data_yes(message):
+    if database.get_current_state(message) == "delete_data":
+        database.delete_data(message)
+        basic_commands.command_delete_data_yes(message, bot)
+    else:
+        not_working_buttons(message)
+def command_delete_data_no(message):
+    if database.get_current_state(message) == "delete_data":
+        database.save_current_state(message, "0")
+        basic_commands.command_delete_data_no(message, bot)
+    else:
+        not_working_buttons(message)
 
 # handle /about command
 @bot.message_handler(commands=['about'])

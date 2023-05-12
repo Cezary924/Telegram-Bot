@@ -44,6 +44,22 @@ def command_contact(message, bot):
 def command_report(message, bot):
     bot.send_message(message.chat.id, "Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡")
 
+# handle /delete_data command
+def command_delete_data(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_delete_data_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_delete_data_no")
+    markup.add(no_button)
+    bot.send_message(message.chat.id, "Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
+                     + " Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej"
+                     + " konfiguracji. Operacji tej nie będzie można cofnąć.", 
+                     reply_markup = markup)
+def command_delete_data_yes(message, bot):
+    bot.send_message(message.chat.id, "Operacja usuwania danych przebiegła pomyślnie.")
+def command_delete_data_no(message, bot):
+    bot.send_message(message.chat.id, "Operacja usuwania danych została anulowana.")
+
 # handle /about command
 def command_about(message, bot, ver):
     def info_about_version(ver):
