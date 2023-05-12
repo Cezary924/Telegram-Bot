@@ -29,6 +29,7 @@ def command_help(message, bot):
                      "/help - _📃 Strona pomocy z listą dostępnych komend_\n" +
                      "/contact - _🧑‍🔬 Informacje o drogach kontaktu z Administratorem_\n" +
                      "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n" +
+                     "/delete_data - _🗑️ Usuń wszystkie zebrane od Ciebie dane_\n" +
                      "/about - _ℹ️ Informacje o Bocie_\n" +
                      "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
                      "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown')
