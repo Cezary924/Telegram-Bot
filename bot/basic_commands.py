@@ -1,4 +1,6 @@
 import telebot, requests
+from urllib.parse import parse_qs, urlparse
+
 import func
 
 # open file containing bot name and read from it
@@ -64,9 +66,10 @@ def command_delete_data_no(message, bot):
 # handle /about command
 def command_about(message, bot, ver):
     def info_about_version(ver):
-        #TODO Check if the number from GitHub is correct
-        resp = requests.request("GET", "https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=10000")
-        online_ver = len(resp.json())
+        response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=1")
+        if response.status_code != 200:
+            return "Błąd. Spróbuj później."
+        online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
         if ver > online_ver:
             return "Beta"
         elif ver == online_ver:
