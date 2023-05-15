@@ -4,4 +4,5 @@
 /files/twitter.txt
 /files/database.db
 /files/database.db-journal
+/run.ps1
 /bot/__pycache__/
