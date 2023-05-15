@@ -4,9 +4,9 @@
 
 ## ⚙️ Installation & Configuration</h3>
 1. Clone this repo.
-2. Install the required Python Telegram library with this code:
+2. Install required libraries with this code:
 ```
-pip install pyTelegramBotAPI
+pip install -r requirements.txt
 ```
 3. Create:
    - ```telegram.txt``` file in *files* folder and write your Telegram token to it.
