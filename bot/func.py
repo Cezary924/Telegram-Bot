@@ -1,5 +1,7 @@
 import datetime
 
+suffix = 0
+
 # read and open file 'name' located in 'path'
 def read_file(name, path):
     try:

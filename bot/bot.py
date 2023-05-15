@@ -6,11 +6,18 @@ dir = os.path.dirname(os.path.realpath(__file__)) + "/"
 # change current working directory to 'dir'
 os.chdir(dir)
 
-import func, basic_commands, database, tiktok, twitter
+import func
 
-# open file containing token and read from it
-token = func.read_file("telegram.txt", "../files/telegram.txt")
-token = str(token[0])
+# open file containing Telegram token and read from it
+if len(sys.argv) == 2 and sys.argv[1] == "stable":
+    func.suffix = 1
+    token = func.read_file("telegram-stable.txt", "../files/telegram-stable.txt")
+    token = str(token[0])
+else:
+    token = func.read_file("telegram.txt", "../files/telegram.txt")
+    token = str(token[0])
+
+import basic_commands, database, tiktok, twitter
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')

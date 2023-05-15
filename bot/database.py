@@ -1,7 +1,11 @@
 import sqlite3
+import func
 
 # connect to users database
-db_conn = sqlite3.connect("../files/database.db", check_same_thread=False)
+if func.suffix == 0:
+    db_conn = sqlite3.connect("../files/database.db", check_same_thread=False)
+else:
+    db_conn = sqlite3.connect("../files/database-stable.db", check_same_thread=False)
 
 # create cursor
 cursor = db_conn.cursor()
