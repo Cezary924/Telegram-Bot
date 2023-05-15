@@ -1,4 +1,4 @@
-import sqlite3, telebot
+import sqlite3
 
 # connect to users database
 db_conn = sqlite3.connect("../files/database.db", check_same_thread=False)
