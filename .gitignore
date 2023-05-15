@@ -1,8 +1,11 @@
 # Ignore secret files containing tokens, keys, etc.
 /files/telegram.txt
+/files/telegram-stable.txt
 /files/tiktok.txt
 /files/twitter.txt
 /files/database.db
 /files/database.db-journal
+/files/database-stable.db
+/files/database-stable.db-journal
 /run.ps1
 /bot/__pycache__/
