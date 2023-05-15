@@ -1,5 +1,6 @@
 import datetime
 
+# read and open file 'name' located in 'path'
 def read_file(name, path):
     try:
         with open(path) as f:
@@ -9,6 +10,7 @@ def read_file(name, path):
         print("Open error: Could not open the \'telegram.txt\' file.")
     return x
 
+# print info about bot's tasks
 def print_log(info, bot_name = None, start = 0):
     if bot_name != None and start == 1:
         print("|================================================================|")
