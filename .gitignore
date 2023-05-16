@@ -7,5 +7,7 @@
 /files/database.db-journal
 /files/database-stable.db
 /files/database-stable.db-journal
+/stderr.txt
+/stdout.txt
 /run.ps1
 /bot/__pycache__/
