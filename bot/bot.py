@@ -13,9 +13,9 @@ sys.stderr = open('../stderr.txt', 'w')
 import func
 
 # open file containing Telegram token and read from it
-if len(sys.argv) == 2 and sys.argv[1] == "stable":
+if len(sys.argv) == 2 and sys.argv[1] == "beta":
     func.suffix = 1
-    token = func.read_file("telegram-stable.txt", "../files/telegram-stable.txt")
+    token = func.read_file("telegram-beta.txt", "../files/telegram-beta.txt")
     token = str(token[0])
 else:
     token = func.read_file("telegram.txt", "../files/telegram.txt")
