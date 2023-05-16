@@ -6,6 +6,10 @@ dir = os.path.dirname(os.path.realpath(__file__)) + "/"
 # change current working directory to 'dir'
 os.chdir(dir)
 
+# write stdout & stdeer to files
+sys.stdout = open('../stdout.txt', 'w')
+sys.stderr = open('../stderr.txt', 'w')
+
 import func
 
 # open file containing Telegram token and read from it
@@ -185,6 +189,8 @@ def echo_all(message):
 def ctrl_c(signal, frame):
     func.print_log("", basic_commands.bot_name, 0)
     bot.stop_polling()
+    os.remove('../stdout.txt')
+    os.remove('../stderr.txt')
     sys.exit(0)
 signal.signal(signal.SIGINT, ctrl_c)
 
