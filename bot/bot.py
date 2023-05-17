@@ -59,14 +59,6 @@ def test_callback(call):
     func.print_log("Callback query: " + call.message.chat.first_name + " (" + str(call.message.chat.id) + ").")
     globals()[str(call.data)](call.message)
 
-# handle /start command
-@bot.message_handler(commands=['start'])
-def command_start(message):
-    func.print_log("/start: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    database.guest_check(message)
-    database.save_current_state(message, "start")
-    basic_commands.command_start(message, bot)
-
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
@@ -74,6 +66,34 @@ def command_help(message):
     database.guest_check(message)
     database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
+def command_help_main(message):
+    func.print_log("/help_main: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "help_main")
+    basic_commands.command_help_main(message, bot)
+def command_help_downloader(message):
+    func.print_log("/help_downloader: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "help_downloader")
+    basic_commands.command_help_downloader(message, bot)
+def command_help_contact(message):
+    func.print_log("/help_contact: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "help_contact")
+    basic_commands.command_help_contact(message, bot)
+def command_help_settings(message):
+    func.print_log("/help_settings: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "help_settings")
+    basic_commands.command_help_settings(message, bot)
+
+# handle /start command
+@bot.message_handler(commands=['start'])
+def command_start(message):
+    func.print_log("/start: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message)
+    database.save_current_state(message, "start")
+    basic_commands.command_start(message, bot)
 
 # handle /contact command
 @bot.message_handler(commands=['contact'])
@@ -91,23 +111,23 @@ def command_report(message):
     database.save_current_state(message, "report")
     basic_commands.command_report(message, bot)
 
-# handle /delete_data command
-@bot.message_handler(commands=['delete_data'])
-def command_delete_data(message):
-    func.print_log("/delete-data: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+# handle /deletedata command
+@bot.message_handler(commands=['deletedata'])
+def command_deletedata(message):
+    func.print_log("/deletedata: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
-    database.save_current_state(message, "delete_data")
-    basic_commands.command_delete_data(message, bot)
-def command_delete_data_yes(message):
-    if database.get_current_state(message) == "delete_data":
-        database.delete_data(message)
-        basic_commands.command_delete_data_yes(message, bot)
+    database.save_current_state(message, "deletedata")
+    basic_commands.command_deletedata(message, bot)
+def command_deletedata_yes(message):
+    if database.get_current_state(message) == "deletedata":
+        database.deletedata(message)
+        basic_commands.command_deletedata_yes(message, bot)
     else:
         not_working_buttons(message)
-def command_delete_data_no(message):
-    if database.get_current_state(message) == "delete_data":
+def command_deletedata_no(message):
+    if database.get_current_state(message) == "deletedata":
         database.save_current_state(message, "0")
-        basic_commands.command_delete_data_no(message, bot)
+        basic_commands.command_deletedata_no(message, bot)
     else:
         not_working_buttons(message)
 
@@ -146,7 +166,7 @@ def command_twitter(message):
 def echo_tiktok(message):
     func.print_log("TikTok URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
-    database.save_current_state(message, "tiktok-url")
+    database.save_current_state(message, "tiktok_url")
     if database.user_check(message):
         tiktok.start_tiktok(message, bot)
     else:
@@ -157,7 +177,7 @@ def echo_tiktok(message):
 def echo_twitter(message):
     func.print_log("Twitter URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
-    database.save_current_state(message, "twitter-url")
+    database.save_current_state(message, "twitter_url")
     if database.user_check(message):
         twitter.start_twitter(message, bot)
     else:
