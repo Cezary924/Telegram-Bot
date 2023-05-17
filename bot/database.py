@@ -96,7 +96,7 @@ def get_current_state(message):
         return "0"
 
 # delete all data collected from person
-def delete_data(message):
+def deletedata(message):
     cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()

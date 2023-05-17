@@ -26,15 +26,44 @@ def command_start(message, bot):
 
 # handle /help command
 def command_help(message, bot):
-    bot.send_message(message.chat.id, "*📃 Oto lista dostępnych poleceń*\n\n" + 
+    markup = telebot.types.InlineKeyboardMarkup()
+    main_button = telebot.types.InlineKeyboardButton(text = "🤖 Ogólne", callback_data = "command_help_main")
+    markup.add(main_button)
+    downloader_button = telebot.types.InlineKeyboardButton(text = "⬇️ Pobieranie wideo", callback_data = "command_help_downloader")
+    markup.add(downloader_button)
+    contact_button = telebot.types.InlineKeyboardButton(text = "🧑‍🔬 Kontakt", callback_data = "command_help_contact")
+    markup.add(contact_button)
+    settings_button = telebot.types.InlineKeyboardButton(text = "⚙️ Ustawienia", callback_data = "command_help_settings")
+    markup.add(settings_button)
+    bot.send_message(message.chat.id, "📃 Wybierz interesującą Cię kategorię komend", reply_markup = markup)
+def command_help_main(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    markup.add(help_button)
+    bot.send_message(message.chat.id, "📃 *Komendy > 🤖 Ogólne:*\n\n" + 
                      "/start - _🤖 Zaczęcie rozmowy z Botem_\n" + 
                      "/help - _📃 Strona pomocy z listą dostępnych komend_\n" +
-                     "/contact - _🧑‍🔬 Informacje o drogach kontaktu z Administratorem_\n" +
-                     "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n" +
-                     #TODO"/delete_data - _🗑️ Usuń wszystkie zebrane od Ciebie dane_\n" +
-                     "/about - _ℹ️ Informacje o Bocie_\n" +
+                     "/about - _ℹ️ Informacje o Bocie_", parse_mode= 'Markdown', reply_markup = markup)
+def command_help_downloader(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    markup.add(help_button)
+    bot.send_message(message.chat.id, "📃 *Komendy > ⬇️ Pobieranie wideo:*\n\n" + 
                      "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
-                     "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown')
+                     "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown', reply_markup = markup)
+def command_help_contact(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    markup.add(help_button)
+    bot.send_message(message.chat.id, "📃 *Komendy > 🧑‍🔬 Kontakt:*\n\n" + 
+                     "/contact - _🧑‍🔬 Informacje o drogach kontaktu z Administratorem_\n" +
+                     "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n", parse_mode= 'Markdown', reply_markup = markup)
+def command_help_settings(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    markup.add(help_button)
+    bot.send_message(message.chat.id, "📃 *Komendy > ⚙️ Ustawienia:*\n\n" + 
+                     "/deletedata - _🗑️ Usuń wszystkie zebrane od Ciebie dane_\n", parse_mode= 'Markdown', reply_markup = markup)
 
 # handle /contact command
 def command_contact(message, bot):
@@ -47,20 +76,20 @@ def command_contact(message, bot):
 def command_report(message, bot):
     bot.send_message(message.chat.id, "Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡")
 
-# handle /delete_data command
-def command_delete_data(message, bot):
+# handle /deletedata command
+def command_deletedata(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_delete_data_yes")
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_deletedata_yes")
     markup.add(yes_button)
-    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_delete_data_no")
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_deletedata_no")
     markup.add(no_button)
     bot.send_message(message.chat.id, "Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
                      + " Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej"
                      + " konfiguracji. Operacji tej nie będzie można cofnąć.", 
                      reply_markup = markup)
-def command_delete_data_yes(message, bot):
+def command_deletedata_yes(message, bot):
     bot.send_message(message.chat.id, "Operacja usuwania danych przebiegła pomyślnie.")
-def command_delete_data_no(message, bot):
+def command_deletedata_no(message, bot):
     bot.send_message(message.chat.id, "Operacja usuwania danych została anulowana.")
 
 # handle /about command
