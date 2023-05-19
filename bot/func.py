@@ -12,6 +12,14 @@ def read_file(name, path):
         print("Open error: Could not open the \'" + name + ".txt\' file.")
     return x
 
+# write and open file 'name' located in 'path' with buffering parameter 'buff'
+def write_file(name, path, buff = -1):
+    try:
+        x = open(path, 'w', buffering = buff)
+    except OSError:
+        print("Open error: Could not open the \'" + name + ".txt\' file.")
+    return x
+
 # print info about bot's tasks
 def print_log(info, bot_name = None, start = 0):
     if bot_name != None and start == 1:
