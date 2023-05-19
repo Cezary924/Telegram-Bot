@@ -1,5 +1,6 @@
 import datetime
 
+# create boolean variable storing info if beta ver of bot is running
 suffix = 0
 
 # read and open file 'name' located in 'path'
