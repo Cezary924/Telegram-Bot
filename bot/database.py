@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3, threading
 import func
 
 # connect to users database
@@ -10,6 +10,9 @@ else:
 # create cursor
 cursor = db_conn.cursor()
 
+# create lock object
+database_lock = threading.Lock()
+
 # create People table if it does not exist
 # Role types:
 #  -1 - banned
@@ -17,6 +20,7 @@ cursor = db_conn.cursor()
 #   1 - user
 #   2 - admin
 def create_table_people():
+    database_lock.acquire(True)
     cursor.execute("""
         create table if not exists People (
             id integer primary key,
@@ -26,25 +30,32 @@ def create_table_people():
             language_code text,
             role integer
             ); """)
+    database_lock.release()
 
 # create State table if it does not exist
 # A state is last run command by a person
 def create_table_state():
+    database_lock.acquire(True)
     cursor.execute("""
         create table if not exists State (
             id integer primary key,
             state text
             ); """)
+    database_lock.release()
 
 # commit changes and close connection with database
 def commit_close():
+    database_lock.acquire(True)
     db_conn.commit()
     db_conn.close()
+    database_lock.release()
 
 # check if person is present in table
 def guest_check(message):
+    database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
+    database_lock.release()
     if present == 1:
         return True
     else:
@@ -53,11 +64,14 @@ def guest_check(message):
                         message.chat.last_name, message.chat.username, 
                         message.from_user.language_code, 0))
         db_conn.commit()
+        database_lock.release()
 
 # check if person is user
 def user_check(message):
+    database_lock.acquire(True)
     cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
     (role,)=cursor.fetchone()
+    database_lock.release()
     if role >= 1:
         return True
     else:
@@ -65,8 +79,10 @@ def user_check(message):
 
 # check if person is admin
 def admin_check(message):
+    database_lock.acquire(True)
     cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
     (role,)=cursor.fetchone()
+    database_lock.release()
     if role == 2:
         return True
     else:
@@ -74,6 +90,7 @@ def admin_check(message):
     
 # save last command used by person
 def save_current_state(message, state="0"):
+    database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM State WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
     if present == 1:
@@ -84,30 +101,37 @@ def save_current_state(message, state="0"):
         cursor.execute("INSERT INTO State VALUES (?, ?); ",
                        (message.chat.id, state))
         db_conn.commit()
+    database_lock.release()
 
 # get last command used by person
 def get_current_state(message):
+    database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM State WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
     if present == 1:
         cursor.execute("SELECT state FROM State WHERE id = ?;", 
                        (message.chat.id, ))
         (state,)=cursor.fetchone()
+        database_lock.release()
         return state
     else:
         cursor.execute("INSERT INTO State VALUES (?, ?); ",
                        (message.chat.id, "0"))
         db_conn.commit()
+        database_lock.release()
         return "0"
 
 # delete all data collected from person
 def deletedata(message):
+    database_lock.acquire(True)
     cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()
+    database_lock.release()
 
 # forward message sent by person to admin
 def forward_message_to_admin(message, bot):
+    database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
     for admin in admins:
@@ -116,3 +140,4 @@ def forward_message_to_admin(message, bot):
                          + message.text + "_", parse_mode= 'Markdown')
     bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
     save_current_state(message)
+    database_lock.release()
