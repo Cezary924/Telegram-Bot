@@ -6,11 +6,11 @@ dir = os.path.dirname(os.path.realpath(__file__)) + "/"
 # change current working directory to 'dir'
 os.chdir(dir)
 
-# write stdout & stdeer to files
-sys.stdout = open('../stdout.txt', 'w', buffering = 1)
-sys.stderr = open('../stderr.txt', 'w', buffering = 1)
-
 import func
+
+# write stdout & stdeer to files
+sys.stdout = func.write_file('stdout.txt', '../stdout.txt', 1)
+sys.stderr = func.write_file('stderr.txt', '../stderr.txt', 1)
 
 # open file containing Telegram token and read from it
 if len(sys.argv) == 2 and sys.argv[1] == "beta":
