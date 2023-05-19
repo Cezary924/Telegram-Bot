@@ -7,8 +7,8 @@ dir = os.path.dirname(os.path.realpath(__file__)) + "/"
 os.chdir(dir)
 
 # write stdout & stdeer to files
-sys.stdout = open('../stdout.txt', 'w')
-sys.stderr = open('../stderr.txt', 'w')
+sys.stdout = open('../stdout.txt', 'w', buffering = 1)
+sys.stderr = open('../stderr.txt', 'w', buffering = 1)
 
 import func
 
