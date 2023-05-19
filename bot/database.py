@@ -36,6 +36,11 @@ def create_table_state():
             state text
             ); """)
 
+# commit changes and close connection with database
+def commit_close():
+    db_conn.commit()
+    db_conn.close()
+
 # check if person is present in table
 def guest_check(message):
     cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))

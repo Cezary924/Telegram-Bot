@@ -209,8 +209,7 @@ def echo_all(message):
 def ctrl_c(signal, frame):
     func.print_log("", basic_commands.bot_name, 0)
     bot.stop_polling()
-    os.remove('../stdout.txt')
-    os.remove('../stderr.txt')
+    database.commit_close()
     sys.exit(0)
 signal.signal(signal.SIGINT, ctrl_c)
 
