@@ -1,7 +1,7 @@
 import telebot, requests
 from urllib.parse import parse_qs, urlparse
 
-import func
+import func, database
 
 # open file containing bot name and read from it
 bot_name = func.read_file("bot_name.txt", "../files/bot_name.txt")
@@ -15,6 +15,11 @@ github_username = str(github_username[0])
 github_repo = func.read_file("github_repo.txt", "../files/github_repo.txt")
 github_repo = str(github_repo[0])
 
+# delete previously sent message by bot
+def delete_previous_bot_message(message, bot):
+    func.print_log("Delete previous message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    bot.delete_message(message.chat.id, database.get_last_message(message))
+
 # handle /start command
 def command_start(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
@@ -22,8 +27,9 @@ def command_start(message, bot):
     markup.add(help_button)
     about_button = telebot.types.InlineKeyboardButton(text = "ℹ️ Informacje o Bocie", callback_data = "command_about")
     markup.add(about_button)
-    bot.send_message(message.chat.id, "*👋 Cześć!*\n\nZ tej strony " + bot_name + "! 🤖",
+    mess = bot.send_message(message.chat.id, "*👋 Cześć!*\n\nZ tej strony " + bot_name + "! 🤖",
                       parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 
 # handle /help command
 def command_help(message, bot):
@@ -36,49 +42,58 @@ def command_help(message, bot):
     markup.add(contact_button)
     settings_button = telebot.types.InlineKeyboardButton(text = "⚙️ Ustawienia", callback_data = "command_help_settings")
     markup.add(settings_button)
-    bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nWybierz interesującą Cię kategorię komend",
+    exit_button = telebot.types.InlineKeyboardButton(text = "❌ Wyjście", callback_data = "command_help_return")
+    markup.add(exit_button)
+    mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nWybierz interesującą Cię kategorię komend",
                      parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 def command_help_main(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
     markup.add(help_button)
-    bot.send_message(message.chat.id, "📃 *Komendy > 🤖 Ogólne:*\n\n" + 
+    mess = bot.send_message(message.chat.id, "📃 *Pomoc > 🤖 Ogólne:*\n\n" + 
                      "/start - _🤖 Zaczęcie rozmowy z Botem_\n" + 
                      "/help - _📃 Strona pomocy z listą dostępnych komend_\n" +
                      "/about - _ℹ️ Informacje o Bocie_", parse_mode= 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 def command_help_downloader(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
     markup.add(help_button)
-    bot.send_message(message.chat.id, "📃 *Komendy > ⬇️ Pobieranie wideo:*\n\n" + 
+    mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⬇️ Pobieranie wideo:*\n\n" + 
                      "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
                      "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 def command_help_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
     markup.add(help_button)
-    bot.send_message(message.chat.id, "📃 *Komendy > ☎️ Kontakt:*\n\n" + 
+    mess = bot.send_message(message.chat.id, "📃 *Pomoc > ☎️ Kontakt:*\n\n" + 
                      "/contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n" +
                      "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n", parse_mode= 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 def command_help_settings(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
+    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
     markup.add(help_button)
-    bot.send_message(message.chat.id, "📃 *Komendy > ⚙️ Ustawienia:*\n\n" + 
+    mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⚙️ Ustawienia:*\n\n" + 
                      "/deletedata - _🗑️ Usuń wszystkie zebrane od Ciebie dane_\n", parse_mode= 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 
 # handle /contact command
 def command_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     report_button = telebot.types.InlineKeyboardButton(text = "📨 Zgłoszenie do Administratora", callback_data = "command_report")
     markup.add(report_button)
-    bot.send_message(message.chat.id, "☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨", 
+    mess = bot.send_message(message.chat.id, "☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨", 
                      parse_mode = 'Markdown',
                      reply_markup = markup)
+    database.register_last_message(mess)
 
 # handle /report command
 def command_report(message, bot):
-    bot.send_message(message.chat.id, "📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡", parse_mode= 'Markdown')
+    mess = bot.send_message(message.chat.id, "📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡", parse_mode= 'Markdown')
+    database.register_last_message(mess)
 
 # handle /deletedata command
 def command_deletedata(message, bot):
@@ -87,14 +102,17 @@ def command_deletedata(message, bot):
     markup.add(yes_button)
     no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_deletedata_no")
     markup.add(no_button)
-    bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
+    mess = bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
                      + " Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej"
                      + " konfiguracji. Operacji tej nie będzie można cofnąć.", 
                      parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 def command_deletedata_yes(message, bot):
-    bot.send_message(message.chat.id, "Operacja usuwania danych przebiegła pomyślnie.")
+    mess = bot.send_message(message.chat.id, "Operacja usuwania danych przebiegła pomyślnie.")
+    database.register_last_message(mess)
 def command_deletedata_no(message, bot):
-    bot.send_message(message.chat.id, "Operacja usuwania danych została anulowana.")
+    mess = bot.send_message(message.chat.id, "Operacja usuwania danych została anulowana.")
+    database.register_last_message(mess)
 
 # handle /about command
 def command_about(message, bot, ver):
@@ -110,7 +128,7 @@ def command_about(message, bot, ver):
         else:
             return "Stablina, przestarzała (" + str(online_ver) + ")"
 
-    bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie:*\n\n"
+    mess = bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie:*\n\n"
                     + "*" + bot_name + "*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
                     + "Autor: _@" + github_username + "_\n"
@@ -118,11 +136,14 @@ def command_about(message, bot, ver):
                     + "Status wersji: _" + info_about_version(ver) + "_\n"
                     + "Rok powstania: _2023_\n"
                     + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
+    database.register_last_message(mess)
 
 # handle /tiktok command
 def command_tiktok(message, bot):
-    bot.send_message(message.chat.id, "🎵 *TikTok*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    mess = bot.send_message(message.chat.id, "🎵 *TikTok*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    database.register_last_message(mess)
 
 # handle /twitter command
 def command_twitter(message, bot):
-    bot.send_message(message.chat.id, "🐦 *Twitter*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    mess = bot.send_message(message.chat.id, "🐦 *Twitter*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    database.register_last_message(mess)

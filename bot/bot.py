@@ -36,8 +36,11 @@ bot = telebot.TeleBot(token)
 # create People table if it does not exist
 database.create_table_people()
 
-# create People table if it does not exist
+# create State table if it does not exist
 database.create_table_state()
+
+# create Last_Bot_Message table if it does not exist
+database.create_table_last_bot_message()
 
 # send permission denied message
 def permission_denied(message):
@@ -45,13 +48,15 @@ def permission_denied(message):
     markup = telebot.types.InlineKeyboardMarkup()
     contact_button = telebot.types.InlineKeyboardButton(text = "🧑‍🔬 Kontakt z administratorem", callback_data = "command_contact")
     markup.add(contact_button)
-    bot.send_message(message.chat.id, "Niestety, nie możesz skorzystać z tego polecenia... 😭\n\n"
+    mess = bot.send_message(message.chat.id, "Niestety, nie możesz skorzystać z tego polecenia... 😭\n\n"
                      + "Aby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬",
                      reply_markup=markup)
+    database.register_last_message(mess)
 
 # send info about buttons not working anymore
 def not_working_buttons(message):
-    bot.send_message(message.chat.id, "Niestety, ten przycisk już nie działa... 😥")
+    mess = bot.send_message(message.chat.id, "Niestety, ten przycisk już nie działa... 😥")
+    database.register_last_message(mess)
 
 # handle callback queries
 @bot.callback_query_handler(func=lambda call: True)
@@ -69,23 +74,41 @@ def command_help(message):
 def command_help_main(message):
     func.print_log("/help_main: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
+    if "help" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_main")
     basic_commands.command_help_main(message, bot)
 def command_help_downloader(message):
     func.print_log("/help_downloader: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
+    if "help" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_downloader")
     basic_commands.command_help_downloader(message, bot)
 def command_help_contact(message):
     func.print_log("/help_contact: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
+    if "help" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_contact")
     basic_commands.command_help_contact(message, bot)
 def command_help_settings(message):
     func.print_log("/help_settings: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
+    if "help" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_settings")
     basic_commands.command_help_settings(message, bot)
+def command_help_return(message):
+    if "help" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu pomocy _/help_ ❌", parse_mode='Markdown')
+        database.register_last_message(mess)
+    elif "help_" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_help(message)
+    else:
+        not_working_buttons(message)
 
 # handle /start command
 @bot.message_handler(commands=['start'])
@@ -195,7 +218,8 @@ def echo_unknown_command(message):
     func.print_log("Unknown command: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
     database.save_current_state(message, "0")
-    bot.send_message(message.chat.id, "Niestety, nie znam takiej komendy... 💔")
+    mess = bot.send_message(message.chat.id, "Niestety, nie znam takiej komendy... 💔")
+    database.register_last_message(mess)
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)
@@ -203,7 +227,8 @@ def echo_all(message):
     func.print_log("Misunderstood message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message)
     database.save_current_state(message, "0")
-    bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
+    mess = bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
+    database.register_last_message(mess)
 
 # handle CTRL + C
 def ctrl_c(signal, frame):
