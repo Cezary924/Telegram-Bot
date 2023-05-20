@@ -22,7 +22,8 @@ def command_start(message, bot):
     markup.add(help_button)
     about_button = telebot.types.InlineKeyboardButton(text = "ℹ️ Informacje o Bocie", callback_data = "command_about")
     markup.add(about_button)
-    bot.send_message(message.chat.id, "Cześć, z tej strony " + bot_name + "! 🤖👋", reply_markup = markup)
+    bot.send_message(message.chat.id, "*👋 Cześć!*\n\nZ tej strony " + bot_name + "! 🤖",
+                      parse_mode = 'Markdown', reply_markup = markup)
 
 # handle /help command
 def command_help(message, bot):
@@ -31,11 +32,12 @@ def command_help(message, bot):
     markup.add(main_button)
     downloader_button = telebot.types.InlineKeyboardButton(text = "⬇️ Pobieranie wideo", callback_data = "command_help_downloader")
     markup.add(downloader_button)
-    contact_button = telebot.types.InlineKeyboardButton(text = "🧑‍🔬 Kontakt", callback_data = "command_help_contact")
+    contact_button = telebot.types.InlineKeyboardButton(text = "☎️ Kontakt", callback_data = "command_help_contact")
     markup.add(contact_button)
     settings_button = telebot.types.InlineKeyboardButton(text = "⚙️ Ustawienia", callback_data = "command_help_settings")
     markup.add(settings_button)
-    bot.send_message(message.chat.id, "📃 Wybierz interesującą Cię kategorię komend", reply_markup = markup)
+    bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nWybierz interesującą Cię kategorię komend",
+                     parse_mode = 'Markdown', reply_markup = markup)
 def command_help_main(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
@@ -55,8 +57,8 @@ def command_help_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help")
     markup.add(help_button)
-    bot.send_message(message.chat.id, "📃 *Komendy > 🧑‍🔬 Kontakt:*\n\n" + 
-                     "/contact - _🧑‍🔬 Informacje o drogach kontaktu z Administratorem_\n" +
+    bot.send_message(message.chat.id, "📃 *Komendy > ☎️ Kontakt:*\n\n" + 
+                     "/contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n" +
                      "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n", parse_mode= 'Markdown', reply_markup = markup)
 def command_help_settings(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
@@ -68,13 +70,15 @@ def command_help_settings(message, bot):
 # handle /contact command
 def command_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    report_button = telebot.types.InlineKeyboardButton(text = "✉️ Zgłoszenie do Administratora", callback_data = "command_report")
+    report_button = telebot.types.InlineKeyboardButton(text = "📨 Zgłoszenie do Administratora", callback_data = "command_report")
     markup.add(report_button)
-    bot.send_message(message.chat.id, "Aby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨", reply_markup = markup)
+    bot.send_message(message.chat.id, "☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨", 
+                     parse_mode = 'Markdown',
+                     reply_markup = markup)
 
 # handle /report command
 def command_report(message, bot):
-    bot.send_message(message.chat.id, "Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡")
+    bot.send_message(message.chat.id, "📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡", parse_mode= 'Markdown')
 
 # handle /deletedata command
 def command_deletedata(message, bot):
@@ -83,10 +87,10 @@ def command_deletedata(message, bot):
     markup.add(yes_button)
     no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_deletedata_no")
     markup.add(no_button)
-    bot.send_message(message.chat.id, "Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
+    bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
                      + " Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej"
                      + " konfiguracji. Operacji tej nie będzie można cofnąć.", 
-                     reply_markup = markup)
+                     parse_mode = 'Markdown', reply_markup = markup)
 def command_deletedata_yes(message, bot):
     bot.send_message(message.chat.id, "Operacja usuwania danych przebiegła pomyślnie.")
 def command_deletedata_no(message, bot):
@@ -106,19 +110,19 @@ def command_about(message, bot, ver):
         else:
             return "Stablina, przestarzała (" + str(online_ver) + ")"
 
-    bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie*\n\n"
+    bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie:*\n\n"
                     + "*" + bot_name + "*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
                     + "Autor: _@" + github_username + "_\n"
-                    + "Rok powstania: _2023_\n"
                     + "Wersja: _" + str(ver) + "_\n"
                     + "Status wersji: _" + info_about_version(ver) + "_\n"
+                    + "Rok powstania: _2023_\n"
                     + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
 
 # handle /tiktok command
 def command_tiktok(message, bot):
-    bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🎵")
+    bot.send_message(message.chat.id, "🎵 *TikTok*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
 
 # handle /twitter command
 def command_twitter(message, bot):
-    bot.send_message(message.chat.id, "Aby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🐦")
+    bot.send_message(message.chat.id, "🐦 *Twitter*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
