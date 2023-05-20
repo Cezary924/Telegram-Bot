@@ -43,6 +43,16 @@ def create_table_state():
             ); """)
     database_lock.release()
 
+# create Last_Bot_Message table if it does not exist
+def create_table_last_bot_message():
+    database_lock.acquire(True)
+    cursor.execute("""
+        create table if not exists Last_Bot_Message (
+            id integer primary key,
+            mess_id integer
+            ); """)
+    database_lock.release()
+
 # commit changes and close connection with database
 def commit_close():
     database_lock.acquire(True)
@@ -142,3 +152,36 @@ def forward_message_to_admin(message, bot):
                          + message.text + "_", parse_mode= 'Markdown')
     bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
     save_current_state(message)
+
+# register last bot message id
+def register_last_message(message):
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Last_Bot_Message WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("UPDATE Last_Bot_Message SET mess_id = ? WHERE id = ?;", 
+                       (message.id, message.chat.id))
+        db_conn.commit()
+    else:
+        cursor.execute("INSERT INTO Last_Bot_Message VALUES (?, ?); ",
+                       (message.chat.id, message.id))
+        db_conn.commit()
+    database_lock.release()
+
+# get last bot message id
+def get_last_message(message):
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Last_Bot_Message WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("SELECT mess_id FROM Last_Bot_Message WHERE id = ?;", 
+                       (message.chat.id, ))
+        (mess_id,)=cursor.fetchone()
+        database_lock.release()
+        return mess_id
+    else:
+        cursor.execute("INSERT INTO Last_Bot_Message VALUES (?, ?); ",
+                       (message.chat.id, message.id))
+        db_conn.commit()
+        database_lock.release()
+        return message.id
