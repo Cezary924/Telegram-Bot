@@ -1,6 +1,8 @@
 <h1 align=center>Cezary924-Telegram-Bot</h1>
 <h3 align=center>🤖</h3>
 <h3 align=center>Multifunctional Telegram Bot</h3>
+<h4 align=center>Main features</h4>
+<h5 align=center>Video downloader</h5>
 
 ## ⚙️ Installation & Configuration</h3>
 1. Clone this repo.
