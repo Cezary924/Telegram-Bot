@@ -86,7 +86,7 @@ def guest_check(message, bot = None, dataprocessing = 0):
         bot.send_message(message.chat.id, "✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. "
                                 + "Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na "
                                 + "gromadzenie przeze mnie przekazywanych mi przez Ciebie danych oraz na "
-                                + "wykorzystywanie ich zgodnie z ich przeznaczeniem - korzystanie z moich funkcjonalności, pomoc i ułatwienie Ci życia 💝", 
+                                + "wykorzystywanie ich zgodnie z ich przeznaczeniem - korzystanie z moich funkcjonalności, pomoc i ułatwianie Ci życia 💝", 
                         parse_mode = 'Markdown', reply_markup = markup)
         return False
 
