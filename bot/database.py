@@ -1,4 +1,4 @@
-import sqlite3, threading
+import sqlite3, threading, telebot
 import func
 
 # connect to users database
@@ -61,7 +61,7 @@ def commit_close():
     database_lock.release()
 
 # check if person is present in table
-def guest_check(message):
+def guest_check(message, bot = None, dataprocessing = 0):
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -69,13 +69,26 @@ def guest_check(message):
     if present == 1:
         return True
     else:
-        database_lock.acquire(True)
-        cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?, ?); ",
-                       (message.chat.id, message.chat.first_name, 
-                        message.chat.last_name, message.chat.username, 
-                        message.from_user.language_code, 0))
-        db_conn.commit()
-        database_lock.release()
+        if dataprocessing == 1:
+            database_lock.acquire(True)
+            cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?, ?); ",
+                           (message.chat.id, message.chat.first_name, 
+                            message.chat.last_name, message.chat.username, 
+                            message.from_user.language_code, 0))
+            db_conn.commit()
+            database_lock.release()
+            return True
+        markup = telebot.types.InlineKeyboardMarkup()
+        yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak, zgadzam się", callback_data = "command_dataprocessing_yes")
+        markup.add(yes_button)
+        no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie, nie zgadzam się", callback_data = "command_dataprocessing_no")
+        markup.add(no_button)
+        bot.send_message(message.chat.id, "✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. "
+                                + "Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na "
+                                + "gromadzenie przeze mnie przekazywanych mi przez Ciebie danych oraz na "
+                                + "wykorzystywanie ich zgodnie z ich przeznaczeniem - korzystanie z moich funkcjonalności, pomoc i ułatwianie Ci życia 💝", 
+                        parse_mode = 'Markdown', reply_markup = markup)
+        return False
 
 # check if person is user
 def user_check(message):
@@ -108,11 +121,19 @@ def save_current_state(message, state="0"):
         cursor.execute("UPDATE State SET state = ? WHERE id = ?;", 
                        (state, message.chat.id))
         db_conn.commit()
+        database_lock.release()
     else:
-        cursor.execute("INSERT INTO State VALUES (?, ?); ",
-                       (message.chat.id, state))
-        db_conn.commit()
-    database_lock.release()
+        if state != "1":
+            cursor.execute("INSERT INTO State VALUES (?, ?); ",
+                        (message.chat.id, state))
+            db_conn.commit()
+            database_lock.release()
+        else:
+            cursor.execute("INSERT INTO State VALUES (?, ?); ",
+                        (message.chat.id, "0"))
+            db_conn.commit()
+            database_lock.release()
+            guest_check(message, dataprocessing=1)
 
 # get last command used by person
 def get_current_state(message):
@@ -154,7 +175,7 @@ def forward_message_to_admin(message, bot):
     save_current_state(message)
 
 # register last bot message id
-def register_last_message(message):
+def register_last_message(message, state = 0):
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM Last_Bot_Message WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -167,6 +188,8 @@ def register_last_message(message):
                        (message.chat.id, message.id))
         db_conn.commit()
     database_lock.release()
+    if state == 1:
+        save_current_state(message, "1")
 
 # get last bot message id
 def get_last_message(message):
