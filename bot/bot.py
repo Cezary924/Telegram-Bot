@@ -94,6 +94,14 @@ def command_admin_restart_bot(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "admin_restart_bot")
     admin.command_admin_restart_bot(message, bot)
+def command_admin_restart_bot_yes(message):
+    func.print_log("/admin_restart_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_restart_bot" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_restart_bot_yes")
+    admin.command_admin_restart_bot_yes(message, bot)
 def command_admin_restart_device(message):
     func.print_log("/admin_restart_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -102,6 +110,14 @@ def command_admin_restart_device(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "admin_restart_device")
     admin.command_admin_restart_device(message, bot)
+def command_admin_restart_device_yes(message):
+    func.print_log("/admin_restart_device_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_restart_device" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_restart_device_yes")
+    admin.command_admin_restart_device_yes(message, bot)
 def command_admin_return(message):
     if "admin" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
