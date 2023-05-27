@@ -121,7 +121,7 @@ def command_admin_restart_device_yes(message):
 def command_admin_return(message):
     if "admin" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        mess = bot.send_message(message.chat.id, "🛠️ *Panel Administratora:*\n\nOpuszczono panel Administratora _/admin_ ❌", parse_mode='Markdown')
+        mess = bot.send_message(message.chat.id, "🛠️ *Panel Administratora:*\n\nOpuszczono panel _/admin_ ❌", parse_mode='Markdown')
         database.register_last_message(mess)
     elif "admin_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
@@ -172,7 +172,7 @@ def command_help_settings(message):
 def command_help_return(message):
     if "help" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu pomocy _/help_ ❌", parse_mode='Markdown')
+        mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu _/help_ ❌", parse_mode='Markdown')
         database.register_last_message(mess)
     elif "help_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
