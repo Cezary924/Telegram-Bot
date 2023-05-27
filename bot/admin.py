@@ -32,10 +32,10 @@ def command_admin_restart_device(message, bot):
     markup.add(yes_button)
     no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
     markup.add(no_button)
-    mess = bot.send_message(message.chat.id, "🤖 *Restart urządzenia:*\n\nCzy na pewno chcesz uruchomić ponownie urządzenie, na którym uruchomiony jest Bot?", 
+    mess = bot.send_message(message.chat.id, "🖥️ *Restart urządzenia:*\n\nCzy na pewno chcesz uruchomić ponownie urządzenie, na którym uruchomiony jest Bot?", 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_restart_device_yes(message, bot):
-    mess = bot.send_message(message.chat.id, "🤖 *Restart urządzenia...*", 
+    mess = bot.send_message(message.chat.id, "🖥️ *Restart urządzenia...*", 
                      parse_mode = 'Markdown')
     os.system("shutdown /r /t 1")
