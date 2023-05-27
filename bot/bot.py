@@ -21,7 +21,7 @@ else:
     token = func.read_file("telegram.txt", "../files/telegram.txt")
     token = str(token[0])
 
-import basic_commands, database, tiktok, twitter
+import admin, basic_commands, database, tiktok, twitter
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -75,6 +75,60 @@ def command_dataprocessing_no(message):
     bot.send_message(message.chat.id, "Dobrze, rozumiem 😞 \n"
                      + "Miło mi było Cię poznać 😄")
 
+# handle /admin command
+@bot.message_handler(commands=['admin'])
+def command_admin(message):
+    func.print_log("/admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "admin")
+    if database.admin_check(message):
+        admin.command_admin(message, bot)
+    else:
+        permission_denied(message)
+def command_admin_restart_bot(message):
+    func.print_log("/admin_restart_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_restart_bot")
+    admin.command_admin_restart_bot(message, bot)
+def command_admin_restart_bot_yes(message):
+    func.print_log("/admin_restart_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_restart_bot" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_restart_bot_yes")
+    admin.command_admin_restart_bot_yes(message, bot)
+def command_admin_restart_device(message):
+    func.print_log("/admin_restart_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_restart_device")
+    admin.command_admin_restart_device(message, bot)
+def command_admin_restart_device_yes(message):
+    func.print_log("/admin_restart_device_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_restart_device" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_restart_device_yes")
+    admin.command_admin_restart_device_yes(message, bot)
+def command_admin_return(message):
+    if "admin" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        mess = bot.send_message(message.chat.id, "🛠️ *Panel Administratora:*\n\nOpuszczono panel _/admin_ ❌", parse_mode='Markdown')
+        database.register_last_message(mess)
+    elif "admin_" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_admin(message)
+    else:
+        not_working_buttons(message)
+
 # handle /help command
 @bot.message_handler(commands=['help'])
 def command_help(message):
@@ -118,7 +172,7 @@ def command_help_settings(message):
 def command_help_return(message):
     if "help" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu pomocy _/help_ ❌", parse_mode='Markdown')
+        mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu _/help_ ❌", parse_mode='Markdown')
         database.register_last_message(mess)
     elif "help_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
