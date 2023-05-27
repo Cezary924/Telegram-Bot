@@ -15,7 +15,7 @@ def command_admin(message, bot):
     database.register_last_message(mess)
 def command_admin_restart_bot(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_return")
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_restart_bot_yes")
     markup.add(yes_button)
     no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
     markup.add(no_button)
@@ -28,7 +28,7 @@ def command_admin_restart_bot_yes(message, bot):
     #TODO restart the script
 def command_admin_restart_device(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_return")
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_restart_device_yes")
     markup.add(yes_button)
     no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
     markup.add(no_button)
