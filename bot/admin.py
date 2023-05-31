@@ -39,7 +39,7 @@ def command_admin_shutdown_device(message, bot):
 def command_admin_shutdown_device_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🖥️ *Restart urządzenia...*", 
                      parse_mode = 'Markdown')
-    os.system("shutdown /r /t 1")
+    os.system("shutdown /s /t 1")
 
 def command_admin_restart_bot(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
