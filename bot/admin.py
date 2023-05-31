@@ -13,6 +13,33 @@ def command_admin(message, bot):
     mess = bot.send_message(message.chat.id, "🛠️ *Panel Administratora:*\n\nWybierz zadanie z podanych",
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
+
+def command_admin_shutdown_bot(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_shutdown_bot_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
+    markup.add(no_button)
+    mess = bot.send_message(message.chat.id, "🤖 *Wyłączenie Bota:*\n\nCzy na pewno chcesz wyłączyć skrypt Bota?", 
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_admin_shutdown_bot_yes(message, bot):
+    mess = bot.send_message(message.chat.id, "🤖 *Wyłączanie Bota...*", 
+                     parse_mode = 'Markdown')
+    #TODO shutdown the script
+def command_admin_shutdown_device(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_shutdown_device_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
+    markup.add(no_button)
+    mess = bot.send_message(message.chat.id, "🖥️ *Wyłączenie urządzenia:*\n\nCzy na pewno chcesz wyłączyć urządzenie, na którym uruchomiony jest Bot?", 
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_admin_shutdown_device_yes(message, bot):
+    #TODO shutdown the device
+    pass
+
 def command_admin_restart_bot(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_restart_bot_yes")

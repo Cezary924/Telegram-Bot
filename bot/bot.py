@@ -86,6 +86,38 @@ def command_admin(message):
         admin.command_admin(message, bot)
     else:
         permission_denied(message)
+def command_admin_shutdown_bot(message):
+    func.print_log("/admin_shutdown_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_shutdown_bot")
+    admin.command_admin_shutdown_bot(message, bot)
+def command_admin_shutdown_bot_yes(message):
+    func.print_log("/admin_shutdown_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_shutdown_bot" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_shutdown_bot_yes")
+    admin.command_admin_shutdown_bot_yes(message, bot)
+def command_admin_shutdown_device(message):
+    func.print_log("/admin_shutdown_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_shutdown_device")
+    admin.command_admin_shutdown_device(message, bot)
+def command_admin_shutdown_device_yes(message):
+    func.print_log("/admin_shutdown_device_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_shutdown_device" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_shutdown_device_yes")
+    admin.command_admin_shutdown_device_yes(message, bot)
 def command_admin_restart_bot(message):
     func.print_log("/admin_restart_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
