@@ -1,4 +1,4 @@
-import telebot, os, sys
+import telebot, os, signal
 import database
 
 # handle /admin command
@@ -30,7 +30,7 @@ def command_admin_shutdown_bot(message, bot):
 def command_admin_shutdown_bot_yes(message, bot):
     bot.send_message(message.chat.id, "🤖 *Wyłączenie Bota...*", 
                      parse_mode = 'Markdown')
-    sys.exit()
+    os.kill(os.getpid(), signal.SIGINT)
 def command_admin_shutdown_device(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_shutdown_device_yes")
