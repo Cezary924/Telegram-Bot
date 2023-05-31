@@ -24,7 +24,7 @@ def command_admin_shutdown_bot(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_shutdown_bot_yes(message, bot):
-    mess = bot.send_message(message.chat.id, "🤖 *Wyłączenie Bota...*", 
+    bot.send_message(message.chat.id, "🤖 *Wyłączenie Bota...*", 
                      parse_mode = 'Markdown')
     sys.exit()
 def command_admin_shutdown_device(message, bot):
@@ -37,7 +37,7 @@ def command_admin_shutdown_device(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_shutdown_device_yes(message, bot):
-    mess = bot.send_message(message.chat.id, "🖥️ *Wyłączenie urządzenia...*", 
+    bot.send_message(message.chat.id, "🖥️ *Wyłączenie urządzenia...*", 
                      parse_mode = 'Markdown')
     os.system("shutdown /s /t 1")
 
@@ -51,7 +51,7 @@ def command_admin_restart_bot(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_restart_bot_yes(message, bot):
-    mess = bot.send_message(message.chat.id, "🤖 *Restart Bota...*", 
+    bot.send_message(message.chat.id, "🤖 *Restart Bota...*", 
                      parse_mode = 'Markdown')
     #TODO restart the script
 def command_admin_restart_device(message, bot):
@@ -64,6 +64,6 @@ def command_admin_restart_device(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_restart_device_yes(message, bot):
-    mess = bot.send_message(message.chat.id, "🖥️ *Restart urządzenia...*", 
+    bot.send_message(message.chat.id, "🖥️ *Restart urządzenia...*", 
                      parse_mode = 'Markdown')
     os.system("shutdown /r /t 1")
