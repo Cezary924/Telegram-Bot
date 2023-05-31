@@ -1,4 +1,4 @@
-import telebot, os
+import telebot, os, sys
 import database
 
 # handle /admin command
@@ -26,7 +26,7 @@ def command_admin_shutdown_bot(message, bot):
 def command_admin_shutdown_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Wyłączanie Bota...*", 
                      parse_mode = 'Markdown')
-    #TODO shutdown the script
+    sys.exit()
 def command_admin_shutdown_device(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_shutdown_device_yes")
@@ -37,8 +37,9 @@ def command_admin_shutdown_device(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_shutdown_device_yes(message, bot):
-    #TODO shutdown the device
-    pass
+    mess = bot.send_message(message.chat.id, "🖥️ *Restart urządzenia...*", 
+                     parse_mode = 'Markdown')
+    os.system("shutdown /r /t 1")
 
 def command_admin_restart_bot(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
