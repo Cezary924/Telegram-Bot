@@ -17,7 +17,7 @@ github_repo = str(github_repo[0])
 
 # delete previously sent message by bot
 def delete_previous_bot_message(message, bot):
-    func.print_log("Delete previous message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    # func.print_log("Delete previous message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     bot.delete_message(message.chat.id, database.get_last_message(message))
 
 # handle /start command
