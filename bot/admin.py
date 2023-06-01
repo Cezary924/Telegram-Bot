@@ -1,4 +1,4 @@
-import telebot, os
+import telebot, os, sys, subprocess
 import database
 
 # handle /admin command
@@ -52,7 +52,7 @@ def command_admin_restart_bot(message, bot):
 def command_admin_restart_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Restart Bota...*", 
                      parse_mode = 'Markdown')
-    #TODO restart the script
+    subprocess.call(["python", os.path.join(sys.path[0], __file__)] + sys.argv[1:])
 def command_admin_restart_device(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_restart_device_yes")
