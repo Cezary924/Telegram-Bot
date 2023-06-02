@@ -4,13 +4,13 @@ import database
 # handle /admin command
 def command_admin(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    shutdown_bot_button = telebot.types.InlineKeyboardButton(text = "📴🤖 Wyłączenie Bota", callback_data = "command_admin_shutdown_bot")
+    shutdown_bot_button = telebot.types.InlineKeyboardButton(text = "📴 Wyłączenie Bota 🤖", callback_data = "command_admin_shutdown_bot")
     markup.add(shutdown_bot_button)
-    shutdown_device_button = telebot.types.InlineKeyboardButton(text = "📴🖥️ Wyłączenie urządzenia", callback_data = "command_admin_shutdown_device")
+    shutdown_device_button = telebot.types.InlineKeyboardButton(text = "📴 Wyłączenie urządzenia 🖥️", callback_data = "command_admin_shutdown_device")
     markup.add(shutdown_device_button)
-    restart_bot_button = telebot.types.InlineKeyboardButton(text = "🔁🤖 Restart Bota", callback_data = "command_admin_restart_bot")
+    restart_bot_button = telebot.types.InlineKeyboardButton(text = "🔁 Restart Bota 🤖", callback_data = "command_admin_restart_bot")
     markup.add(restart_bot_button)
-    restart_device_button = telebot.types.InlineKeyboardButton(text = "🔁🖥️ Restart urządzenia", callback_data = "command_admin_restart_device")
+    restart_device_button = telebot.types.InlineKeyboardButton(text = "🔁 Restart urządzenia 🖥️", callback_data = "command_admin_restart_device")
     markup.add(restart_device_button)
     exit_button = telebot.types.InlineKeyboardButton(text = "❌ Wyjście", callback_data = "command_admin_return")
     markup.add(exit_button)
