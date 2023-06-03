@@ -18,6 +18,7 @@ def command_admin(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
+# handle bot shutdown command
 def command_admin_shutdown_bot(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_shutdown_bot_yes")
@@ -31,6 +32,8 @@ def command_admin_shutdown_bot_yes(message, bot):
     bot.send_message(message.chat.id, "🤖 *Wyłączenie Bota...*", 
                      parse_mode = 'Markdown')
     os.kill(os.getpid(), signal.SIGINT)
+
+# handle device shutdown command
 def command_admin_shutdown_device(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_shutdown_device_yes")
@@ -45,6 +48,7 @@ def command_admin_shutdown_device_yes(message, bot):
                      parse_mode = 'Markdown')
     os.system("shutdown /s /t 1")
 
+# handle bot restart
 def command_admin_restart_bot(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_restart_bot_yes")
@@ -58,6 +62,8 @@ def command_admin_restart_bot_yes(message, bot):
     bot.send_message(message.chat.id, "🤖 *Restart Bota...*", 
                      parse_mode = 'Markdown')
     subprocess.call(["python", os.path.join(sys.path[0], __file__)] + sys.argv[1:])
+
+# handle device restart
 def command_admin_restart_device(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_restart_device_yes")
