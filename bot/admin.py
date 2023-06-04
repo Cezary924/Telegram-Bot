@@ -1,9 +1,11 @@
 import telebot, os, signal, sys, subprocess
-import database
+import database, basic_commands
 
 # handle /admin command
 def command_admin(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
+    update_bot_button = telebot.types.InlineKeyboardButton(text = "⬇️ Aktualizacja Bota 🤖", callback_data = "command_admin_update_bot")
+    markup.add(update_bot_button)
     shutdown_bot_button = telebot.types.InlineKeyboardButton(text = "📴 Wyłączenie Bota 🤖", callback_data = "command_admin_shutdown_bot")
     markup.add(shutdown_bot_button)
     shutdown_device_button = telebot.types.InlineKeyboardButton(text = "📴 Wyłączenie urządzenia 🖥️", callback_data = "command_admin_shutdown_device")
@@ -77,3 +79,22 @@ def command_admin_restart_device_yes(message, bot):
     bot.send_message(message.chat.id, "🖥️ *Restart urządzenia...*", 
                      parse_mode = 'Markdown')
     os.system("shutdown /r /t 1")
+
+# handle bot update
+def command_admin_update_bot(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_admin_update_bot_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
+    markup.add(no_button)
+    mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota?", 
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_admin_update_bot_yes(message, bot):
+    mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota...*", 
+                     parse_mode = 'Markdown')
+    database.register_last_message(mess)
+    subprocess.run(["git", "pull"])
+    basic_commands.delete_previous_bot_message(mess, bot)
+    bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nPrzy pomocy komendy _git pull_ pobrano zmiany z zdalnego repozytorium ⬇️", 
+                     parse_mode = 'Markdown')
