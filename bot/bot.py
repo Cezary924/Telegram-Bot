@@ -94,6 +94,14 @@ def command_admin_update_bot(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "admin_update_bot")
     admin.command_admin_update_bot(message, bot)
+def command_admin_update_bot_yes(message):
+    func.print_log("/admin_update_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin_update_bot" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.save_current_state(message, "admin_update_bot_yes")
+    admin.command_admin_update_bot_yes(message, bot)
 def command_admin_shutdown_bot(message):
     func.print_log("/admin_shutdown_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
