@@ -93,8 +93,8 @@ def command_admin_update_bot(message, bot):
 def command_admin_update_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota...*", 
                      parse_mode = 'Markdown')
-    database.register_last_message(mess)
+    #database.register_last_message(mess)
     subprocess.run(["git", "pull"])
-    basic_commands.delete_previous_bot_message(mess, bot)
+    #basic_commands.delete_previous_bot_message(mess, bot)
     bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nPrzy pomocy komendy _git pull_ pobrano zmiany ze zdalnego repozytorium ⬇️", 
                      parse_mode = 'Markdown')
