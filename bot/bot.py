@@ -83,7 +83,10 @@ def command_admin(message):
         return
     database.save_current_state(message, "admin")
     if database.admin_check(message):
-        admin.command_admin(message, bot)
+        update = False
+        if basic_commands.info_about_version(ver)[0] > ver:
+            update = True
+        admin.command_admin(message, bot, update)
     else:
         permission_denied(message)
 def command_admin_update_bot(message):
