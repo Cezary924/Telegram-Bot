@@ -15,6 +15,19 @@ github_username = str(github_username[0])
 github_repo = func.read_file("github_repo.txt", "../files/github_repo.txt")
 github_repo = str(github_repo[0])
 
+# get commits number from GitHub
+def info_about_version(ver):
+    response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=1")
+    if response.status_code != 200:
+        return (0, "Błąd. Spróbuj później.")
+    online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
+    if ver > online_ver:
+        return (online_ver, "Beta")
+    elif ver == online_ver:
+        return (online_ver, "Stablina, aktualna")
+    else:
+        return (online_ver, "Stablina, przestarzała (" + str(online_ver) + ")")
+
 # delete previously sent message by bot
 def delete_previous_bot_message(message, bot):
     # func.print_log("Delete previous message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -119,24 +132,12 @@ def command_deletedata_no(message, bot):
 
 # handle /about command
 def command_about(message, bot, ver):
-    def info_about_version(ver):
-        response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=1")
-        if response.status_code != 200:
-            return "Błąd. Spróbuj później."
-        online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
-        if ver > online_ver:
-            return "Beta"
-        elif ver == online_ver:
-            return "Stablina, aktualna"
-        else:
-            return "Stablina, przestarzała (" + str(online_ver) + ")"
-
     mess = bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie:*\n\n"
                     + "*" + bot_name + "*\n"
                     + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
                     + "Autor: _@" + github_username + "_\n"
                     + "Wersja: _" + str(ver) + "_\n"
-                    + "Status wersji: _" + info_about_version(ver) + "_\n"
+                    + "Status wersji: _" + info_about_version(ver)[1] + "_\n"
                     + "Rok powstania: _2023_\n"
                     + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
     database.register_last_message(mess)
