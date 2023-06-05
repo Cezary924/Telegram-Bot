@@ -2,10 +2,11 @@ import telebot, os, signal, sys, subprocess
 import database, basic_commands
 
 # handle /admin command
-def command_admin(message, bot):
+def command_admin(message, bot, update):
     markup = telebot.types.InlineKeyboardMarkup()
-    update_bot_button = telebot.types.InlineKeyboardButton(text = "⬇️ Aktualizacja Bota 🤖", callback_data = "command_admin_update_bot")
-    markup.add(update_bot_button)
+    if update:
+        update_bot_button = telebot.types.InlineKeyboardButton(text = "⬇️ Aktualizacja Bota 🤖", callback_data = "command_admin_update_bot")
+        markup.add(update_bot_button)
     shutdown_bot_button = telebot.types.InlineKeyboardButton(text = "📴 Wyłączenie Bota 🤖", callback_data = "command_admin_shutdown_bot")
     markup.add(shutdown_bot_button)
     shutdown_device_button = telebot.types.InlineKeyboardButton(text = "📴 Wyłączenie urządzenia 🖥️", callback_data = "command_admin_shutdown_device")
