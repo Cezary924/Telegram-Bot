@@ -94,7 +94,6 @@ def command_admin_update_bot(message, bot):
 def command_admin_update_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota...*", 
                      parse_mode = 'Markdown')
-    #database.register_last_message(mess)
     proc = subprocess.run(["git", "pull", os.getcwdb()[:(0 - int(len('bot/')))]], capture_output=True)
     if proc.returncode != 0:
         bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nWystąpił błąd podczas wykonywania komendy _git pull_ ❌", 
@@ -106,4 +105,3 @@ def command_admin_update_bot_yes(message, bot):
         else:
             bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nPrzy pomocy komendy _git pull_ pobrano zmiany ze zdalnego repozytorium ⬇️", 
                      parse_mode = 'Markdown')
-    #basic_commands.delete_previous_bot_message(mess, bot)
