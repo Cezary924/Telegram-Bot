@@ -8,5 +8,5 @@
 /files/database-beta.db
 /files/database-beta.db-journal
 /log/
-/run.ps1
+/run.vbs
 /bot/__pycache__/
