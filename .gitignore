@@ -7,7 +7,6 @@
 /files/database.db-journal
 /files/database-beta.db
 /files/database-beta.db-journal
-/stderr*.txt
-/stdout*.txt
+/log/
 /run.ps1
 /bot/__pycache__/
