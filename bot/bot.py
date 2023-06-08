@@ -203,6 +203,7 @@ def command_help(message):
         return
     database.save_current_state(message, "help")
     basic_commands.command_help(message, bot)
+@bot.message_handler(commands=['help_main'])
 def command_help_main(message):
     func.print_log("/help_main: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -211,6 +212,7 @@ def command_help_main(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_main")
     basic_commands.command_help_main(message, bot)
+@bot.message_handler(commands=['help_downloader'])
 def command_help_downloader(message):
     func.print_log("/help_downloader: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -219,6 +221,7 @@ def command_help_downloader(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_downloader")
     basic_commands.command_help_downloader(message, bot)
+@bot.message_handler(commands=['help_contact'])
 def command_help_contact(message):
     func.print_log("/help_contact: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -227,6 +230,7 @@ def command_help_contact(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_contact")
     basic_commands.command_help_contact(message, bot)
+@bot.message_handler(commands=['help_settings'])
 def command_help_settings(message):
     func.print_log("/help_settings: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -235,6 +239,7 @@ def command_help_settings(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_settings")
     basic_commands.command_help_settings(message, bot)
+@bot.message_handler(commands=['help_return'])
 def command_help_return(message):
     if "help" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
