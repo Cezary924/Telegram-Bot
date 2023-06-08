@@ -283,12 +283,14 @@ def command_deletedata(message):
         return
     database.save_current_state(message, "deletedata")
     basic_commands.command_deletedata(message, bot)
+@bot.message_handler(commands=['deletedata_yes'])
 def command_deletedata_yes(message):
     if database.get_current_state(message) == "deletedata":
         database.deletedata(message)
         basic_commands.command_deletedata_yes(message, bot)
     else:
         not_working_buttons(message)
+@bot.message_handler(commands=['deletedata_no'])
 def command_deletedata_no(message):
     if database.get_current_state(message) == "deletedata":
         database.save_current_state(message, "0")
