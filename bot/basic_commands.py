@@ -6,6 +6,8 @@ import func, database
 # open file containing bot name and read from it
 bot_name = func.read_file("bot_name.txt", "../files/bot_name.txt")
 bot_name = str(bot_name[0])
+if func.suffix == 1:
+    bot_name = "Beta" + bot_name
 
 # open file containing GitHub username and read from it
 github_username = func.read_file("github_username.txt", "../files/github_username.txt")
