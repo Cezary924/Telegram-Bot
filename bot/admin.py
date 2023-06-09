@@ -64,7 +64,7 @@ def command_admin_restart_bot(message, bot):
 def command_admin_restart_bot_yes(message, bot):
     bot.send_message(message.chat.id, "🤖 *Restart Bota...*", 
                      parse_mode = 'Markdown')
-    subprocess.Popen(["python", os.path.join(sys.path[0], __file__)[: (0 - len('admin.py'))] + 'bot.py'] + sys.argv[1:])
+    subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'run.vbs'] + sys.argv[1:], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
     os.kill(os.getpid(), signal.SIGINT)
 
 # handle device restart
