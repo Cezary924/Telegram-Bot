@@ -16,7 +16,7 @@ pip install -r requirements.txt
    - ```tiktok.txt``` file in *files* folder and write your RapidAPI key to it.
    - ```twitter.txt``` file in *files* folder and write your Twitter bearer token to it.
 4. Change:
-   - ```bot_name.txt``` file in *files* folder with your own bot name.
+   - ```bot_name.txt``` file in *files* folder with your own Bot name.
    - ```github_username.txt``` file in *files* folder with your GitHub username.
    - ```github_repo.txt``` file in *files* folder with your GitHub repo name.
 
@@ -26,3 +26,14 @@ pip install -r requirements.txt
 python bot/bot.py
 ```
 2. Enjoy!
+
+## 🧑‍💻 Commands
+- ```/start``` - to start conversation with the Bot
+- ```/help``` - to get info about available commands
+- ```/about``` - to get info about the Bot and its Creator
+- ```/admin``` - _(hidden command)_ to get access to the Admin Menu
+- ```/tiktok``` - to download video from TikTok
+- ```/twitter``` - to download video from Twitter
+- ```/contact``` - to contact the Admin/Creator
+- ```/report``` - to report an issue to the Admin
+- ```/deletedata``` - to delete all your data collected by the Bot
