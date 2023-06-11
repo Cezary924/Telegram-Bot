@@ -27,7 +27,7 @@ python bot/bot.py
 ```
 2. Enjoy!
 
-## 🧑‍💻 Commands
+## 🧑‍💻 Basic commands
 - ```/start``` - to start conversation with the Bot
 - ```/help``` - to get info about available commands
 - ```/about``` - to get info about the Bot and its Creator
