@@ -1,5 +1,6 @@
 import sys, datetime
 
+# get current date & time
 time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 class LoggerStdout(object):
