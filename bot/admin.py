@@ -95,14 +95,4 @@ def command_admin_update_bot(message, bot):
 def command_admin_update_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota...*", 
                      parse_mode = 'Markdown')
-    proc = subprocess.run(["git", "pull", os.getcwdb()[:(0 - int(len('bot/')))]], capture_output=True)
-    if proc.returncode != 0:
-        bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nWystąpił błąd podczas wykonywania komendy _git pull_ ❌", 
-                     parse_mode = 'Markdown')
-    else:
-        if 'Already up to date' in proc.stdout.decode("utf-8"):
-            bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nNie ma dostępnej aktualizacji - najnowsza wersja jest już pobrana 😊", 
-                     parse_mode = 'Markdown')
-        else:
-            bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nPrzy pomocy komendy _git pull_ pobrano zmiany ze zdalnego repozytorium ⬇️", 
-                     parse_mode = 'Markdown')
+    subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
