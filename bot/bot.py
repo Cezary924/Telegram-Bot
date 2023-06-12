@@ -8,11 +8,6 @@ os.chdir(dir)
 
 import func, logger
 
-# currently not in use
-# write stdout & stdeer to file only
-# sys.stdout = func.write_file('stdout.txt', '../stdout.txt', 1)
-# sys.stderr = func.write_file('stderr.txt', '../stderr.txt', 1)
-
 # write stdout & stdeer to both console and file
 sys.stdout = logger.LoggerStdout()
 sys.stderr = logger.LoggerStderr()
