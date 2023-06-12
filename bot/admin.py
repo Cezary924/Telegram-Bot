@@ -1,4 +1,4 @@
-import telebot, os, signal, sys, subprocess
+import telebot, os, signal, sys, subprocess, time
 import database, basic_commands
 
 # handle /admin command
@@ -89,10 +89,12 @@ def command_admin_update_bot(message, bot):
     markup.add(yes_button)
     no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_admin_return")
     markup.add(no_button)
-    mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota?", 
+    mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota? Po aktualizacji Bot zostanie uruchomiony ponownie.", 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_update_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota...*", 
                      parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    time.sleep(3)
+    command_admin_restart_bot_yes(message, bot)
