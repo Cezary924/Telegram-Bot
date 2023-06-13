@@ -28,12 +28,12 @@ python bot/bot.py
 2. Enjoy!
 
 ## 🧑‍💻 Basic commands
-- ```/start``` - to start conversation with the Bot
-- ```/help``` - to get info about available commands
-- ```/about``` - to get info about the Bot and its Creator
-- ```/admin``` - _(hidden command)_ to get access to the Admin Menu
-- ```/tiktok``` - to download video from TikTok
-- ```/twitter``` - to download video from Twitter
-- ```/contact``` - to contact the Admin/Creator
-- ```/report``` - to report an issue to the Admin
-- ```/deletedata``` - to delete all your data collected by the Bot
+- ```/start``` - to start conversation with the Bot.
+- ```/help``` - to get info about available commands.
+- ```/about``` - to get info about the Bot and its Creator.
+- ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
+- ```/tiktok``` - to download video from TikTok.
+- ```/twitter``` - to download video from Twitter.
+- ```/contact``` - to contact the Admin/Creator.
+- ```/report``` - to report an issue to the Admin.
+- ```/deletedata``` - to delete all your data collected by the Bot.
