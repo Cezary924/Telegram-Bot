@@ -220,6 +220,7 @@ def send_restart_info(bot,):
         (state,)=cursor.fetchone()
         database_lock.release()
         if "admin_restart_" in state:
-            mess = bot.send_message(admin, "🤖 *Bot został uruchomiony ponownie*", 
+            mess = bot.send_message(admin, "🤖 *Bot został pomyślnie uruchomiony ponownie!*", 
                      parse_mode = 'Markdown')
             save_current_state(mess)
+            func.print_log("Sending info about restart to: " + str(admin) + ".")
