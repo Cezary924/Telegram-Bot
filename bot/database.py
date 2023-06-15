@@ -208,3 +208,18 @@ def get_last_message(message):
         db_conn.commit()
         database_lock.release()
         return message.id
+
+def send_restart_info(bot,):
+    database_lock.acquire(True)
+    cursor.execute("SELECT id FROM People WHERE role = 2;")
+    admins=cursor.fetchone()
+    database_lock.release()
+    for admin in admins:
+        database_lock.acquire(True)
+        cursor.execute("SELECT state FROM State WHERE id = ?;", (admin, ))
+        (state,)=cursor.fetchone()
+        database_lock.release()
+        if "admin_restart_" in state:
+            mess = bot.send_message(admin, "🤖 *Bot został uruchomiony ponownie*", 
+                     parse_mode = 'Markdown')
+            save_current_state(mess)
