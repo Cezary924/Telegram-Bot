@@ -75,6 +75,10 @@ def command_dataprocessing_no(message):
     bot.send_message(message.chat.id, "Dobrze, rozumiem 😞 \n"
                      + "Miło mi było Cię poznać 😄")
 
+# send info about bot restart to admins
+def send_restart_info(bot):
+    database.send_restart_info(bot)
+
 # handle /admin command
 @bot.message_handler(commands=['admin'])
 def command_admin(message):
@@ -387,6 +391,9 @@ signal.signal(signal.SIGINT, ctrl_c)
 
 # starting log message
 func.print_log("", basic_commands.bot_name, 1)
+
+# execute func sending info about restart
+send_restart_info(bot)
 
 # infinite loop
 bot.polling(non_stop = True)
