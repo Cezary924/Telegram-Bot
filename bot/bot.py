@@ -385,6 +385,8 @@ def ctrl_c(signal, frame):
     sys.exit(0)
 signal.signal(signal.SIGINT, ctrl_c)
 
-# infinite loop
+# starting log message
 func.print_log("", basic_commands.bot_name, 1)
+
+# infinite loop
 bot.polling(non_stop = True)
