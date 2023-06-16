@@ -1,6 +1,11 @@
-<h1 align=center>Cezary924-Telegram-Bot</h1>
-<h3 align=center>🤖</h3>
-<h3 align=center>Wielofunkcyjny Bot na platformie Telegram</h3>
+<div align="center">
+   <h1>Cezary924-Telegram-Bot</h1>
+   <h3>🤖</h3>
+   <h3>Wielofunkcyjny Bot na platformie Telegram</h3>
+   <a href="https://t.me/Cezary924Bot" target="__blank"><img src="https://img.shields.io/badge/Telegram-Bot-blue.svg?logo=telegram"></a><br/><br/>
+   <a href="https://github.com/Cezary924/Cezary924-Telegram-Bot/blob/master/README.md" target="__blank"><img src="https://img.shields.io/badge/lang-en-blue.svg"></a>
+   <a href="https://github.com/Cezary924/Cezary924-Telegram-Bot/blob/master/README.pl-pl.md" target="__blank"><img src="https://img.shields.io/badge/lang-pl-red.svg"></a>
+</div><br/>
 
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr & Reddit)
