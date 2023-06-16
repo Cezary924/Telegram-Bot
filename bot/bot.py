@@ -21,7 +21,7 @@ else:
     token = func.read_file("telegram.txt", "../files/telegram.txt")
     token = str(token[0])
 
-import admin, basic_commands, database, tiktok, twitter
+import admin, basic_commands, database, tiktok, twitter, reddit
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -352,6 +352,18 @@ def echo_twitter(message):
     database.save_current_state(message, "twitter_url")
     if database.user_check(message):
         twitter.start_twitter(message, bot)
+    else:
+        permission_denied(message)
+
+# handle Reddit urls
+@bot.message_handler(func=lambda message: reddit.check_reddit_url(message))
+def echo_reddit(message):
+    func.print_log("Reddit URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "reddit_url")
+    if database.user_check(message):
+        reddit.start_reddit(message, bot)
     else:
         permission_denied(message)
 
