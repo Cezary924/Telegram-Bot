@@ -1,4 +1,4 @@
-import requests, os, json
+import requests, os
 from urllib.parse import urlparse
 
 # check Tumblr url
