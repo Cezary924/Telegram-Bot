@@ -34,6 +34,8 @@ python bot/bot.py
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
 - ```/tiktok``` - to download video from TikTok.
 - ```/twitter``` - to download video from Twitter.
+- ```/tumblr``` - to download video from Tumblr.
+- ```/reddit``` - to download video from Reddit.
 - ```/contact``` - to contact the Admin/Creator.
 - ```/report``` - to report an issue to the Admin.
 - ```/deletedata``` - to delete all your data collected by the Bot.
