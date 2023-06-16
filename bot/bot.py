@@ -331,6 +331,18 @@ def command_twitter(message):
     else:
         permission_denied(message)
 
+# handle /reddit command
+@bot.message_handler(commands=['twitter'])
+def command_reddit(message):
+    func.print_log("/reddit: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "reddit")
+    if database.user_check(message):
+        basic_commands.command_reddit(message, bot)
+    else:
+        permission_denied(message)
+
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
