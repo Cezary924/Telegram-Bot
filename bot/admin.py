@@ -1,5 +1,5 @@
 import telebot, os, signal, sys, subprocess, time
-import database, basic_commands
+import database
 
 # handle /admin command
 def command_admin(message, bot, update):
@@ -96,5 +96,6 @@ def command_admin_update_bot_yes(message, bot):
     mess = bot.send_message(message.chat.id, "🤖 *Aktualizacja Bota...*", 
                      parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
-    time.sleep(3)
+    time.sleep(5)
+    database.save_current_state(message, "admin_restart_bot_yes")
     command_admin_restart_bot_yes(message, bot)
