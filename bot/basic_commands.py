@@ -71,7 +71,7 @@ def command_help_main(message, bot):
     markup.add(help_button)
     mess = bot.send_message(message.chat.id, "📃 *Pomoc > 🤖 Ogólne:*\n\n" + 
                      "/start - _🤖 Zaczęcie rozmowy z Botem_\n" + 
-                     "/help - _📃 Strona pomocy z listą dostępnych komend_\n" +
+                     "/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n" +
                      "/about - _ℹ️ Informacje o Bocie_", parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_downloader(message, bot):
@@ -90,14 +90,14 @@ def command_help_contact(message, bot):
     markup.add(help_button)
     mess = bot.send_message(message.chat.id, "📃 *Pomoc > ☎️ Kontakt:*\n\n" + 
                      "/contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n" +
-                     "/report - _📨 Wysłanie bezzwrotnego zgłoszenia do Administratora_\n", parse_mode= 'Markdown', reply_markup = markup)
+                     "/report - _📨 Wysłanie zgłoszenia do Administratora_\n", parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_settings(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
     markup.add(help_button)
     mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⚙️ Ustawienia:*\n\n" + 
-                     "/deletedata - _🗑️ Usuń wszystkie zebrane od Ciebie dane_\n", parse_mode= 'Markdown', reply_markup = markup)
+                     "/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n", parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
 # handle /contact command
