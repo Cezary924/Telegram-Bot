@@ -80,7 +80,9 @@ def command_help_downloader(message, bot):
     markup.add(help_button)
     mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⬇️ Pobieranie wideo:*\n\n" + 
                      "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
-                     "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_", parse_mode= 'Markdown', reply_markup = markup)
+                     "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n" +
+                     "/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n" +
+                     "/reddit - _🤖 Pobieranie wideo z serwisu Reddit_", parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
