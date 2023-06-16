@@ -3,7 +3,7 @@
 <h3 align=center>Multifunctional Telegram Bot</h3>
 
 ## ✨ Main features
-- Video downloader (TikTok & Twitter)
+- Video downloader (TikTok, Twitter, Tumblr & Reddit)
 
 ## ⚙️ Installation & Configuration
 1. Clone this repo.
