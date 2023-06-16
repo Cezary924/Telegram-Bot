@@ -331,6 +331,18 @@ def command_twitter(message):
     else:
         permission_denied(message)
 
+# handle /tumblr command
+@bot.message_handler(commands=['tumblr'])
+def command_tumblr(message):
+    func.print_log("/tumblr: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "tumblr")
+    if database.user_check(message):
+        basic_commands.command_tumblr(message, bot)
+    else:
+        permission_denied(message)
+
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
