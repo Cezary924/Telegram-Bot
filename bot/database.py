@@ -209,7 +209,8 @@ def get_last_message(message):
         database_lock.release()
         return message.id
 
-def send_restart_info(bot,):
+# send info about restart
+def send_restart_info(bot):
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
