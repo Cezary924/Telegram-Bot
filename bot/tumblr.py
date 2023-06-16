@@ -24,6 +24,7 @@ def echo_tumblr(message, bot):
     if "<meta data-rh=\"\" property=\"og:video\" content=\"" not in response.text:
         bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞")
         return
+        
     vid_url = response.text.split("<meta data-rh=\"\" property=\"og:video\" content=\"")[1]
     vid_url = vid_url.split("\"/>")[0]
 
@@ -31,7 +32,7 @@ def echo_tumblr(message, bot):
     if response.status_code != 200:
         bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞")
         return
-    
+
     vid_name = str(message.chat.id) + str(message.message_id) + ".mp4"
     try:
         with open(vid_name, "wb") as f:
@@ -39,7 +40,9 @@ def echo_tumblr(message, bot):
             f.close()
     except OSError:
         print("Open error: Could not open the \'.mp4\' file.")
+        
     bot.send_video(message.chat.id, open(vid_name, 'rb'))
+    
     os.remove(vid_name)
 
 def start_tumblr(message, bot):
