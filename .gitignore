@@ -9,3 +9,5 @@
 /files/database-beta.db-journal
 /log/
 /bot/__pycache__/
+*.mp4
+*.mp3
