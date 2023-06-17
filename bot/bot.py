@@ -21,7 +21,7 @@ else:
     token = func.read_file("telegram.txt", "../files/telegram.txt")
     token = str(token[0])
 
-import admin, basic_commands, database, tiktok, twitter, reddit
+import admin, basic_commands, database, tiktok, twitter, tumblr, reddit
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -343,6 +343,18 @@ def command_reddit(message):
     else:
         permission_denied(message)
 
+# handle /tumblr command
+@bot.message_handler(commands=['tumblr'])
+def command_tumblr(message):
+    func.print_log("/tumblr: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "tumblr")
+    if database.user_check(message):
+        basic_commands.command_tumblr(message, bot)
+    else:
+        permission_denied(message)
+
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
@@ -376,6 +388,18 @@ def echo_reddit(message):
     database.save_current_state(message, "reddit_url")
     if database.user_check(message):
         reddit.start_reddit(message, bot)
+    else:
+        permission_denied(message)
+
+# handle Tumblr urls
+@bot.message_handler(func=lambda message: tumblr.check_tumblr_url(message))
+def echo_tumblr(message):
+    func.print_log("Tumblr URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "tumblr_url")
+    if database.user_check(message):
+        tumblr.start_tumblr(message, bot)
     else:
         permission_denied(message)
 

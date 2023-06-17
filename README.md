@@ -1,9 +1,14 @@
-<h1 align=center>Cezary924-Telegram-Bot</h1>
-<h3 align=center>🤖</h3>
-<h3 align=center>Multifunctional Telegram Bot</h3>
+<div align="center">
+   <h1>Cezary924-Telegram-Bot</h1>
+   <h3>🤖</h3>
+   <h3>Multifunctional Telegram Bot</h3>
+   <a href="https://t.me/Cezary924Bot" target="__blank"><img src="https://img.shields.io/badge/Telegram-Bot-blue.svg?logo=telegram"></a><br/><br/>
+   <a href="https://github.com/Cezary924/Cezary924-Telegram-Bot/blob/master/README.md" target="__blank"><img src="https://img.shields.io/badge/lang-en-blue.svg"></a>
+   <a href="https://github.com/Cezary924/Cezary924-Telegram-Bot/blob/master/README.pl-pl.md" target="__blank"><img src="https://img.shields.io/badge/lang-pl-red.svg"></a>
+</div><br/>
 
 ## ✨ Main features
-- Video downloader (TikTok & Twitter)
+- Video downloader (TikTok, Twitter, Tumblr & Reddit)
 
 ## ⚙️ Installation & Configuration
 1. Clone this repo.
@@ -34,6 +39,8 @@ python bot/bot.py
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
 - ```/tiktok``` - to download video from TikTok.
 - ```/twitter``` - to download video from Twitter.
+- ```/tumblr``` - to download video from Tumblr.
+- ```/reddit``` - to download video from Reddit.
 - ```/contact``` - to contact the Admin/Creator.
 - ```/report``` - to report an issue to the Admin.
 - ```/deletedata``` - to delete all your data collected by the Bot.
