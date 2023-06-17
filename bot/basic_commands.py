@@ -156,6 +156,11 @@ def command_twitter(message, bot):
     mess = bot.send_message(message.chat.id, "🐦 *Twitter*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
     database.register_last_message(mess)
 
+# handle /reddit command
+def command_reddit(message, bot):
+    mess = bot.send_message(message.chat.id, "🤖 *Reddit*\n\nAby pobrać wideo z serwisu Reddit wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    database.register_last_message(mess)
+
 # handle /tumblr command
 def command_tumblr(message, bot):
     mess = bot.send_message(message.chat.id, "📄 *Tumblr*\n\nAby pobrać wideo z serwisu Tumblr wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
