@@ -179,11 +179,12 @@ def forward_message_to_admin(message, bot):
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
     database_lock.release()
-    for admin in admins:
-        bot.send_message(admin, "Cześć, *" + message.chat.first_name 
-                         + " (" + str(message.chat.id) + ")* chciałby przekazać Ci tę wiadomość-zgłoszenie: \n\n_" 
-                         + message.text + "_", parse_mode= 'Markdown')
-    bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
+    if admins != None:
+        for admin in admins:
+            bot.send_message(admin, "Cześć, *" + message.chat.first_name 
+                            + " (" + str(message.chat.id) + ")* chciałby przekazać Ci tę wiadomość-zgłoszenie: \n\n_" 
+                            + message.text + "_", parse_mode= 'Markdown')
+        bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
     save_current_state(message)
 
 # register last bot message id
@@ -227,16 +228,17 @@ def send_restart_info(bot):
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
     database_lock.release()
-    for admin in admins:
-        database_lock.acquire(True)
-        cursor.execute("SELECT state FROM State WHERE id = ?;", (admin, ))
-        (state,)=cursor.fetchone()
-        database_lock.release()
-        if "admin_restart_" in state:
-            mess = bot.send_message(admin, "🤖 *Bot został pomyślnie uruchomiony ponownie!*", 
-                     parse_mode = 'Markdown')
-            save_current_state(mess)
-            func.print_log("Sending info about restart to: " + str(admin) + ".")
+    if admins != None:
+        for admin in admins:
+            database_lock.acquire(True)
+            cursor.execute("SELECT state FROM State WHERE id = ?;", (admin, ))
+            (state,)=cursor.fetchone()
+            database_lock.release()
+            if "admin_restart_" in state:
+                mess = bot.send_message(admin, "🤖 *Bot został pomyślnie uruchomiony ponownie!*", 
+                        parse_mode = 'Markdown')
+                save_current_state(mess)
+                func.print_log("Sending info about restart to: " + str(admin) + ".")
 
 # get code of language that users use
 def get_user_language(message):
