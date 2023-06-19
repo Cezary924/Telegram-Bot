@@ -54,7 +54,7 @@ def create_table_last_bot_message():
     database_lock.release()
 
 # create Language table if it does not exist
-def create_table_last_bot_message():
+def create_table_language():
     database_lock.acquire(True)
     cursor.execute("""
         create table if not exists Language (
@@ -168,6 +168,8 @@ def deletedata(message):
     database_lock.acquire(True)
     cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM Last_Bot_Message WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM Language WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()
     database_lock.release()
 
