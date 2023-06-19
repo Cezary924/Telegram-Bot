@@ -42,6 +42,9 @@ database.create_table_state()
 # create Last_Bot_Message table if it does not exist
 database.create_table_last_bot_message()
 
+# create Language table if it does not exist
+database.create_table_language()
+
 # send permission denied message
 def permission_denied(message):
     func.print_log("Permission denied: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
