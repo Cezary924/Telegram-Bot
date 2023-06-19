@@ -97,6 +97,7 @@ def command_help_settings(message, bot):
     help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
     markup.add(help_button)
     mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⚙️ Ustawienia:*\n\n" + 
+                     "/language - _🌐 Zmiana języka_\n" + 
                      "/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n", parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
@@ -132,6 +133,25 @@ def command_deletedata_yes(message, bot):
     database.register_last_message(mess)
 def command_deletedata_no(message, bot):
     mess = bot.send_message(message.chat.id, "Operacja usuwania danych została anulowana.")
+    database.register_last_message(mess)
+
+# handle /language command
+def command_language(message, bot):
+    markup = telebot.types.InlineKeyboardMarkup()
+    pl_button = telebot.types.InlineKeyboardButton(text = "🇵🇱 Polski", callback_data = "command_language_pl")
+    markup.add(pl_button)
+    en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_language_en")
+    markup.add(en_button)
+    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nWybierz swój język.", 
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_language_pl(message, bot):
+    database.set_user_language(message, 'pl')
+    mess = bot.send_message(message.chat.id, "Gotowe 🇵🇱")
+    database.register_last_message(mess)
+def command_language_en(message, bot):
+    database.set_user_language(message, 'en')
+    mess = bot.send_message(message.chat.id, "Done 🇬🇧")
     database.register_last_message(mess)
 
 # handle /about command

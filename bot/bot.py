@@ -298,6 +298,29 @@ def command_deletedata_no(message):
     else:
         not_working_buttons(message)
 
+# handle /language command
+@bot.message_handler(commands=['language'])
+def command_language(message):
+    func.print_log("/language: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "language")
+    basic_commands.command_language(message, bot)
+@bot.message_handler(commands=['language_pl'])
+def command_language_pl(message):
+    if database.get_current_state(message) == "language":
+        basic_commands.command_language_pl(message, bot)
+        database.save_current_state(message, "0")
+    else:
+        not_working_buttons(message)
+@bot.message_handler(commands=['language_en'])
+def command_language_en(message):
+    if database.get_current_state(message) == "language":
+        basic_commands.command_language_en(message, bot)
+        database.save_current_state(message, "0")
+    else:
+        not_working_buttons(message)
+
 # handle /about command
 @bot.message_handler(commands=['about'])
 def command_about(message):
