@@ -452,7 +452,8 @@ def echo_all(message):
     if database.guest_check(message, bot) != True:
         return
     database.save_current_state(message, "0")
-    mess = bot.send_message(message.chat.id, "Niestety, nie rozumiem Twojej wiadomości... 💔")
+    text = database.get_message_text(message, 'echo_all')
+    mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)
 
 # handle CTRL + C
