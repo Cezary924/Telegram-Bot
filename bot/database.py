@@ -1,5 +1,5 @@
 import sqlite3, threading, telebot
-import func
+import func, locales
 
 # connect to users database
 if func.suffix == 0:
@@ -271,3 +271,10 @@ def set_user_language(message, lang_code):
                        (message.chat.id, lang_code))
     db_conn.commit()
     database_lock.release()
+
+# get message text
+def get_message_text(message, key):
+    if get_user_language(message) == 'pl':
+        return locales.pl[key]
+    else:
+        return locales.en[key]
