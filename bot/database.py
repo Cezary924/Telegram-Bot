@@ -53,6 +53,16 @@ def create_table_last_bot_message():
             ); """)
     database_lock.release()
 
+# create Language table if it does not exist
+def create_table_last_bot_message():
+    database_lock.acquire(True)
+    cursor.execute("""
+        create table if not exists Language (
+            id integer primary key,
+            lang_code text
+            ); """)
+    database_lock.release()
+
 # commit changes and close connection with database
 def commit_close():
     database_lock.acquire(True)
@@ -225,3 +235,35 @@ def send_restart_info(bot):
                      parse_mode = 'Markdown')
             save_current_state(mess)
             func.print_log("Sending info about restart to: " + str(admin) + ".")
+
+# get code of language that users use
+def get_user_language(message):
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("SELECT lang_code FROM Language WHERE id = ?;", 
+                       (message.chat.id, ))
+        (lang_code,)=cursor.fetchone()
+        database_lock.release()
+        return lang_code
+    else:
+        cursor.execute("INSERT INTO Language VALUES (?, ?); ",
+                       (message.chat.id, 'en'))
+        db_conn.commit()
+        database_lock.release()
+        return 'en'
+
+# set code of language that users use
+def set_user_language(message, lang_code):
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("UPDATE Language SET lang_code = ? WHERE id = ?;", 
+                       (lang_code, message.chat.id))
+    else:
+        cursor.execute("INSERT INTO Language VALUES (?, ?); ",
+                       (message.chat.id, lang_code))
+    db_conn.commit()
+    database_lock.release()
