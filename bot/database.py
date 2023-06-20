@@ -90,14 +90,16 @@ def guest_check(message, bot = None, dataprocessing = 0):
             return True
         func.print_log("Data processing info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
         markup = telebot.types.InlineKeyboardMarkup()
-        yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak, zgadzam się", callback_data = "command_dataprocessing_yes")
+        en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_dataprocessing_en")
+        markup.add(en_button)
+        yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak, zgadzam się", callback_data = "command_dataprocessing_pl_yes")
         markup.add(yes_button)
-        no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie, nie zgadzam się", callback_data = "command_dataprocessing_no")
+        no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie, nie zgadzam się", callback_data = "command_dataprocessing_pl_no")
         markup.add(no_button)
         bot.send_message(message.chat.id, "✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. "
                                 + "Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na "
-                                + "gromadzenie przeze mnie przekazywanych mi przez Ciebie danych oraz na "
-                                + "wykorzystywanie ich zgodnie z ich przeznaczeniem - korzystanie z moich funkcjonalności, pomoc i ułatwianie Ci życia 💝", 
+                                + "gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one "
+                                + "wykorzystywane zgodnie z ich przeznaczeniem 💝", 
                         parse_mode = 'Markdown', reply_markup = markup)
         return False
 
