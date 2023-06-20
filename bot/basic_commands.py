@@ -141,7 +141,7 @@ def command_language(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     pl_button = telebot.types.InlineKeyboardButton(text = "🇵🇱 Polski", callback_data = "command_language_pl")
     markup.add(pl_button)
-    en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_language_en")
+    en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English (not fully translated 😞)", callback_data = "command_language_en")
     markup.add(en_button)
     cancel_button = telebot.types.InlineKeyboardButton(text = "❌ Wyjście", callback_data = "command_language_cancel")
     markup.add(cancel_button)
