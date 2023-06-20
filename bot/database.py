@@ -276,9 +276,16 @@ def set_user_language(message, lang_code):
     database_lock.release()
 
 # get message text
-def get_message_text(message, key):
-    if get_user_language(message) != 'pl':
-        if key in locales.en.keys():
-            if locales.en[key] != None:
-                return locales.en[key].replace(r'\n', '\n')
-    return locales.pl[key].replace(r'\n', '\n')
+def get_message_text(message, key, lang = None):
+    if lang != None:
+        if lang != 'pl':
+            if key in locales.en.keys():
+                if locales.en[key] != None:
+                    return locales.en[key].replace(r'\n', '\n')
+        return locales.pl[key].replace(r'\n', '\n')
+    else:
+        if get_user_language(message) != 'pl':
+            if key in locales.en.keys():
+                if locales.en[key] != None:
+                    return locales.en[key].replace(r'\n', '\n')
+        return locales.pl[key].replace(r'\n', '\n')
