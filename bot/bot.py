@@ -188,6 +188,9 @@ def command_admin_restart_device_yes(message):
     admin.command_admin_restart_device_yes(message, bot)
 @bot.message_handler(commands=['admin_return'])
 def command_admin_return(message):
+    func.print_log("/admin_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if "admin" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         mess = bot.send_message(message.chat.id, "🛠️ *Panel Administratora:*\n\nOpuszczono panel _/admin_ ❌", parse_mode='Markdown')
@@ -244,6 +247,9 @@ def command_help_settings(message):
     basic_commands.command_help_settings(message, bot)
 @bot.message_handler(commands=['help_return'])
 def command_help_return(message):
+    func.print_log("/help_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if "help" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu _/help_ ❌", parse_mode='Markdown')
@@ -288,6 +294,9 @@ def command_deletedata(message):
     basic_commands.command_deletedata(message, bot)
 @bot.message_handler(commands=['deletedata_yes'])
 def command_deletedata_yes(message):
+    func.print_log("/deletedata_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if database.get_current_state(message) == "deletedata":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_deletedata_yes(message, bot)
@@ -295,6 +304,9 @@ def command_deletedata_yes(message):
         not_working_buttons(message)
 @bot.message_handler(commands=['deletedata_no'])
 def command_deletedata_no(message):
+    func.print_log("/deletedata_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if database.get_current_state(message) == "deletedata":
         basic_commands.delete_previous_bot_message(message, bot)
         database.save_current_state(message, "0")
@@ -312,6 +324,9 @@ def command_language(message):
     basic_commands.command_language(message, bot)
 @bot.message_handler(commands=['language_pl'])
 def command_language_pl(message):
+    func.print_log("/language_pl: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if database.get_current_state(message) == "language":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_pl(message, bot)
@@ -320,6 +335,9 @@ def command_language_pl(message):
         not_working_buttons(message)
 @bot.message_handler(commands=['language_en'])
 def command_language_en(message):
+    func.print_log("/language_en: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if database.get_current_state(message) == "language":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_en(message, bot)
@@ -328,6 +346,9 @@ def command_language_en(message):
         not_working_buttons(message)
 @bot.message_handler(commands=['language_cancel'])
 def command_language_cancel(message):
+    func.print_log("/language_cancel: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
     if database.get_current_state(message) == "language":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_cancel(message, bot)
