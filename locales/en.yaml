@@ -1,1 +1,17 @@
-echo_all: Sorry, I don't understand... 💔
+echo_all: Sorry, I do not understand... 💔
+echo_unknown_command: Sorry, I do not understand this command... 💔
+command_help_return: 📃 *Help:*\n\nThe _/help_ menu has been closed ❌
+command_admin_return: 🛠️ *Admin:*\n\nThe _/admin_ menu has been closed ❌
+command_dataprocessing_no: Ok... 😞 \nNice to meet you 😄
+command_dataprocessing_yes: I am glad it is not the end of our journey 💞 \nI can follow your instructions from now on 🫡
+command_dataprocessing: ✋ *Data Processing Agreement:*\n\nThis is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose 💝
+command_dataprocessing_no_button: ❌ No, I do not agree
+command_dataprocessing_yes_button: ✅ Yes, I agree
+command_dataprocessing_lang_switch: 🇵🇱 Polski
+not_working_buttons: Sorry, this button does not work anymore... 😥
+permission_denied: Sorry, you cannot use this command... 😭\n\nPlease, contact the Administrator for a higher permission level 🧑‍🔬
+permission_denied_contact_button: 🧑‍🔬 Contact the Admin
+send_restart_info: 🤖 *The Bot has been restarted successfully!*
+forward_message_to_admin: Your report-message has been sent successfully 😁
+message_forwarded_to_admin: would like to send you this report-message
+hi: Hi

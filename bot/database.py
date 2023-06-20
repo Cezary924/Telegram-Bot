@@ -88,19 +88,19 @@ def guest_check(message, bot = None, dataprocessing = 0):
             db_conn.commit()
             database_lock.release()
             return True
-        func.print_log("Data processing info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+        func.print_log("/dataprocessing_pl: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
         markup = telebot.types.InlineKeyboardMarkup()
-        en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_dataprocessing_en")
+        text = get_message_text(message, 'command_dataprocessing_lang_switch', 'pl')
+        en_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_dataprocessing_en")
         markup.add(en_button)
-        yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak, zgadzam się", callback_data = "command_dataprocessing_pl_yes")
+        text = get_message_text(message, 'command_dataprocessing_yes_button', 'pl')
+        yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_dataprocessing_pl_yes")
         markup.add(yes_button)
-        no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie, nie zgadzam się", callback_data = "command_dataprocessing_pl_no")
+        text = get_message_text(message, 'command_dataprocessing_no_button', 'pl')
+        no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_dataprocessing_pl_no")
         markup.add(no_button)
-        bot.send_message(message.chat.id, "✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. "
-                                + "Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na "
-                                + "gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one "
-                                + "wykorzystywane zgodnie z ich przeznaczeniem 💝", 
-                        parse_mode = 'Markdown', reply_markup = markup)
+        text = get_message_text(message, 'command_dataprocessing', 'pl')
+        bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
         return False
 
 # check if person is user
@@ -184,10 +184,13 @@ def forward_message_to_admin(message, bot):
     database_lock.release()
     if admins != None:
         for admin in admins:
-            bot.send_message(admin, "Cześć, *" + message.chat.first_name 
-                            + " (" + str(message.chat.id) + ")* chciałby przekazać Ci tę wiadomość-zgłoszenie: \n\n_" 
+            text_hi = get_message_text(message, 'hi')
+            text = get_message_text(message, 'message_forwarded_to_admin')
+            bot.send_message(admin, text_hi + ", *" + message.chat.first_name 
+                            + " (" + str(message.chat.id) + ")* " + text + ": \n\n_" 
                             + message.text + "_", parse_mode= 'Markdown')
-        bot.send_message(message.chat.id, "Wiadomość została przekazana pomyślnie 😁")
+        text = get_message_text(message, 'forward_message_to_admin')
+        bot.send_message(message.chat.id, text)
     save_current_state(message)
 
 # register last bot message id
@@ -238,8 +241,11 @@ def send_restart_info(bot):
             (state,)=cursor.fetchone()
             database_lock.release()
             if "admin_restart_" in state:
-                mess = bot.send_message(admin, "🤖 *Bot został pomyślnie uruchomiony ponownie!*", 
-                        parse_mode = 'Markdown')
+                mess = bot.send_message(admin, ".")
+                text = get_message_text(mess, 'send_restart_info')
+                register_last_message(mess)
+                bot.delete_message(mess.chat.id, get_last_message(mess))
+                mess = bot.send_message(admin, text, parse_mode = 'Markdown')
                 save_current_state(mess)
                 func.print_log("Sending info about restart to: " + str(admin) + ".")
 

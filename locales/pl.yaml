@@ -1,1 +1,17 @@
 echo_all: Niestety, nie rozumiem Twojej wiadomości... 💔
+echo_unknown_command: Niestety, nie znam takiej komendy... 💔
+command_help_return: 📃 *Pomoc:*\n\nOpuszczono menu _/help_ ❌
+command_admin_return: 🛠️ *Admin:*\n\nOpuszczono panel _/admin_ ❌
+command_dataprocessing_no: Dobrze... 😞 \nMiło mi było Cię poznać 😄
+command_dataprocessing_yes: Cieszę się, że to nie koniec naszej wspólnej przygody 💞 \nOd teraz mogę wykonywać Twoje polecenia 🫡
+command_dataprocessing: ✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one wykorzystywane zgodnie z ich przeznaczeniem 💝
+command_dataprocessing_no_button: ❌ Nie, nie zgadzam się
+command_dataprocessing_yes_button: ✅ Tak, zgadzam się
+command_dataprocessing_lang_switch: 🇬🇧 English
+not_working_buttons: Niestety, ten przycisk już nie działa... 😥
+permission_denied: Niestety, nie możesz skorzystać z tego polecenia... 😭\n\nAby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
+permission_denied_contact_button: 🧑‍🔬 Kontakt z administratorem
+send_restart_info: 🤖 *Bot został pomyślnie uruchomiony ponownie!*
+forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
+message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie
+hi: Cześć
