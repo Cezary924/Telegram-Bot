@@ -43,4 +43,5 @@ python bot/bot.py
 - ```/reddit``` - Pobieranie wideo z serwisu Reddit.
 - ```/contact``` - Informacje o drogach kontaktu z Administratorem.
 - ```/report``` - Wysłanie zgłoszenia do Administratora.
+- ```/language``` - Zmiana języka.
 - ```/deletedata``` - Usunięcie wszystkich zgromadzonych danych.

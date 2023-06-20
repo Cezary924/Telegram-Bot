@@ -43,4 +43,5 @@ python bot/bot.py
 - ```/reddit``` - to download video from Reddit.
 - ```/contact``` - to contact the Admin/Creator.
 - ```/report``` - to report an issue to the Admin.
+- ```/language``` - to change your display language.
 - ```/deletedata``` - to delete all your data collected by the Bot.
