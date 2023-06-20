@@ -507,14 +507,15 @@ def forward_message_to_admin(message):
     func.print_log("Report to admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.forward_message_to_admin(message, bot)
 
-# handle any other message
+# handle unknown command
 @bot.message_handler(func=lambda message: message.text.startswith("/"))
 def echo_unknown_command(message):
     func.print_log("Unknown command: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     database.save_current_state(message, "0")
-    mess = bot.send_message(message.chat.id, "Niestety, nie znam takiej komendy... 💔")
+    text = database.get_message_text(message, 'echo_unknown_command')
+    mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)
 
 # handle any other message
