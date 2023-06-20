@@ -142,7 +142,9 @@ def command_language(message, bot):
     markup.add(pl_button)
     en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_language_en")
     markup.add(en_button)
-    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nWybierz swój język.", 
+    cancel_button = telebot.types.InlineKeyboardButton(text = "❌ Wyjście", callback_data = "command_language_cancel")
+    markup.add(cancel_button)
+    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nWybierz swój język", 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_language_pl(message, bot):
@@ -151,7 +153,8 @@ def command_language_pl(message, bot):
     database.register_last_message(mess)
 def command_language_en(message, bot):
     database.set_user_language(message, 'en')
-    mess = bot.send_message(message.chat.id, "Done 🇬🇧")
+def command_language_cancel(message, bot):
+    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nOpuszczono menu _/language_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /about command

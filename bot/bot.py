@@ -323,6 +323,14 @@ def command_language_en(message):
         database.save_current_state(message, "0")
     else:
         not_working_buttons(message)
+@bot.message_handler(commands=['language_cancel'])
+def command_language_cancel(message):
+    if database.get_current_state(message) == "language":
+        basic_commands.delete_previous_bot_message(message, bot)
+        basic_commands.command_language_cancel(message, bot)
+        database.save_current_state(message, "0")
+    else:
+        not_working_buttons(message)
 
 # handle /about command
 @bot.message_handler(commands=['about'])
