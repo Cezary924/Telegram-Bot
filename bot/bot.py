@@ -235,8 +235,7 @@ def command_admin_return(message):
         return
     if "admin" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        mess = bot.send_message(message.chat.id, "🛠️ *Panel Administratora:*\n\nOpuszczono panel _/admin_ ❌", parse_mode='Markdown')
-        database.register_last_message(mess)
+        admin.command_admin_return(message, bot)
     elif "admin_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         command_admin(message)
@@ -294,8 +293,7 @@ def command_help_return(message):
         return
     if "help" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nOpuszczono menu _/help_ ❌", parse_mode='Markdown')
-        database.register_last_message(mess)
+        basic_commands.command_help_return(message, bot)
     elif "help_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         command_help(message)

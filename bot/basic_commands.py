@@ -100,6 +100,10 @@ def command_help_settings(message, bot):
                      "/language - _🌐 Zmiana języka_\n" + 
                      "/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n", parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
+def command_help_return(message, bot):
+    text = database.get_message_text(message, 'command_help_return')
+    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
+    database.register_last_message(mess)
 
 # handle /contact command
 def command_contact(message, bot):

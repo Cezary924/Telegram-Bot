@@ -98,3 +98,8 @@ def command_admin_update_bot_yes(message, bot):
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
     time.sleep(5)
     bot.send_message(message.chat.id, "🤖 *Bot został zaktualizowany!*", parse_mode = 'Markdown')
+
+def command_admin_return(message, bot):
+    text = database.get_message_text(message, 'command_admin_return')
+    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
+    database.register_last_message(mess)
