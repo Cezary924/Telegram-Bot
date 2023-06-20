@@ -88,6 +88,7 @@ def guest_check(message, bot = None, dataprocessing = 0):
             db_conn.commit()
             database_lock.release()
             return True
+        func.print_log("Data processing info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
         markup = telebot.types.InlineKeyboardMarkup()
         yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak, zgadzam się", callback_data = "command_dataprocessing_yes")
         markup.add(yes_button)

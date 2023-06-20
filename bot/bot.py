@@ -71,10 +71,13 @@ def test_callback(call):
 
 # handle data processing check callback queries
 def command_dataprocessing_yes(message):
+    func.print_log("/dataprocessing_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     bot.send_message(message.chat.id, "Cieszę się, że to nie koniec naszej wspólnej przygody 💞 \n"
                      + "Od teraz mogę wykonywać Twoje polecenia 🫡")
+    database.guest_check(message, bot, 1)
     database.register_last_message(message, 1)
 def command_dataprocessing_no(message):
+    func.print_log("/dataprocessing_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     bot.send_message(message.chat.id, "Dobrze, rozumiem 😞 \n"
                      + "Miło mi było Cię poznać 😄")
 
