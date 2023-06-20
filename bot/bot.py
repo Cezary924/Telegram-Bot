@@ -65,22 +65,61 @@ def not_working_buttons(message):
 @bot.callback_query_handler(func=lambda call: True)
 def test_callback(call):
     func.print_log("Callback query: " + call.message.chat.first_name + " (" + str(call.message.chat.id) + ").")
-    if "command_dataprocessing_" in str(call.data):
+    if "command_dataprocessing_pl_yes" in str(call.data) or "command_dataprocessing_pl_no" in str(call.data) or "command_dataprocessing_en_yes" in str(call.data) or "command_dataprocessing_en_no" in str(call.data):
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, inline_message_id=call.inline_message_id, reply_markup=None)
     globals()[str(call.data)](call.message)
 
 # handle data processing check callback queries
-def command_dataprocessing_yes(message):
-    func.print_log("/dataprocessing_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    bot.send_message(message.chat.id, "Cieszę się, że to nie koniec naszej wspólnej przygody 💞 \n"
-                     + "Od teraz mogę wykonywać Twoje polecenia 🫡")
+def command_dataprocessing_pl(message):
+    func.print_log("/dataprocessing_pl: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    markup = telebot.types.InlineKeyboardMarkup()
+    en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_dataprocessing_en")
+    markup.add(en_button)
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak, zgadzam się", callback_data = "command_dataprocessing_pl_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie, nie zgadzam się", callback_data = "command_dataprocessing_pl_no")
+    markup.add(no_button)
+    bot.edit_message_text("✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. "
+                                + "Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na "
+                                + "gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one "
+                                + "wykorzystywane zgodnie z ich przeznaczeniem 💝", 
+                        message.chat.id, message.id, parse_mode = 'Markdown', reply_markup = markup)
+def command_dataprocessing_en(message):
+    func.print_log("/dataprocessing_en: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    markup = telebot.types.InlineKeyboardMarkup()
+    pl_button = telebot.types.InlineKeyboardButton(text = "🇵🇱 Polski", callback_data = "command_dataprocessing_pl")
+    markup.add(pl_button)
+    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Yes, I agree", callback_data = "command_dataprocessing_en_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = "❌ No, I do not agree", callback_data = "command_dataprocessing_en_no")
+    markup.add(no_button)
+    bot.edit_message_text("✋ *Data Processing Agreement:*\n\nThis is the beginning of our journey. "
+                                + "However, before we can talk to each other, you must agree to the data collection. "
+                                + "It will be used in accordance with its intended purpose. 💝", 
+                        message.chat.id, message.id, parse_mode = 'Markdown', reply_markup = markup)
+def command_dataprocessing_pl_yes(message):
+    func.print_log("/dataprocessing_pl_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.guest_check(message, bot, 1)
     database.register_last_message(message, 1)
-def command_dataprocessing_no(message):
-    func.print_log("/dataprocessing_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.set_user_language(message, 'pl')
+    bot.send_message(message.chat.id, "Cieszę się, że to nie koniec naszej wspólnej przygody 💞 \n"
+                     + "Od teraz mogę wykonywać Twoje polecenia 🫡")
+def command_dataprocessing_pl_no(message):
+    func.print_log("/dataprocessing_pl_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     bot.send_message(message.chat.id, "Dobrze, rozumiem 😞 \n"
                      + "Miło mi było Cię poznać 😄")
-
+def command_dataprocessing_en_yes(message):
+    func.print_log("/dataprocessing_en_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.guest_check(message, bot, 1)
+    database.register_last_message(message, 1)
+    database.set_user_language(message, 'en')
+    bot.send_message(message.chat.id, "I am glad it is not the end of our journey 💞 \n"
+                     + "I can follow your instructions from now on 🫡")
+def command_dataprocessing_en_no(message):
+    func.print_log("/dataprocessing_en_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    bot.send_message(message.chat.id, "Ok... 😞 \n"
+                     + "Nice to meet you 😄")
+    
 # send info about bot restart to admins
 def send_restart_info(bot):
     database.send_restart_info(bot)
