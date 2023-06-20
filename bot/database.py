@@ -277,7 +277,8 @@ def set_user_language(message, lang_code):
 
 # get message text
 def get_message_text(message, key):
-    if get_user_language(message) == 'pl':
-        return locales.pl[key]
-    else:
-        return locales.en[key]
+    if get_user_language(message) != 'pl':
+        if key in locales.en.keys():
+            if locales.en[key] != None:
+                return locales.en[key].replace(r'\n', '\n')
+    return locales.pl[key].replace(r'\n', '\n')
