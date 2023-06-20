@@ -289,13 +289,14 @@ def command_deletedata(message):
 @bot.message_handler(commands=['deletedata_yes'])
 def command_deletedata_yes(message):
     if database.get_current_state(message) == "deletedata":
-        database.deletedata(message)
+        basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_deletedata_yes(message, bot)
     else:
         not_working_buttons(message)
 @bot.message_handler(commands=['deletedata_no'])
 def command_deletedata_no(message):
     if database.get_current_state(message) == "deletedata":
+        basic_commands.delete_previous_bot_message(message, bot)
         database.save_current_state(message, "0")
         basic_commands.command_deletedata_no(message, bot)
     else:
@@ -312,6 +313,7 @@ def command_language(message):
 @bot.message_handler(commands=['language_pl'])
 def command_language_pl(message):
     if database.get_current_state(message) == "language":
+        basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_pl(message, bot)
         database.save_current_state(message, "0")
     else:
@@ -319,6 +321,7 @@ def command_language_pl(message):
 @bot.message_handler(commands=['language_en'])
 def command_language_en(message):
     if database.get_current_state(message) == "language":
+        basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_en(message, bot)
         database.save_current_state(message, "0")
     else:

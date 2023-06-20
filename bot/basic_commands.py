@@ -129,10 +129,11 @@ def command_deletedata(message, bot):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_deletedata_yes(message, bot):
-    mess = bot.send_message(message.chat.id, "Operacja usuwania danych przebiegła pomyślnie.")
+    database.deletedata(message)
+    mess = bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nUsunięto zgromadzone dane ✅", parse_mode='Markdown')
     database.register_last_message(mess)
 def command_deletedata_no(message, bot):
-    mess = bot.send_message(message.chat.id, "Operacja usuwania danych została anulowana.")
+    mess = bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nOpuszczono menu _/deletedata_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /language command
@@ -149,10 +150,12 @@ def command_language(message, bot):
     database.register_last_message(mess)
 def command_language_pl(message, bot):
     database.set_user_language(message, 'pl')
-    mess = bot.send_message(message.chat.id, "Gotowe 🇵🇱")
+    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nGotowe 🇵🇱", parse_mode='Markdown')
     database.register_last_message(mess)
 def command_language_en(message, bot):
     database.set_user_language(message, 'en')
+    mess = bot.send_message(message.chat.id, "🌐 *Language:*\n\nDone 🇬🇧", parse_mode='Markdown')
+    database.register_last_message(mess)
 def command_language_cancel(message, bot):
     mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nOpuszczono menu _/language_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)
