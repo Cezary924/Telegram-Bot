@@ -1,6 +1,8 @@
 import requests, os
 from urllib.parse import urlparse
 
+import database
+
 # check Tumblr url
 def check_tumblr_url(message):
     if "http" in message.text:
@@ -14,15 +16,18 @@ def check_tumblr_url(message):
 def echo_tumblr(message, bot):
     url = message.text
 
-    bot.send_message(message.chat.id, "Przetwarzanie linku z Tumblr... ⏳")
+    text = database.get_message_text(message, 'tumblr_url_start')
+    bot.send_message(message.chat.id, text)
 
     response = requests.request("GET", url)
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'tumblr_url_error')
+        bot.send_message(message.chat.id, text)
         return
 
     if "<meta data-rh=\"\" property=\"og:video\" content=\"" not in response.text:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'tumblr_url_error')
+        bot.send_message(message.chat.id, text)
         return
         
     vid_url = response.text.split("<meta data-rh=\"\" property=\"og:video\" content=\"")[1]
@@ -30,7 +35,8 @@ def echo_tumblr(message, bot):
 
     response = requests.request("GET", vid_url)
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'tumblr_url_error')
+        bot.send_message(message.chat.id, text)
         return
 
     vid_name = str(message.chat.id) + str(message.message_id) + ".mp4"

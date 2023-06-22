@@ -20,3 +20,5 @@ reddit_url_error: Sorry, downloading Reddit videos is not currently possible... 
 reddit_url_processing: Please be patient - this operation may take a while ⌚
 tiktok_url_start: Processing the URL of a TikTok post... ⏳
 tiktok_url_error: Sorry, downloading TikTok videos is not currently possible... Please, try again later 😞
+tumblr_url_start: Processing the URL of a Tumblr post... ⏳
+tumblr_url_error: Sorry, downloading Tumblr videos is not currently possible... Please, try again later 😞
