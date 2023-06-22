@@ -2,6 +2,8 @@ import requests, os
 from urllib.parse import urlparse
 import moviepy.editor as mpe
 
+import database
+
 # check Reddit url
 def check_reddit_url(message):
     if "http" in message.text:
@@ -22,17 +24,20 @@ def echo_reddit(message, bot):
     else:
         url = url + ".json"
 
-    bot.send_message(message.chat.id, "Przetwarzanie linku z Reddita... ⏳")
+    text = database.get_message_text(message, 'reddit_url_start')
+    bot.send_message(message.chat.id, text)
 
     response = requests.request("GET", url, headers = {'User-agent': 'Reddit-Downloader'})
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Reddita nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'reddit_url_error')
+        bot.send_message(message.chat.id, text)
         return
 
     response = response.json()
 
     if response[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"] is None:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Reddita nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'reddit_url_error')
+        bot.send_message(message.chat.id, text)
         return
 
     vid_url = response[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"]
@@ -42,7 +47,8 @@ def echo_reddit(message, bot):
     
     response = requests.request("GET", vid_url, headers = {'User-agent': 'Reddit-Downloader'})
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Reddita nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'reddit_url_error')
+        bot.send_message(message.chat.id, text)
         return
     vid_name = str(message.chat.id) + str(message.message_id) + "_vid.mp4"
     try:
@@ -51,6 +57,9 @@ def echo_reddit(message, bot):
             f.close()
     except OSError:
         print("Open error: Could not open the \'.mp4\' file.")
+        text = database.get_message_text(message, 'reddit_url_error')
+        bot.send_message(message.chat.id, text)
+        return
 
     if audio == False:
         bot.send_video(message.chat.id, open(vid_name, 'rb'))
@@ -59,7 +68,8 @@ def echo_reddit(message, bot):
     
     response = requests.request("GET", audio_url, headers = {'User-agent': 'Reddit-Downloader'})
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Reddita nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'reddit_url_error')
+        bot.send_message(message.chat.id, text)
         return
     audio_name = str(message.chat.id) + str(message.message_id) + "_audio.mp3"
     try:
@@ -68,8 +78,12 @@ def echo_reddit(message, bot):
             f.close()
     except OSError:
         print("Open error: Could not open the \'.mp4\' file.")
+        text = database.get_message_text(message, 'reddit_url_error')
+        bot.send_message(message.chat.id, text)
+        return
 
-    bot.send_message(message.chat.id, "Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚")
+    text = database.get_message_text(message, 'reddit_url_processing')
+    bot.send_message(message.chat.id, text)
 
     final_name = str(message.chat.id) + str(message.message_id) + "_final.mp4"
     my_clip = mpe.VideoFileClip(vid_name)

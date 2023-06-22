@@ -15,3 +15,6 @@ send_restart_info: 🤖 *Bot został pomyślnie uruchomiony ponownie!*
 forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
 message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie
 hi: Cześć
+reddit_url_start: Przetwarzanie linku z Reddita... ⏳
+reddit_url_error: Niestety, pobranie filmiku z Reddita nie jest teraz możliwe... Spróbuj poźniej 😞
+reddit_url_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚

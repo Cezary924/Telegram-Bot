@@ -15,3 +15,6 @@ send_restart_info: 🤖 *The Bot has been restarted successfully!*
 forward_message_to_admin: Your report-message has been sent successfully 😁
 message_forwarded_to_admin: would like to send you this report-message
 hi: Hi
+reddit_url_start: Processing the URL of a Reddit post... ⏳
+reddit_url_error: Sorry, downloading Reddit videos is not currently possible... Please, try again later 😞
+reddit_url_processing: Please be patient - this operation may take a while ⌚
