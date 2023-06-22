@@ -1,6 +1,8 @@
 import requests, os
 from urllib.parse import urlparse
 
+import database
+
 rapidapi = None
 
 # open file containing RapidAPI key and read from it
@@ -32,17 +34,20 @@ def echo_tiktok(message, bot):
         "X-RapidAPI-Host": "tiktok-full-info-without-watermark.p.rapidapi.com"
     }
 
-    bot.send_message(message.chat.id, "Przetwarzanie linku z TikToka... ⏳")
+    text = database.get_message_text(message, 'tiktok_url_start')
+    bot.send_message(message.chat.id, text)
 
     response = requests.request("GET", url, headers=headers, params=querystring)
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'tiktok_url_error')
+        bot.send_message(message.chat.id, text)
         return
     
     vid_url = response.json()['video'][0]
     response = requests.request("GET", vid_url, headers=headers, params=querystring)
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'tiktok_url_error')
+        bot.send_message(message.chat.id, text)
         return
     
     vid_name = str(message.chat.id) + str(message.message_id) + ".mp4"
@@ -61,4 +66,5 @@ def start_tiktok(message, bot):
     if rapidapi != None:
         echo_tiktok(message, bot)
     else:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'tiktok_url_error')
+        bot.send_message(message.chat.id, text)
