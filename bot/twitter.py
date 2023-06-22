@@ -1,6 +1,8 @@
 import requests, os
 from urllib.parse import urlparse
 
+import database
+
 bearer_token = None
 
 # open file containing Bearer Token and read from it
@@ -29,11 +31,13 @@ def echo_twitter(message, bot):
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
     url = url + message.text.split("/status/")[1].split("?")[0] + "&include_entities=true"
 
-    bot.send_message(message.chat.id, "Przetwarzanie linku z Twittera... ⏳")
+    text = database.get_message_text(message, 'twitter_url_start')
+    bot.send_message(message.chat.id, text)
 
     response = requests.request("GET", url, headers=headers, params={"tweet_mode": "extended"})
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'twitter_url_error')
+        bot.send_message(message.chat.id, text)
         return
     
     response = response.json()
@@ -46,7 +50,8 @@ def echo_twitter(message, bot):
 
     response = requests.request("GET", best_vid['url'], headers=headers)
     if response.status_code != 200:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'twitter_url_error')
+        bot.send_message(message.chat.id, text)
         return
     
     vid_name = str(message.chat.id) + str(message.message_id) + ".mp4"
@@ -65,4 +70,5 @@ def start_twitter(message, bot):
     if bearer_token != None:
         echo_twitter(message, bot)
     else:
-        bot.send_message(message.chat.id, "Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞")
+        text = database.get_message_text(message, 'twitter_url_error')
+        bot.send_message(message.chat.id, text)
