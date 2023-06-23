@@ -3,18 +3,18 @@ from urllib.parse import urlparse
 
 import database
 
-bearer_token = None
+rapidapi = None
 
-# open file containing Bearer Token and read from it
-def read_bearer_token():
-    global bearer_token
+# open file containing RapidApi key and read from it
+def read_rapidapi():
+    global rapidapi
     try:
         with open("../files/twitter.txt") as f:
-            bearer_token = f.readlines()
+            rapidapi = f.readlines()
         f.close()
     except OSError:
         print("Open error: Could not open the \'twitter.txt\' file.")
-    bearer_token = str(bearer_token[0])
+    rapidapi = str(rapidapi[0])
 
 # check Twitter url
 def check_twitter_url(message):
@@ -27,14 +27,18 @@ def check_twitter_url(message):
 
 # handle Twitter urls
 def echo_twitter(message, bot):
-    url = "https://api.twitter.com/1.1/statuses/show.json?id="
-    headers = {"Authorization": "Bearer {}".format(bearer_token)}
-    url = url + message.text.split("/status/")[1].split("?")[0] + "&include_entities=true"
+    url = "https://twitter65.p.rapidapi.com/api/twitter/links"
+    payload = { "url": message.text }
+    headers = {
+        "content-type": "application/json",
+        "X-RapidAPI-Key": rapidapi,
+        "X-RapidAPI-Host": "twitter65.p.rapidapi.com"
+    }
 
     text = database.get_message_text(message, 'twitter_url_start')
     bot.send_message(message.chat.id, text)
 
-    response = requests.request("GET", url, headers=headers, params={"tweet_mode": "extended"})
+    response = requests.post(url, json=payload, headers=headers)
     if response.status_code != 200:
         text = database.get_message_text(message, 'twitter_url_error')
         bot.send_message(message.chat.id, text)
@@ -43,9 +47,9 @@ def echo_twitter(message, bot):
     response = response.json()
 
     best_vid = None
-    for vid in response['extended_entities']['media'][0]['video_info']['variants']:
-        if 'bitrate' in vid.keys():
-            if best_vid == None or int(best_vid['bitrate']) < vid['bitrate']:
+    for vid in response[0]['urls']:
+        if 'quality' in vid.keys():
+            if best_vid == None or int(best_vid['quality']) < vid['quality']:
                 best_vid = vid
 
     response = requests.request("GET", best_vid['url'], headers=headers)
@@ -65,9 +69,9 @@ def echo_twitter(message, bot):
     os.remove(vid_name)
 
 def start_twitter(message, bot):
-    if bearer_token == None:
-        read_bearer_token()
-    if bearer_token != None:
+    if rapidapi == None:
+        read_rapidapi()
+    if rapidapi != None:
         echo_twitter(message, bot)
     else:
         text = database.get_message_text(message, 'twitter_url_error')
