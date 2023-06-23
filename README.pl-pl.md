@@ -18,8 +18,8 @@ pip install -r requirements.txt
 ```
 3. Stwórz:
    - plik ```telegram.txt``` w folderze *files* i zapisz w nim swój Telegram token.
-   - plik ```tiktok.txt``` w folderze *files* i zapisz w nim swój RapidAPI key.
-   - plik ```twitter.txt``` w folderze *files* i zapisz w nim swój (inny) RapidAPI key.
+   - plik ```tiktok.txt``` w folderze *files* i zapisz w nim swój RapidAPI key (https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark).
+   - plik ```twitter.txt``` w folderze *files* i zapisz w nim swój (inny) RapidAPI key (https://rapidapi.com/3205/api/twitter65).
 4. Zmień:
    - plik ```bot_name.txt``` z folderu *files* - wprowadź swoją własną nazwę Bota.
    - plik ```github_username.txt``` z folderu *files* - wprowadź swoją nazwę uzytkownika GitHub.
