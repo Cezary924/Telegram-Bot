@@ -432,7 +432,7 @@ def command_twitter(message):
         permission_denied(message)
 
 # handle /reddit command
-@bot.message_handler(commands=['twitter'])
+@bot.message_handler(commands=['reddit'])
 def command_reddit(message):
     func.print_log("/reddit: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
