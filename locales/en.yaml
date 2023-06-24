@@ -24,3 +24,23 @@ tumblr_url_start: Processing the URL of a Tumblr post... ⏳
 tumblr_url_error: Sorry, downloading Tumblr videos is not currently possible... Please, try again later 😞
 twitter_url_start: Processing the URL of a Tweet... ⏳
 twitter_url_error: Sorry, downloading Twitter videos is not currently possible... Please, try again later 😞
+command_admin_update_bot_yes_finish: 🤖 *The Bot has been updated!*
+command_admin_update_bot_yes: 🤖 *The Bot is updating...*
+command_admin_update_bot: 🤖 *The Bot Update:*\n\nAre you sure you want to update the Bot? The update will be successful if you restart the Bot after the update completion.
+'no': ❌ No
+'yes': ✅ Yes
+command_admin_restart_device_yes: 🖥️ *The device is restarting...*
+command_admin_restart_device: 🖥️ *The Device Restart:*\n\nAre you sure you want to restart the device running the Bot?
+command_admin_restart_bot_yes: 🤖 *The Bot is restarting...*
+command_admin_restart_bot: 🤖 *The Bot Restart:*\n\nAre you sure you want to restart the Bot?
+command_admin_shutdown_device_yes: 🖥️ *The device is shutting down...*
+command_admin_shutdown_device: 🖥️ *The Device Shutdown:*\n\nAre you sure you want to shut down the device running the Bot?
+command_admin_shutdown_bot_yes: 🤖 *The Bot is shutting down...*
+command_admin_shutdown_bot: 🤖 *The Bot Shutdown:*\n\nAre you sure you want to shut down the Bot?
+admin_menu: 🛠️ *Admin:*\n\nSelect the task of the following
+exit: ❌ Exit
+restart_device: 🔁 The Device Restart 🖥️
+restart_bot: 🔁 The Bot Restart 🤖
+shutdown_device: 📴 The Device Shutdown 🖥️
+shutdown_bot: 📴 The Bot Shutdown 🤖
+update_bot: ⬇️ The Bot Update 🤖

@@ -24,3 +24,23 @@ tumblr_url_start: Przetwarzanie linku z Tumblr... ⏳
 tumblr_url_error: Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞
 twitter_url_start: Przetwarzanie linku z Twittera... ⏳
 twitter_url_error: Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞
+command_admin_update_bot_yes_finish: 🤖 *Bot został zaktualizowany!*
+command_admin_update_bot_yes: 🤖 *Aktualizacja Bota...*
+command_admin_update_bot: 🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota? Aby aktualizacia przebiegła pomyślnie i jej skutki były odczuwalne, należy uruchomić Bota ponownie.
+'no': ❌ Nie
+'yes': ✅ Tak
+command_admin_restart_device_yes: 🖥️ *Restart urządzenia...*
+command_admin_restart_device: 🖥️ *Restart urządzenia:*\n\nCzy na pewno chcesz uruchomić ponownie urządzenie, na którym uruchomiony jest Bot?
+command_admin_restart_bot_yes: 🤖 *Restart Bota...*
+command_admin_restart_bot: 🤖 *Restart Bota:*\n\nCzy na pewno chcesz uruchomić ponownie Bota?
+command_admin_shutdown_device_yes: 🖥️ *Wyłączenie urządzenia...*
+command_admin_shutdown_device: 🖥️ *Wyłączenie urządzenia:*\n\nCzy na pewno chcesz wyłączyć urządzenie, na którym uruchomiony jest Bot?
+command_admin_shutdown_bot_yes: 🤖 *Wyłączenie Bota...*
+command_admin_shutdown_bot: 🤖 *Wyłączenie Bota:*\n\nCzy na pewno chcesz wyłączyć skrypt Bota?
+admin_menu: 🛠️ *Admin:*\n\nWybierz zadanie z podanych
+exit: ❌ Wyjście
+restart_device: 🔁 Restart urządzenia 🖥️
+restart_bot: 🔁 Restart Bota 🤖
+shutdown_device: 📴 Wyłączenie urządzenia 🖥️
+shutdown_bot: 📴 Wyłączenie Bota 🤖
+update_bot: ⬇️ Aktualizacja Bota 🤖
