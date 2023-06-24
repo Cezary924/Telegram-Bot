@@ -24,11 +24,11 @@ def info_about_version(ver):
         return (0, "Błąd. Spróbuj później.")
     online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
     if ver > online_ver:
-        return (online_ver, "Beta")
+        return (online_ver, "Beta (Stabilna: " + str(online_ver) + ")")
     elif ver == online_ver:
-        return (online_ver, "Stablina, aktualna")
+        return (online_ver, "Aktualna")
     else:
-        return (online_ver, "Stablina, przestarzała (" + str(online_ver) + ")")
+        return (online_ver, "Przestarzała (Aktualna: " + str(online_ver) + ")")
 
 # delete previously sent message by bot
 def delete_previous_bot_message(message, bot):
