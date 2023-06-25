@@ -30,7 +30,7 @@ pip install -r requirements.txt
 ```
 python bot/bot.py
 ```
-2. Gotowe! Korzystaj i ciesz się! 😁
+2. Gotowe! 😁
 
 ## 🧑‍💻 Podstawowe komendy
 - ```/start``` - Zaczęcie rozmowy z Botem.
