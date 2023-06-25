@@ -63,3 +63,11 @@ command_deletedata: 🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć w
 command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡
 command_contact: ☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
 report: 📨 Zgłoszenie do Administratora
+
+command_start: Cześć!*\n\nZ tej strony 
+about: ℹ️ Informacje o Bocie
+help: 📃 Lista komend
+old_ver: Przestarzała (Aktualna
+up-to-date_ver: Aktualna 😊
+beta_ver: Beta (Stabilna 
+error: Błąd. Spróbuj później.

@@ -63,3 +63,11 @@ command_deletedata: 🗑️ *Data Deletion:*\n\nAre you sure you want to delete 
 command_report: 📨 *Report:*\n\nSend me report-message to the Admin and I will forward it 🫡
 command_contact: ☎️ *Contact Us:*\n\nTo contact the Admin, write to them directly at @Cezary924 or send a non-returnable report-message 📨
 report: 📨 Report to the Admin
+
+command_start: Hi!*\n\nThis is 
+about: ℹ️ About the Bot
+help: 📃 Help
+old_ver: Outdated (Up-to-date
+up-to-date_ver: Up-to-date 😊
+beta_ver: Beta (Stable 
+error: Error. Please, try again later.

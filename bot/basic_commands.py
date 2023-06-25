@@ -18,17 +18,32 @@ github_repo = func.read_file("github_repo.txt", "../files/github_repo.txt")
 github_repo = str(github_repo[0])
 
 # get commits number from GitHub
-def info_about_version(ver):
+def info_about_version(ver, message = None):
     response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=1")
-    if response.status_code != 200:
-        return (0, "Błąd. Spróbuj później.")
-    online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
-    if ver > online_ver:
-        return (online_ver, "Beta (Stabilna: " + str(online_ver) + ")")
-    elif ver == online_ver:
-        return (online_ver, "Aktualna")
+    if message == None:
+        if response.status_code != 200:
+            return (0, "Błąd. Spróbuj później.")
+        online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
+        if ver > online_ver:
+            return (online_ver, "Beta (Stabilna: " + str(online_ver) + ")")
+        elif ver == online_ver:
+            return (online_ver, "Aktualna")
+        else:
+            return (online_ver, "Przestarzała (Aktualna: " + str(online_ver) + ")")
     else:
-        return (online_ver, "Przestarzała (Aktualna: " + str(online_ver) + ")")
+        if response.status_code != 200:
+            text = database.get_message_text(message, 'error')
+            return (0, text)
+        online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
+        if ver > online_ver:
+            text = database.get_message_text(message, 'beta_ver')
+            return (online_ver, text + ": " + str(online_ver) + ")")
+        elif ver == online_ver:
+            text = database.get_message_text(message, 'up-to-date_ver')
+            return (online_ver, text)
+        else:
+            text = database.get_message_text(message, 'old_ver')
+            return (online_ver, text + ": " + str(online_ver) + ")")
 
 # delete previously sent message by bot
 def delete_previous_bot_message(message, bot):
@@ -38,11 +53,14 @@ def delete_previous_bot_message(message, bot):
 # handle /start command
 def command_start(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "📃 Lista komend", callback_data = "command_help")
+    text = database.get_message_text(message, 'help')
+    help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help")
     markup.add(help_button)
-    about_button = telebot.types.InlineKeyboardButton(text = "ℹ️ Informacje o Bocie", callback_data = "command_about")
+    text = database.get_message_text(message, 'about')
+    about_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_about")
     markup.add(about_button)
-    mess = bot.send_message(message.chat.id, "*👋 Cześć!*\n\nZ tej strony " + bot_name + "! 🤖",
+    text = database.get_message_text(message, 'command_start')
+    mess = bot.send_message(message.chat.id, "*👋 " + text + " " + bot_name + "! 🤖",
                       parse_mode = 'Markdown', reply_markup = markup)
     if database.guest_check(message, bot) != True:
         return
@@ -187,7 +205,7 @@ def command_about(message, bot, ver):
                     + text5 + ": _" + text6 + "_\n"
                     + text4 + ": _@" + github_username + "_\n"
                     + text3 + ": _" + str(ver) + "_\n"
-                    + text2 + ": _" + info_about_version(ver)[1] + "_\n"
+                    + text2 + ": _" + info_about_version(ver, message)[1] + "_\n"
                     #+ text1 + ": _2023_", parse_mode= 'Markdown')
                     + "© _2023_", parse_mode= 'Markdown')
     database.register_last_message(mess)
