@@ -59,8 +59,9 @@ def command_start(message, bot):
     text = database.get_message_text(message, 'about')
     about_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_about")
     markup.add(about_button)
-    text = database.get_message_text(message, 'command_start')
-    mess = bot.send_message(message.chat.id, "*👋 " + text + " " + bot_name + "! 🤖",
+    text1 = database.get_message_text(message, 'hi')
+    text2 = database.get_message_text(message, 'command_start')
+    mess = bot.send_message(message.chat.id, "*👋 " + text1 + "!*\n\n" + text2 + " " + bot_name + "! 🤖",
                       parse_mode = 'Markdown', reply_markup = markup)
     if database.guest_check(message, bot) != True:
         return
@@ -70,53 +71,65 @@ def command_start(message, bot):
 # handle /help command
 def command_help(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    main_button = telebot.types.InlineKeyboardButton(text = "🤖 Ogólne", callback_data = "command_help_main")
+    text = database.get_message_text(message, 'main')
+    main_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_main")
     markup.add(main_button)
-    downloader_button = telebot.types.InlineKeyboardButton(text = "⬇️ Pobieranie wideo", callback_data = "command_help_downloader")
+    text = database.get_message_text(message, 'downloader')
+    downloader_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_downloader")
     markup.add(downloader_button)
-    contact_button = telebot.types.InlineKeyboardButton(text = "☎️ Kontakt", callback_data = "command_help_contact")
+    text = database.get_message_text(message, 'contact')
+    contact_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_contact")
     markup.add(contact_button)
-    settings_button = telebot.types.InlineKeyboardButton(text = "⚙️ Ustawienia", callback_data = "command_help_settings")
+    text = database.get_message_text(message, 'settings')
+    settings_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_settings")
     markup.add(settings_button)
-    exit_button = telebot.types.InlineKeyboardButton(text = "❌ Wyjście", callback_data = "command_help_return")
+    text = database.get_message_text(message, 'exit')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(exit_button)
-    mess = bot.send_message(message.chat.id, "📃 *Pomoc:*\n\nWybierz interesującą Cię kategorię komend",
+    text1 = database.get_message_text(message, 'help')
+    text2 = database.get_message_text(message, 'command_help')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_main(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
+    text = database.get_message_text(message, 'return')
+    help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(help_button)
-    mess = bot.send_message(message.chat.id, "📃 *Pomoc > 🤖 Ogólne:*\n\n" + 
-                     "/start - _🤖 Zaczęcie rozmowy z Botem_\n" + 
-                     "/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n" +
-                     "/about - _ℹ️ Informacje o Bocie_", parse_mode= 'Markdown', reply_markup = markup)
+    text1 = database.get_message_text(message, 'help')
+    text2 = database.get_message_text(message, 'main')
+    text3 = database.get_message_text(message, 'command_help_main')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_downloader(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
+    text = database.get_message_text(message, 'return')
+    help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(help_button)
-    mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⬇️ Pobieranie wideo:*\n\n" + 
-                     "/tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n" +
-                     "/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n" +
-                     "/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n" +
-                     "/reddit - _🤖 Pobieranie wideo z serwisu Reddit_", parse_mode= 'Markdown', reply_markup = markup)
+    text1 = database.get_message_text(message, 'help')
+    text2 = database.get_message_text(message, 'downloader')
+    text3 = database.get_message_text(message, 'command_help_downloader')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup) 
     database.register_last_message(mess)
 def command_help_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
+    text = database.get_message_text(message, 'return')
+    help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(help_button)
-    mess = bot.send_message(message.chat.id, "📃 *Pomoc > ☎️ Kontakt:*\n\n" + 
-                     "/contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n" +
-                     "/report - _📨 Wysłanie zgłoszenia do Administratora_\n", parse_mode= 'Markdown', reply_markup = markup)
+    text1 = database.get_message_text(message, 'help')
+    text2 = database.get_message_text(message, 'contact')
+    text3 = database.get_message_text(message, 'command_help_contact')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_settings(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    help_button = telebot.types.InlineKeyboardButton(text = "Powrót", callback_data = "command_help_return")
+    text = database.get_message_text(message, 'return')
+    help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(help_button)
-    mess = bot.send_message(message.chat.id, "📃 *Pomoc > ⚙️ Ustawienia:*\n\n" + 
-                     "/language - _🌐 Zmiana języka_\n" + 
-                     "/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n", parse_mode= 'Markdown', reply_markup = markup)
+    text1 = database.get_message_text(message, 'help')
+    text2 = database.get_message_text(message, 'settings')
+    text3 = database.get_message_text(message, 'command_help_settings')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_return(message, bot):
     text = database.get_message_text(message, 'command_help_return')

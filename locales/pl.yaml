@@ -63,10 +63,19 @@ command_deletedata: 🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć w
 command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡
 command_contact: ☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
 report: 📨 Zgłoszenie do Administratora
-
-command_start: Cześć!*\n\nZ tej strony 
+command_help_settings: /language - _🌐 Zmiana języka_\n/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n
+settings: ⚙️ Ustawienia
+return: 🔙 Powrót
+command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
+contact: ☎️ Kontakt
+command_help_downloader: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/reddit - _🤖 Pobieranie wideo z serwisu Reddit_
+downloader: ⬇️ Pobieranie wideo
+command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_
+main: 🤖 Ogólne
+command_help: Wybierz interesującą Cię kategorię komend
+command_start: Z tej strony 
 about: ℹ️ Informacje o Bocie
-help: 📃 Lista komend
+help: 📃 Pomoc
 old_ver: Przestarzała (Aktualna
 up-to-date_ver: Aktualna 😊
 beta_ver: Beta (Stabilna 

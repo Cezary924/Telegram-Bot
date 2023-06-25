@@ -63,8 +63,17 @@ command_deletedata: 🗑️ *Data Deletion:*\n\nAre you sure you want to delete 
 command_report: 📨 *Report:*\n\nSend me report-message to the Admin and I will forward it 🫡
 command_contact: ☎️ *Contact Us:*\n\nTo contact the Admin, write to them directly at @Cezary924 or send a non-returnable report-message 📨
 report: 📨 Report to the Admin
-
-command_start: Hi!*\n\nThis is 
+command_help_settings: /language - _🌐 To change your display language_\n/deletedata - _🗑️ To delete all your data collected by the Bot_\n
+settings: ⚙️ Settings
+return: 🔙 Back
+command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 To report an issue to the Admin._\n
+contact: ☎️ Contact Us
+command_help_downloader: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_
+downloader: ⬇️ Video Downloading
+command_help_main: /start - _🤖 To start conversation with the Bot_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
+main: 🤖 General
+command_help: Select the command category of the following
+command_start: This is 
 about: ℹ️ About the Bot
 help: 📃 Help
 old_ver: Outdated (Up-to-date
