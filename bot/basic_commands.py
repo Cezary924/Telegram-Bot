@@ -108,36 +108,42 @@ def command_help_return(message, bot):
 # handle /contact command
 def command_contact(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    report_button = telebot.types.InlineKeyboardButton(text = "📨 Zgłoszenie do Administratora", callback_data = "command_report")
+    text = database.get_message_text(message, 'report')
+    report_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_report")
     markup.add(report_button)
-    mess = bot.send_message(message.chat.id, "☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨", 
+    text = database.get_message_text(message, 'command_contact')
+    mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown',
                      reply_markup = markup)
     database.register_last_message(mess)
 
 # handle /report command
 def command_report(message, bot):
-    mess = bot.send_message(message.chat.id, "📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡", parse_mode= 'Markdown')
+    text = database.get_message_text(message, 'command_report')
+    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /deletedata command
 def command_deletedata(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
-    yes_button = telebot.types.InlineKeyboardButton(text = "✅ Tak", callback_data = "command_deletedata_yes")
+    text = database.get_message_text(message, 'yes')
+    yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_deletedata_yes")
     markup.add(yes_button)
-    no_button = telebot.types.InlineKeyboardButton(text = "❌ Nie", callback_data = "command_deletedata_no")
+    text = database.get_message_text(message, 'no')
+    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_deletedata_no")
     markup.add(no_button)
-    mess = bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota?"
-                     + " Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej"
-                     + " konfiguracji. Operacji tej nie będzie można cofnąć.", 
+    text = database.get_message_text(message, 'command_deletedata')
+    mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_deletedata_yes(message, bot):
     database.deletedata(message)
-    mess = bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nUsunięto zgromadzone dane ✅", parse_mode='Markdown')
+    text = database.get_message_text(message, 'command_deletedata_yes')
+    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
 def command_deletedata_no(message, bot):
-    mess = bot.send_message(message.chat.id, "🗑️ *Usuwanie danych:*\n\nOpuszczono menu _/deletedata_ ❌", parse_mode='Markdown')
+    text = database.get_message_text(message, 'command_deletedata_no')
+    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /language command

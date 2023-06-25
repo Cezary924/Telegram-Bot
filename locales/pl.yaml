@@ -57,3 +57,9 @@ command_about_description: Wielofunkcyjny bot na platformie Telegram
 command_about: Informacje o Bocie
 command_language_cancel: 🌐 *Zmiana języka:*\n\nOpuszczono menu _/language_ ❌
 command_language: 🌐 *Zmiana języka:*\n\nWybierz swój język
+command_deletedata_no: 🗑️ *Usuwanie danych:*\n\nOpuszczono menu _/deletedata_ ❌
+command_deletedata_yes: 🗑️ *Usuwanie danych:*\n\nUsunięto zgromadzone dane ✅
+command_deletedata: 🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.
+command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡
+command_contact: ☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @Cezary924 lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
+report: 📨 Zgłoszenie do Administratora

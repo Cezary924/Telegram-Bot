@@ -57,3 +57,9 @@ command_about_description: Multifunctional Telegram Bot
 command_about: About The Bot
 command_language_cancel: 🌐 *Language:*\n\nThe _/language_ menu has been closed ❌
 command_language: 🌐 *Language:*\n\nSelect a language
+command_deletedata_no: 🗑️ *Data Deletion:*\n\nThe _/deletedata_ menu has been closed ❌
+command_deletedata_yes: 🗑️ *Data Deletion:*\n\nYour data has been deleted ✅
+command_deletedata: 🗑️ *Data Deletion:*\n\nAre you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.
+command_report: 📨 *Report:*\n\nSend me report-message to the Admin and I will forward it 🫡
+command_contact: ☎️ *Contact Us:*\n\nTo contact the Admin, write to them directly at @Cezary924 or send a non-returnable report-message 📨
+report: 📨 Report to the Admin
