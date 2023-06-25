@@ -44,3 +44,16 @@ restart_bot: 🔁 Restart Bota 🤖
 shutdown_device: 📴 Wyłączenie urządzenia 🖥️
 shutdown_bot: 📴 Wyłączenie Bota 🤖
 update_bot: ⬇️ Aktualizacja Bota 🤖
+command_tumblr: 📄 *Tumblr:*\n\nAby pobrać wideo z serwisu Tumblr wystarczy, że wyślesz mi do niego link 🔗
+command_reddit: 🤖 *Reddit:*\n\nAby pobrać wideo z serwisu Reddit wystarczy, że wyślesz mi do niego link 🔗
+command_twitter: 🐦 *Twitter:*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗
+command_tiktok:  🎵 *TikTok:*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗
+command_about_year: Lata rozwijania
+command_about_ver_status: Status wersji
+command_about_ver: Wersja
+command_about_github_username: Autor
+description: Opis
+command_about_description: Wielofunkcyjny bot na platformie Telegram
+command_about: Informacje o Bocie
+command_language_cancel: 🌐 *Zmiana języka:*\n\nOpuszczono menu _/language_ ❌
+command_language: 🌐 *Zmiana języka:*\n\nWybierz swój język

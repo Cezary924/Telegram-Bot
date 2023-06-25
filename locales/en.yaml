@@ -44,3 +44,16 @@ restart_bot: 🔁 The Bot Restart 🤖
 shutdown_device: 📴 The Device Shutdown 🖥️
 shutdown_bot: 📴 The Bot Shutdown 🤖
 update_bot: ⬇️ The Bot Update 🤖
+command_tumblr: 📄 *Tumblr:*\n\nTo download a video from Tumblr, all you have to do is send me a link to it 🔗
+command_reddit: 🤖 *Reddit:*\n\nTo download a video from Reddit, all you have to do is send me a link to it 🔗
+command_twitter: 🐦 *Twitter:*\n\nTo download a video from Twitter, all you have to do is send me a link to it 🔗
+command_tiktok:  🎵 *TikTok:*\n\nTo download a video from TikTok, all you have to do is send me a link to it 🔗
+command_about_year: Development
+command_about_ver_status: Version status
+command_about_ver: Version
+command_about_github_username: Creator
+description: Description
+command_about_description: Multifunctional Telegram Bot
+command_about: About The Bot
+command_language_cancel: 🌐 *Language:*\n\nThe _/language_ menu has been closed ❌
+command_language: 🌐 *Language:*\n\nSelect a language

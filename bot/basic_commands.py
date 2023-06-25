@@ -147,9 +147,11 @@ def command_language(message, bot):
     markup.add(pl_button)
     en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English (not fully translated 😞)", callback_data = "command_language_en")
     markup.add(en_button)
-    cancel_button = telebot.types.InlineKeyboardButton(text = "❌ Wyjście", callback_data = "command_language_cancel")
+    text = database.get_message_text(message, 'exit')
+    cancel_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_language_cancel")
     markup.add(cancel_button)
-    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nWybierz swój język", 
+    text = database.get_message_text(message, 'command_language')
+    mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_language_pl(message, bot):
@@ -161,38 +163,50 @@ def command_language_en(message, bot):
     mess = bot.send_message(message.chat.id, "🌐 *Language:*\n\nDone 🇬🇧", parse_mode='Markdown')
     database.register_last_message(mess)
 def command_language_cancel(message, bot):
-    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nOpuszczono menu _/language_ ❌", parse_mode='Markdown')
+    text = database.get_message_text(message, 'command_language_cancel')
+    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /about command
 def command_about(message, bot, ver):
-    mess = bot.send_message(message.chat.id, "*ℹ️ Informacje o Bocie:*\n\n"
+    #text1 = database.get_message_text(message, 'command_about_year')
+    text2 = database.get_message_text(message, 'command_about_ver_status')
+    text3 = database.get_message_text(message, 'command_about_ver')
+    text4 = database.get_message_text(message, 'command_about_github_username')
+    text5 = database.get_message_text(message, 'description')
+    text6 = database.get_message_text(message, 'command_about_description')
+    text7 = database.get_message_text(message, 'command_about')
+    mess = bot.send_message(message.chat.id, "*ℹ️ " + text7 + ":*\n\n"
                     + "*" + bot_name + "*\n"
-                    + "Opis: _Wielofunkcyjny bot na platformie Telegram_\n"
-                    + "Autor: _@" + github_username + "_\n"
-                    + "Wersja: _" + str(ver) + "_\n"
-                    + "Status wersji: _" + info_about_version(ver)[1] + "_\n"
-                    + "Rok powstania: _2023_\n"
-                    + "Lata rozwijania: _2023-nadal_", parse_mode= 'Markdown')
+                    + text5 + ": _" + text6 + "_\n"
+                    + text4 + ": _@" + github_username + "_\n"
+                    + text3 + ": _" + str(ver) + "_\n"
+                    + text2 + ": _" + info_about_version(ver)[1] + "_\n"
+                    #+ text1 + ": _2023_", parse_mode= 'Markdown')
+                    + "© _2023_", parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /tiktok command
 def command_tiktok(message, bot):
-    mess = bot.send_message(message.chat.id, "🎵 *TikTok*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    text = database.get_message_text(message, 'command_tiktok')
+    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /twitter command
 def command_twitter(message, bot):
-    mess = bot.send_message(message.chat.id, "🐦 *Twitter*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    text = database.get_message_text(message, 'command_twitter')
+    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /reddit command
 def command_reddit(message, bot):
-    mess = bot.send_message(message.chat.id, "🤖 *Reddit*\n\nAby pobrać wideo z serwisu Reddit wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    text = database.get_message_text(message, 'command_reddit')
+    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /tumblr command
 def command_tumblr(message, bot):
-    mess = bot.send_message(message.chat.id, "📄 *Tumblr*\n\nAby pobrać wideo z serwisu Tumblr wystarczy, że wyślesz mi do niego link 🔗", parse_mode= 'Markdown')
+    text = database.get_message_text(message, 'command_tumblr')
+    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
     
