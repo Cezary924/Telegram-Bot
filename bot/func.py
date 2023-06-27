@@ -21,6 +21,14 @@ def write_file(name, path, buff = -1):
         print("Open error: Could not open the \'" + name + ".txt\' file.")
     return x
 
+# write and open log file 'name' located in 'path'
+def log_file(name, path):
+    try:
+        x = open(path, 'a')
+    except OSError:
+        print("Open error: Could not open the \'" + name + ".txt\' file.")
+    return x
+
 # print info about bot's tasks
 def print_log(info, bot_name = None, start = 0):
     if bot_name != None and start == 1:

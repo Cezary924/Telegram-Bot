@@ -1,5 +1,7 @@
 import sys, datetime
 
+import func
+
 # get current date & time
 time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -7,7 +9,7 @@ time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 class LoggerStdout(object):
     def __init__(self):
         self.terminal = sys.stdout
-        self.log = open("../log/log_out_" + time + ".log", "a")
+        self.log = func.log_file("log_out_" + time + ".log", "../log/log_out_" + time + ".log")
     
     def write(self, message):
         self.terminal.write(message)
@@ -20,7 +22,7 @@ class LoggerStdout(object):
 class LoggerStderr(object):
     def __init__(self):
         self.terminal = sys.stderr
-        self.log = open("../log/log_err_" + time + ".log", "a")
+        self.log = func.log_file("log_err_" + time + ".log", "../log/log_err_" + time + ".log")
     
     def write(self, message):
         self.terminal.write(message)
