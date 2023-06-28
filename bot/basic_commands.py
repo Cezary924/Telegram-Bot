@@ -4,10 +4,12 @@ from urllib.parse import parse_qs, urlparse
 import func, database
 
 # open file containing bot name and read from it
-bot_name = func.read_file("bot_name.txt", "../files/bot_name.txt")
-bot_name = str(bot_name[0])
+bot_name = str(func.read_file("bot_name.txt", "../files/bot_name.txt")[0])
 if func.suffix == 1:
     bot_name = "Beta" + bot_name
+
+# open file containing Telegram username and read from it
+telegram_username = str(func.read_file("telegram_username.txt", "../files/telegram_username.txt")[0])
 
 # open file containing GitHub username and read from it
 github_username = func.read_file("github_username.txt", "../files/github_username.txt")
@@ -143,7 +145,7 @@ def command_contact(message, bot):
     report_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_report")
     markup.add(report_button)
     text = database.get_message_text(message, 'command_contact')
-    text = text.split("@")[0] + "@" + str(func.read_file("telegram_username.txt", "../files/telegram_username.txt")[0]) + text.split("@")[1]
+    text = text.split("@")[0] + "@" + telegram_username + text.split("@")[1]
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown',
                      reply_markup = markup)
