@@ -143,6 +143,7 @@ def command_contact(message, bot):
     report_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_report")
     markup.add(report_button)
     text = database.get_message_text(message, 'command_contact')
+    text = text.split("@")[0] + "@" + str(func.read_file("telegram_username.txt", "../files/telegram_username.txt")[0]) + text.split("@")[1]
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown',
                      reply_markup = markup)
