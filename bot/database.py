@@ -252,6 +252,7 @@ def send_start_info(bot):
                 mess = bot.send_message(admin, ".")
                 text = get_message_text(mess, 'send_start_info')
                 register_last_message(mess)
+                bot.delete_message(mess.chat.id, get_last_message(mess))
                 mess = bot.send_message(admin, text, parse_mode = 'Markdown')
                 save_current_state(mess)
                 func.print_log("The start info has been sent to: " + str(admin) + ".")
