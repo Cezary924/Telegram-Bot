@@ -12,6 +12,7 @@ not_working_buttons: Niestety, ten przycisk już nie działa... 😥
 permission_denied: Niestety, nie możesz skorzystać z tego polecenia... 😭\n\nAby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
 permission_denied_contact_button: 🧑‍🔬 Kontakt z administratorem
 send_restart_info: 🤖 *Bot został pomyślnie uruchomiony ponownie!*
+send_start_info: 🤖 *Bot został uruchomiony pomyślnie!*
 forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
 message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie
 hi: Cześć
