@@ -228,8 +228,8 @@ def get_last_message(message):
         database_lock.release()
         return message.id
 
-# send info about restart
-def send_restart_info(bot):
+# send info about (re)start
+def send_start_info(bot):
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
@@ -247,7 +247,16 @@ def send_restart_info(bot):
                 bot.delete_message(mess.chat.id, get_last_message(mess))
                 mess = bot.send_message(admin, text, parse_mode = 'Markdown')
                 save_current_state(mess)
-                func.print_log("Sending info about restart to: " + str(admin) + ".")
+                func.print_log("The restart info has been sent to: " + str(admin) + ".")
+            else:
+                mess = bot.send_message(admin, ".")
+                text = get_message_text(mess, 'send_start_info')
+                register_last_message(mess)
+                mess = bot.send_message(admin, text, parse_mode = 'Markdown')
+                save_current_state(mess)
+                func.print_log("The start info has been sent to: " + str(admin) + ".")
+    else:
+        func.print_log("The start info could not be sent because there are no Admins in the database.")
 
 # get code of language that users use
 def get_user_language(message):
