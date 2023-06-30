@@ -191,6 +191,10 @@ def forward_message_to_admin(message, bot):
                             + message.text + "_", parse_mode= 'Markdown')
         text = get_message_text(message, 'forward_message_to_admin')
         bot.send_message(message.chat.id, text)
+    else:
+        func.print_log("The raport could not be sent because there are no Admins in the database.")
+        text = get_message_text(message, 'no_admin')
+        bot.send_message(message.chat.id, text)
     save_current_state(message)
 
 # register last bot message id
