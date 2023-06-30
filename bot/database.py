@@ -263,6 +263,24 @@ def send_start_info(bot):
     else:
         func.print_log("The start info could not be sent because there are no Admins in the database.")
 
+# send info about stop
+def send_stop_info(bot):
+    database_lock.acquire(True)
+    cursor.execute("SELECT id FROM People WHERE role = 2;")
+    admins=cursor.fetchone()
+    database_lock.release()
+    if admins != None:
+        for admin in admins:
+            mess = bot.send_message(admin, ".")
+            text = get_message_text(mess, 'send_stop_info')
+            register_last_message(mess)
+            bot.delete_message(mess.chat.id, get_last_message(mess))
+            mess = bot.send_message(admin, text, parse_mode = 'Markdown')
+            # save_current_state(mess)
+            func.print_log("The stop info has been sent to: " + str(admin) + ".")
+    else:
+        func.print_log("The stop info could not be sent because there are no Admins in the database.")
+
 # get code of language that users use
 def get_user_language(message):
     database_lock.acquire(True)

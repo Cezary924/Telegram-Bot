@@ -1,4 +1,4 @@
-import telebot, os, sys, signal
+import telebot, os, sys, signal, time
 
 # get path of directory containing bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -533,6 +533,8 @@ def echo_all(message):
 
 # handle CTRL + C
 def ctrl_c(signal, frame):
+    database.send_stop_info(bot)
+    time.sleep(1)
     func.print_log("", basic_commands.bot_name, 0)
     bot.stop_polling()
     database.commit_close()
