@@ -14,6 +14,7 @@ permission_denied_contact_button: 🧑‍🔬 Kontakt z administratorem
 send_restart_info: 🤖 *Bot został pomyślnie uruchomiony ponownie!*
 send_start_info: 🤖 *Bot został uruchomiony pomyślnie!*
 forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
+no_admin: Niestety, Twoja wiadomość nie mogła być przekazana... Spróbuj poźniej 😞
 message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie
 hi: Cześć
 reddit_url_start: Przetwarzanie linku z Reddita... ⏳
