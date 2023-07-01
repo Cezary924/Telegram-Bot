@@ -21,7 +21,7 @@ else:
     token = func.read_file("telegram.txt", "../files/telegram.txt")
     token = str(token[0])
 
-import admin, basic_commands, database, tiktok, twitter, tumblr, reddit
+import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -502,6 +502,15 @@ def echo_tumblr(message):
         tumblr.start_tumblr(message, bot)
     else:
         permission_denied(message)
+
+# handle /crystalball command
+@bot.message_handler(commands=['crystalball'])
+def command_crystalball(message):
+    func.print_log("/crystalball: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "crystalball")
+    crystal_ball.command_crystalball(message, bot)
 
 # handle messages to admin
 @bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
