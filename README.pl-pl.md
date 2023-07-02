@@ -41,6 +41,7 @@ python bot/bot.py
 - ```/twitter``` - Pobieranie wideo z serwisu Twitter.
 - ```/tumblr``` - Pobieranie wideo z serwisu Tumblr.
 - ```/reddit``` - Pobieranie wideo z serwisu Reddit.
+- ```/crystalball``` - Odpowiedź na Twoje pytanie.
 - ```/contact``` - Informacje o drogach kontaktu z Administratorem.
 - ```/report``` - Wysłanie zgłoszenia do Administratora.
 - ```/language``` - Zmiana języka.

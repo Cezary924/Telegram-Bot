@@ -41,6 +41,7 @@ python bot/bot.py
 - ```/twitter``` - to download video from Twitter.
 - ```/tumblr``` - to download video from Tumblr.
 - ```/reddit``` - to download video from Reddit.
+- ```/crystalball``` - to answer your question.
 - ```/contact``` - to contact the Admin/Creator.
 - ```/report``` - to report an issue to the Admin.
 - ```/language``` - to change your display language.
