@@ -76,8 +76,8 @@ def command_help(message, bot):
     text = database.get_message_text(message, 'main')
     main_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_main")
     markup.add(main_button)
-    text = database.get_message_text(message, 'downloader')
-    downloader_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_downloader")
+    text = database.get_message_text(message, 'features')
+    downloader_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_features")
     markup.add(downloader_button)
     text = database.get_message_text(message, 'contact')
     contact_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_contact")
@@ -103,14 +103,14 @@ def command_help_main(message, bot):
     text3 = database.get_message_text(message, 'command_help_main')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_help_downloader(message, bot):
+def command_help_features(message, bot):
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'return')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(help_button)
     text1 = database.get_message_text(message, 'help')
-    text2 = database.get_message_text(message, 'downloader')
-    text3 = database.get_message_text(message, 'command_help_downloader')
+    text2 = database.get_message_text(message, 'features')
+    text3 = database.get_message_text(message, 'command_help_features')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup) 
     database.register_last_message(mess)
 def command_help_contact(message, bot):

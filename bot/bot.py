@@ -21,7 +21,7 @@ else:
     token = func.read_file("telegram.txt", "../files/telegram.txt")
     token = str(token[0])
 
-import admin, basic_commands, database, tiktok, twitter, tumblr, reddit
+import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -261,15 +261,15 @@ def command_help_main(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "help_main")
     basic_commands.command_help_main(message, bot)
-@bot.message_handler(commands=['help_downloader'])
-def command_help_downloader(message):
-    func.print_log("/help_downloader: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+@bot.message_handler(commands=['help_features'])
+def command_help_features(message):
+    func.print_log("/help_features: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if "help" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "help_downloader")
-    basic_commands.command_help_downloader(message, bot)
+    database.save_current_state(message, "help_features")
+    basic_commands.command_help_features(message, bot)
 @bot.message_handler(commands=['help_contact'])
 def command_help_contact(message):
     func.print_log("/help_contact: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -502,6 +502,15 @@ def echo_tumblr(message):
         tumblr.start_tumblr(message, bot)
     else:
         permission_denied(message)
+
+# handle /crystalball command
+@bot.message_handler(commands=['crystalball'])
+def command_crystalball(message):
+    func.print_log("/crystalball: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "crystalball")
+    crystal_ball.command_crystalball(message, bot)
 
 # handle messages to admin
 @bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
