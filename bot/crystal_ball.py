@@ -6,7 +6,7 @@ import database
 def command_crystalball(message, bot):
     number = crystalball()
     text = database.get_message_text(message, 'command_crystalball_' + str(number))
-    mess = bot.send_message(message.chat.id, "🔮 " + text, parse_mode= 'Markdown')
+    mess = bot.send_message(message.chat.id, "🔮 *" + text + "*", parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # get random int [1, 3]
