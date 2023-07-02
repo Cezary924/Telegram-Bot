@@ -9,6 +9,7 @@
 
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr & Reddit)
+- Magiczna kryształowa kula 🔮
 
 ## ⚙️ Instalacja i konfiguracja
 1. Sklonuj to repozytorium.

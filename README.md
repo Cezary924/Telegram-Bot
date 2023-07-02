@@ -8,7 +8,8 @@
 </div><br/>
 
 ## ✨ Main features
-- Video downloader (TikTok, Twitter, Tumblr & Reddit)
+- Video downloader ⬇️ (TikTok, Twitter, Tumblr & Reddit)
+- Crystal Ball 🔮
 
 ## ⚙️ Installation & Configuration
 1. Clone this repo.
