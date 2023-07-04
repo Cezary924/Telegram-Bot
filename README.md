@@ -9,7 +9,8 @@
 
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter, Tumblr & Reddit)
-- Crystal Ball 🔮
+- Crystal ball 🔮
+- Device status management ⚙️ (shutdown, restart) 
 
 ## ⚙️ Installation & Configuration
 1. Clone this repo.
