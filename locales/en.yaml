@@ -83,6 +83,18 @@ old_ver: Outdated (Up-to-date
 up-to-date_ver: Up-to-date 😊
 beta_ver: Beta (Stable 
 error: Error. Please, try again later.
-command_crystalball_1: Yes!
-command_crystalball_2: Maybe...
-command_crystalball_3: No!
+command_crystalball_1_1: Yes!
+command_crystalball_1_2: Without a doubt!
+command_crystalball_1_3: Of course!
+command_crystalball_1_4: Surely!
+command_crystalball_1_5: Certainly!
+command_crystalball_2_1: Maybe...
+command_crystalball_2_2: Perhaps...
+command_crystalball_2_3: I guess...
+command_crystalball_2_4: Very doubtful...
+command_crystalball_2_5: I suppose...
+command_crystalball_3_1: No.
+command_crystalball_3_2: Never.
+command_crystalball_3_3: Not really.
+command_crystalball_3_4: Forget about it.
+command_crystalball_3_5: No way.
