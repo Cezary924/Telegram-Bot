@@ -10,6 +10,7 @@
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr & Reddit)
 - Magiczna kryształowa kula 🔮
+- Wielojęzyczne odpowiedzi 🌐 (Angielski & Polski)
 - Zarządzanie stanem urządzenia ⚙️ (wyłączanie & ponowne uruchamianie) 
 
 ## ⚙️ Instalacja i konfiguracja
