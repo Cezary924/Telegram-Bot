@@ -10,6 +10,7 @@
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter, Tumblr & Reddit)
 - Crystal ball 🔮
+- Multilingual responses 🌐 (English & Polish)
 - Device status management ⚙️ (shutdown & restart) 
 
 ## ⚙️ Installation & Configuration
