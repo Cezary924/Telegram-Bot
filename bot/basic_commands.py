@@ -4,20 +4,18 @@ from urllib.parse import parse_qs, urlparse
 import func, database
 
 # open file containing bot name and read from it
-bot_name = str(func.read_file("bot_name.txt", "../files/bot_name.txt")[0])
+bot_name = func.config['bot_name']
 if func.suffix == 1:
     bot_name = "Beta" + bot_name
 
 # open file containing Telegram username and read from it
-telegram_username = str(func.read_file("telegram_username.txt", "../files/telegram_username.txt")[0])
+telegram_username = func.config['telegram_username']
 
 # open file containing GitHub username and read from it
-github_username = func.read_file("github_username.txt", "../files/github_username.txt")
-github_username = str(github_username[0])
+github_username = func.config['github_username']
 
 # open file containing GitHub repo and read from it
-github_repo = func.read_file("github_repo.txt", "../files/github_repo.txt")
-github_repo = str(github_repo[0])
+github_repo = func.config['github_repo']
 
 # get commits number from GitHub
 def info_about_version(ver, message = None):

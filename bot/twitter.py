@@ -1,20 +1,14 @@
 import requests, os
 from urllib.parse import urlparse
 
-import database
+import database, func
 
 rapidapi = None
 
 # open file containing RapidApi key and read from it
 def read_rapidapi():
     global rapidapi
-    try:
-        with open("../files/twitter.txt") as f:
-            rapidapi = f.readlines()
-        f.close()
-    except OSError:
-        print("Open error: Could not open the \'twitter.txt\' file.")
-    rapidapi = str(rapidapi[0])
+    rapidapi = func.tokens['twitter']
 
 # check Twitter url
 def check_twitter_url(message):
