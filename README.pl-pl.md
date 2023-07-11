@@ -19,19 +19,29 @@
 pip install -r requirements.txt
 ```
 3. Stwórz:
-   - plik ```telegram.txt``` w folderze *files* i zapisz w nim swój Telegram token.
-   - plik ```tiktok.txt``` w folderze *files* i zapisz w nim swój RapidAPI key (https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark).
-   - plik ```twitter.txt``` w folderze *files* i zapisz w nim swój (inny) RapidAPI key (https://rapidapi.com/3205/api/twitter65).
-4. Zmień:
-   - plik ```bot_name.txt``` z folderu *files* - wprowadź swoją własną nazwę Bota.
-   - plik ```github_username.txt``` z folderu *files* - wprowadź swoją nazwę uzytkownika GitHub.
-   - plik ```github_repo.txt``` z folderu *files* - wprowadź nazwę swojego repozytorium GitHub.
+   - plik ```config.yaml``` w folderze *files* i wprowadź do niego poniższy kod:
+   ```
+   bot_name: yourbotname
+   github_repo: yourgithubrepo
+   github_username: yourgithubusername
+   telegram_username: yourtelegramusername
+   ```
+   - plik ```tokens.yaml``` w folderze *files* i wprowadź do niego poniższy kod:
+   ```
+   telegram: yourtelegramtoken
+   telegram_beta: youranothertelegramtoken
+   tiktok: yourrapidapitoken
+   twitter: youranotherrapidapitoken
+   ```
+   > RapidApi dla multimediów z serwisu TikTok: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
+   > RapidApi dla multimediów z serwisu Twitter: https://rapidapi.com/3205/api/twitter65
 
 ## 🚀 Start
 1. Aby uruchomić Bota, wykonaj to polecenie będąc w głównym folderze:
 ```
 python bot/bot.py
 ```
+> Możesz również użyc argumentu wywołania ```beta```, aby skorzystać z drugiego Telegram tokenu.
 2. Gotowe! 😁
 
 ## 🧑‍💻 Podstawowe komendy
