@@ -12,14 +12,12 @@ import func, logger
 sys.stdout = logger.LoggerStdout()
 sys.stderr = logger.LoggerStderr()
 
-# open file containing Telegram token and read from it
+# get Telegram token from tokens dict in func.py
 if len(sys.argv) == 2 and sys.argv[1] == "beta":
     func.suffix = 1
-    token = func.read_file("telegram-beta.txt", "../files/telegram-beta.txt")
-    token = str(token[0])
+    token = func.tokens['telegram_beta']
 else:
-    token = func.read_file("telegram.txt", "../files/telegram.txt")
-    token = str(token[0])
+    token = func.tokens['telegram']
 
 import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball
 

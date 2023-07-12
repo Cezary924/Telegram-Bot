@@ -1,14 +1,25 @@
-import datetime
+import datetime, yaml
 
 # create boolean variable storing info if beta ver of bot is running
 suffix = 0
+
+# load file 'name' located in 'path'
+def load_config_file(name, path):
+    try:
+        with open(path, encoding='utf8') as f:
+            x = yaml.load(f, Loader=yaml.Loader)
+    except OSError:
+        print("Open error: Could not open the " + name + " file.")
+    return x
+
+config = load_config_file("config.yaml", "../files/config.yaml")
+tokens = load_config_file("tokens.yaml", "../files/tokens.yaml")
 
 # read and open file 'name' located in 'path'
 def read_file(name, path):
     try:
         with open(path) as f:
             x = f.readlines()
-        f.close()
     except OSError:
         print("Open error: Could not open the \'" + name + ".txt\' file.")
     return x

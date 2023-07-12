@@ -10,6 +10,7 @@
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter, Tumblr & Reddit)
 - Crystal ball 🔮
+- Multilingual responses 🌐 (English & Polish)
 - Device status management ⚙️ (shutdown & restart) 
 
 ## ⚙️ Installation & Configuration
@@ -19,19 +20,29 @@
 pip install -r requirements.txt
 ```
 3. Create:
-   - ```telegram.txt``` file in *files* folder and write your Telegram token to it.
-   - ```tiktok.txt``` file in *files* folder and write your RapidAPI key to it (https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark).
-   - ```twitter.txt``` file in *files* folder and write your (another) RapidAPI key to it (https://rapidapi.com/3205/api/twitter65).
-4. Change:
-   - ```bot_name.txt``` file in *files* folder with your own Bot name.
-   - ```github_username.txt``` file in *files* folder with your GitHub username.
-   - ```github_repo.txt``` file in *files* folder with your GitHub repo name.
+   - ```config.yaml``` file in *files* folder and write following code to it:
+   ```
+   bot_name: yourbotname
+   github_repo: yourgithubrepo
+   github_username: yourgithubusername
+   telegram_username: yourtelegramusername
+   ```
+   - ```tokens.yaml``` file in *files* folder and write following code to it:
+   ```
+   telegram: yourtelegramtoken
+   telegram_beta: youranothertelegramtoken
+   tiktok: yourrapidapitoken
+   twitter: youranotherrapidapitoken
+   ```
+   > RapidApi for TikTok media: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
+   > RapidApi for Twitter media: https://rapidapi.com/3205/api/twitter65
 
 ## 🚀 Starting
 1. To start, execute this command in the main directory:
 ```
 python bot/bot.py
 ```
+> You can also use ```beta``` argument to use secondary Telegram token.
 2. Enjoy!
 
 ## 🧑‍💻 Basic commands

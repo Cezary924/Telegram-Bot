@@ -1,12 +1,5 @@
 # Ignore secret files containing tokens, keys, etc.
-/files/telegram.txt
-/files/telegram-beta.txt
-/files/tiktok.txt
-/files/twitter.txt
-/files/database.db
-/files/database.db-journal
-/files/database-beta.db
-/files/database-beta.db-journal
+/files/
 /log/
 /bot/__pycache__/
 *.mp4
