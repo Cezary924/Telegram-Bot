@@ -209,7 +209,7 @@ def command_admin_restart_bot_yes(message):
     if "admin_restart_bot" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
     database.save_current_state(message, "admin_restart_bot_yes")
-    admin.command_admin_restart_bot_yes(message, bot)
+    admin.command_admin_restart_bot_yes(bot, message)
 @bot.message_handler(commands=['admin_restart_device'])
 def command_admin_restart_device(message):
     func.print_log("/admin_restart_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -555,4 +555,10 @@ func.print_log("", basic_commands.bot_name, 1)
 send_start_info(bot)
 
 # infinite loop
-bot.polling(non_stop = True)
+try:
+    bot.polling(non_stop = True)
+except KeyboardInterrupt as keyint:
+    sys.exit()
+except Exception as err:
+    func.print_log('ERROR: Telebot error.')
+    admin.command_admin_restart_bot_yes(bot, send_mess = 0)
