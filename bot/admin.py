@@ -79,10 +79,10 @@ def command_admin_restart_bot(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_admin_restart_bot_yes(message, bot):
-    text = database.get_message_text(message, 'command_admin_restart_bot_yes')
-    bot.send_message(message.chat.id, text, 
-                     parse_mode = 'Markdown')
+def command_admin_restart_bot_yes(bot, message = None, send_mess = 1):
+    if send_mess:
+        text = database.get_message_text(message, 'command_admin_restart_bot_yes')
+        bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'run.vbs'] + sys.argv[1:], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
     os.kill(os.getpid(), signal.SIGINT)
 
