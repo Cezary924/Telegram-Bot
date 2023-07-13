@@ -18,7 +18,7 @@ def load_config_file(name, path):
         with open(path, encoding='utf8') as f:
             x = yaml.load(f, Loader=yaml.Loader)
     except OSError:
-        print("Open error: Could not open the " + name + " file.")
+        print_log("ERROR: Open error - Could not open the " + name + " file.")
     return x
 
 config = load_config_file("config.yaml", "../files/config.yaml")
@@ -30,7 +30,7 @@ def read_file(name, path):
         with open(path) as f:
             x = f.readlines()
     except OSError:
-        print("Open error: Could not open the \'" + name + ".txt\' file.")
+        print_log("ERROR: Open error - Could not open the \'" + name + ".txt\' file.")
     return x
 
 # write and open file 'name' located in 'path' with buffering parameter 'buff'
@@ -38,7 +38,7 @@ def write_file(name, path, buff = -1):
     try:
         x = open(path, 'w', buffering = buff)
     except OSError:
-        print("Open error: Could not open the \'" + name + ".txt\' file.")
+        print_log("ERROR: Open error - Could not open the \'" + name + ".txt\' file.")
     return x
 
 # write and open log file 'name' located in 'path'
@@ -46,7 +46,7 @@ def log_file(name, path):
     try:
         x = open(path, 'a')
     except OSError:
-        print("Open error: Could not open the \'" + name + ".txt\' file.")
+        print("ERROR: Open error - Could not open the \'" + name + ".txt\' file.")
     return x
 
 # print info about bot's tasks

@@ -2,7 +2,7 @@ import requests, os
 from urllib.parse import urlparse
 import moviepy.editor as mpe
 
-import database
+import database, func
 
 # check Reddit url
 def check_reddit_url(message):
@@ -56,7 +56,7 @@ def echo_reddit(message, bot):
             f.write(response.content)
             f.close()
     except OSError:
-        print("Open error: Could not open the \'.mp4\' file.")
+        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
         text = database.get_message_text(message, 'reddit_url_error')
         bot.send_message(message.chat.id, text)
         return
@@ -77,7 +77,7 @@ def echo_reddit(message, bot):
             f.write(response.content)
             f.close()
     except OSError:
-        print("Open error: Could not open the \'.mp4\' file.")
+        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
         text = database.get_message_text(message, 'reddit_url_error')
         bot.send_message(message.chat.id, text)
         return

@@ -1,7 +1,7 @@
 import requests, os
 from urllib.parse import urlparse
 
-import database
+import database, func
 
 # check Tumblr url
 def check_tumblr_url(message):
@@ -45,7 +45,7 @@ def echo_tumblr(message, bot):
             f.write(response.content)
             f.close()
     except OSError:
-        print("Open error: Could not open the \'.mp4\' file.")
+        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
         
     bot.send_video(message.chat.id, open(vid_name, 'rb'))
     

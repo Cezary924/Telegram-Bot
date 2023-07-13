@@ -192,7 +192,7 @@ def forward_message_to_admin(message, bot):
         text = get_message_text(message, 'forward_message_to_admin')
         bot.send_message(message.chat.id, text)
     else:
-        func.print_log("The raport could not be sent because there are no Admins in the database.")
+        func.print_log("ERROR: Database error - The raport could not be sent because there are no Admins in the database.")
         text = get_message_text(message, 'no_admin')
         bot.send_message(message.chat.id, text)
     save_current_state(message)
@@ -261,7 +261,7 @@ def send_start_info(bot):
                 save_current_state(mess)
                 func.print_log("The start info has been sent to: " + str(admin) + ".")
     else:
-        func.print_log("The start info could not be sent because there are no Admins in the database.")
+        func.print_log("ERROR: Database error - The start info could not be sent because there are no Admins in the database.")
 
 # send info about stop
 def send_stop_info(bot):
@@ -279,7 +279,7 @@ def send_stop_info(bot):
             # save_current_state(mess)
             func.print_log("The stop info has been sent to: " + str(admin) + ".")
     else:
-        func.print_log("The stop info could not be sent because there are no Admins in the database.")
+        func.print_log("ERROR: Database error - The stop info could not be sent because there are no Admins in the database.")
 
 # get code of language that users use
 def get_user_language(message):
