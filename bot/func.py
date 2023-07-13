@@ -3,6 +3,15 @@ import datetime, yaml
 # create boolean variable storing info if beta ver of bot is running
 suffix = 0
 
+def synchronized_with_attr(lock_name):
+    def decorator(method):
+        def synced_method(self, *args, **kws):
+            lock = getattr(self, lock_name)
+            with lock:
+                return method(self, *args, **kws)
+        return synced_method
+    return decorator
+
 # load file 'name' located in 'path'
 def load_config_file(name, path):
     try:
