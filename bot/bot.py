@@ -510,12 +510,6 @@ def command_crystalball(message):
     database.save_current_state(message, "crystalball")
     crystal_ball.command_crystalball(message, bot)
 
-# handle messages to admin
-@bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
-def forward_message_to_admin(message):
-    func.print_log("Report to admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    database.forward_message_to_admin(message, bot)
-
 # handle unknown command
 @bot.message_handler(func=lambda message: message.text.startswith("/"))
 def echo_unknown_command(message):
@@ -526,6 +520,12 @@ def echo_unknown_command(message):
     text = database.get_message_text(message, 'echo_unknown_command')
     mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)
+
+# handle messages to admin
+@bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
+def forward_message_to_admin(message):
+    func.print_log("Report to admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.forward_message_to_admin(message, bot)
 
 # handle any other message
 @bot.message_handler(func=lambda message: True)
