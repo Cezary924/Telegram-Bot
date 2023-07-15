@@ -1,4 +1,4 @@
-import telebot, requests
+import telebot, requests, subprocess
 from urllib.parse import parse_qs, urlparse
 
 import func, database
@@ -218,7 +218,7 @@ def command_about(message, bot, ver):
                     + "*" + bot_name + "*\n"
                     + text5 + ": _" + text6 + "_\n"
                     + text4 + ": _@" + github_username + "_\n"
-                    + text3 + ": _" + str(ver) + "_\n"
+                    + text3 + ": _" + subprocess.getoutput('git describe --tags').split('-')[0] + " (" + str(ver) + ")_\n"
                     + text2 + ": _" + info_about_version(ver, message)[1] + "_\n"
                     #+ text1 + ": _2023_", parse_mode= 'Markdown')
                     + "© _2023_", parse_mode= 'Markdown')
