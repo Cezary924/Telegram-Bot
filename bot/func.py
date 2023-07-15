@@ -3,6 +3,7 @@ import datetime, yaml
 # create boolean variable storing info if beta ver of bot is running
 suffix = 0
 
+# sync for attributes
 def synchronized_with_attr(lock_name):
     def decorator(method):
         def synced_method(self, *args, **kws):
