@@ -555,10 +555,14 @@ func.print_log("", basic_commands.bot_name, 1)
 send_start_info(bot)
 
 # infinite loop
-try:
+if func.suffix == 0:
+    try:
+        bot.polling(non_stop = True)
+    except KeyboardInterrupt as keyint:
+        sys.exit()
+    except Exception as err:
+        func.print_log('ERROR: Telebot error.')
+        print(err)
+        admin.command_admin_restart_bot_yes(bot, send_mess = 0)
+else:
     bot.polling(non_stop = True)
-except KeyboardInterrupt as keyint:
-    sys.exit()
-except Exception as err:
-    func.print_log('ERROR: Telebot error.')
-    admin.command_admin_restart_bot_yes(bot, send_mess = 0)
