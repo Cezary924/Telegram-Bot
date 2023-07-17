@@ -19,7 +19,7 @@ if len(sys.argv) == 2 and sys.argv[1] == "beta":
 else:
     token = func.tokens['telegram']
 
-import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball
+import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball, top_spotify_artist
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -510,11 +510,34 @@ def command_crystalball(message):
     database.save_current_state(message, "crystalball")
     crystal_ball.command_crystalball(message, bot)
 
+# handle /topspotifyartist command
+@bot.message_handler(commands=['topspotifyartist'])
+def command_topspotifyartist(message):
+    func.print_log("/topspotifyartist: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.save_current_state(message, "topspotifyartist")
+    top_spotify_artist.command_topspotifyartist(message, bot)
+
+# start topspotifyartist loop
+def topspotifyartist(message):
+    func.print_log("Top Spotify artist: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if "_topspotifyartist" in database.get_current_state(message):
+        top_spotify_artist.topspotifyartist(message, bot)
+    else:
+        not_working_buttons(message)
+
 # handle messages to admin
 @bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
 def forward_message_to_admin(message):
     func.print_log("Report to admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     database.forward_message_to_admin(message, bot)
+
+# handle topspotifyartist messages
+@bot.message_handler(func=lambda message: "topspotifyartist_" in database.get_current_state(message))
+def echo_topspotifyartist(message):
+    func.print_log("Top Spotify artist guess: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    top_spotify_artist.topspotifyartist(message, bot)
 
 # handle unknown command
 @bot.message_handler(func=lambda message: message.text.startswith("/"))
