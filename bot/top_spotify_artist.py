@@ -28,11 +28,12 @@ def get_artist_index(text):
             return artists.index(artist)
     return -1
 
+# get string with details about artist
 def artist_text(number):
     return "Pseudonim: _" + artists[number][0] + "_\nMies. słuchacze: _#" + str(number + 1) + "_"
  
+# end function of Top Spotify Artist loop, start when artist has been guessed
 def victory(message, bot):
-    artist = int(database.get_current_state(message).split("_")[2])
     text1 = database.get_message_text(message, 'topspotifyartist')
     text2 = database.get_message_text(message, 'command_topspotifyartist_victory')
     text = "*" + text1 + "*\n\n" + text2
@@ -40,6 +41,7 @@ def victory(message, bot):
     database.register_last_message(mess)
     database.save_current_state(message)
 
+# end function of Top Spotify Artist loop, start when artist has not been guessed
 def defeat(message, bot):
     artist = int(database.get_current_state(message).split("_")[2])
     text1 = database.get_message_text(message, 'topspotifyartist')
@@ -72,7 +74,6 @@ def command_topspotifyartist(message, bot):
                     reply_markup = markup)
     database.register_last_message(mess)
     database.save_current_state(message, str(listeners) + "_topspotifyartist")
-    #print(str(listeners) + ": " + str(artists[listeners]))
 
 def topspotifyartist(message, bot):
     state = database.get_current_state(message)
