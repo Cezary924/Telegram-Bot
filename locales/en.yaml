@@ -71,7 +71,7 @@ settings: ⚙️ Settings
 return: 🔙 Back
 command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 To report an issue to the Admin._\n
 contact: ☎️ Contact Us
-command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/crystalball - _🔮 To answer your question_ *NEW*
+command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/crystalball - _🔮 To answer your question_
 features: ✨ Bot Features
 command_help_main: /start - _🤖 To start conversation with the Bot_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
 main: 🤖 General

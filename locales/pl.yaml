@@ -71,7 +71,7 @@ settings: ⚙️ Ustawienia
 return: 🔙 Powrót
 command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
 contact: ☎️ Kontakt
-command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/reddit - _🤖 Pobieranie wideo z serwisu Reddit_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_ *NOWOŚĆ*
+command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/reddit - _🤖 Pobieranie wideo z serwisu Reddit_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_
 features: ✨ Funkcje Bota
 command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_
 main: 🤖 Ogólne
