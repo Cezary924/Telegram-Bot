@@ -103,7 +103,7 @@ start: Start ➡️
 topspotifyartist: ᯤ Guess the Spotify artist
 command_topspotifyartist: Guess one of the top Spotify artists. Every time you text me a name, I will tell you how close you were to guessing the randomly chosen artist. 
 command_topspotifyartist_unknown: I do not know this artist 😵‍💫 Please, try again! 
-command_topspotifyartist_start: Please remember, a total correctness of the artist name is needed ❗ Take a guess 😁
+command_topspotifyartist_start: Please remember, a total correctness of the artist name is needed. You have 5 chances. Take a guess 😁
 command_topspotifyartist_wrong: Wrong! 👎
 command_topspotifyartist_correct: Correct! 👍
 command_topspotifyartist_defeat: Unfortunately, you have not guessed the artist 😞\nHere are the details:\n
