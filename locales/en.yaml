@@ -71,7 +71,7 @@ settings: ⚙️ Settings
 return: 🔙 Back
 command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 To report an issue to the Admin._\n
 contact: ☎️ Contact Us
-command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/crystalball - _🔮 To answer your question_
+command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_ *NEW*
 features: ✨ Bot Features
 command_help_main: /start - _🤖 To start conversation with the Bot_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
 main: 🤖 General
@@ -99,3 +99,12 @@ command_crystalball_3_2: Never.
 command_crystalball_3_3: Not really.
 command_crystalball_3_4: Forget about it.
 command_crystalball_3_5: No way.
+start: Start ➡️
+topspotifyartist: ᯤ Guess the Spotify artist
+command_topspotifyartist: Guess one of the top Spotify artists. Every time you text me a name, I will tell you how close you were to guessing the randomly chosen artist. 
+command_topspotifyartist_unknown: I do not know this artist 😵‍💫 Please, try again! 
+command_topspotifyartist_start: Please remember, a total correctness of the artist name is needed ❗ Take a guess 😁
+command_topspotifyartist_wrong: Wrong! 👎
+command_topspotifyartist_correct: Correct! 👍
+command_topspotifyartist_defeat: Unfortunately, you have not guessed the artist 😞\nHere are the details:\n
+command_topspotifyartist_victory: Well done! 👏 You have guessed the artist! 😁

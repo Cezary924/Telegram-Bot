@@ -71,7 +71,7 @@ settings: ⚙️ Ustawienia
 return: 🔙 Powrót
 command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
 contact: ☎️ Kontakt
-command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/reddit - _🤖 Pobieranie wideo z serwisu Reddit_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_
+command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/reddit - _🤖 Pobieranie wideo z serwisu Reddit_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_ *NOWOŚĆ*
 features: ✨ Funkcje Bota
 command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_
 main: 🤖 Ogólne
@@ -99,3 +99,12 @@ command_crystalball_3_2: Nigdy.
 command_crystalball_3_3: Nie ma o czym mówić.
 command_crystalball_3_4: Pod żadnym pozorem.
 command_crystalball_3_5: Broń Boże.
+start: Zaczynajmy ➡️
+topspotifyartist: ᯤ Zgadnij artystę Spotify
+command_topspotifyartist: Zgadnij pseudonim jednego z najpopularniejszych artystów serwisu Spotify. Za każdym razem jak wyślesz mi jakąś nazwę, powiem Ci jak blisko zgadnięcia jesteś.
+command_topspotifyartist_unknown: Nie znam tego artysty 😵‍💫 Spróbuj jeszcze raz! 
+command_topspotifyartist_start: Pamiętaj, wymagana jest pełna poprawność pseudonimu artysty. Zgaduj! 😁
+command_topspotifyartist_wrong: Pudło! 👎
+command_topspotifyartist_correct: Trafiony zatopiony! 👍
+command_topspotifyartist_defeat: Niestety, nie udało Ci się odgadnąć 😞\nOto dane szukanego artysty:\n
+command_topspotifyartist_victory: Brawo! 👏 Odgadłeś artystę! 😁
