@@ -9,6 +9,7 @@
 
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr & Reddit)
+- Zgadywanie jednego z topowych artystów serwisu Spotify
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Angielski & Polski)
 - Zarządzanie stanem urządzenia ⚙️ (wyłączanie & ponowne uruchamianie) 
