@@ -9,6 +9,7 @@
 
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter, Tumblr & Reddit)
+- Guess Top Spotify Artist
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
 - Device status management ⚙️ (shutdown & restart) 
