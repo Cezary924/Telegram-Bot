@@ -9,7 +9,7 @@
 
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr & Reddit)
-- Zgadywanie jednego z topowych artystów serwisu Spotify
+- Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Angielski & Polski)
 - Zarządzanie stanem urządzenia ⚙️ (wyłączanie & ponowne uruchamianie) 
@@ -55,6 +55,7 @@ python bot/bot.py
 - ```/twitter``` - Pobieranie wideo z serwisu Twitter.
 - ```/tumblr``` - Pobieranie wideo z serwisu Tumblr.
 - ```/reddit``` - Pobieranie wideo z serwisu Reddit.
+- ```/topspotifyartist``` - Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify
 - ```/crystalball``` - Odpowiedź na Twoje pytanie.
 - ```/contact``` - Informacje o drogach kontaktu z Administratorem.
 - ```/report``` - Wysłanie zgłoszenia do Administratora.
