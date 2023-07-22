@@ -15,7 +15,11 @@ def fill_artists():
     soup = soup.find(class_ = 'addpos sortable')
     i = 1
     for row in soup.select('tbody tr'):
-        artists.append([row.find(class_ = "text").select('a')[0].get_text(), row.find(class_ = "text").select('a')[0].get('href')])
+        artist_name = row.find(class_ = "text").select('a')[0].get_text()
+        artist_kworb_link = 'https://kworb.net/spotify/' + row.find(class_ = "text").select('a')[0].get('href')
+        artist_song_name = None
+        artist_song_link = None
+        artists.append([artist_name, artist_kworb_link, artist_song_name, artist_song_link])
         i += 1
         if i > 200:
             break
