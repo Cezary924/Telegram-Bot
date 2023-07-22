@@ -29,8 +29,8 @@ def get_artist_index(text):
     return -1
 
 # get string with details about artist
-def artist_text(number):
-    return "Pseudonim: _" + artists[number][0] + "_\nMies. słuchacze: _#" + str(number + 1) + "_"
+def artist_text(message, number):
+    return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_"
  
 # end function of Top Spotify Artist loop, start when artist has been guessed
 def victory(message, bot):
@@ -47,7 +47,7 @@ def defeat(message, bot):
     text1 = database.get_message_text(message, 'topspotifyartist')
     text2 = database.get_message_text(message, 'command_topspotifyartist_defeat')
     text = "*" + text1 + "*\n\n" + text2
-    mess = bot.send_message(message.chat.id, text + artist_text(artist), parse_mode = 'Markdown')
+    mess = bot.send_message(message.chat.id, text + artist_text(message, artist), parse_mode = 'Markdown')
     database.register_last_message(mess)
     database.save_current_state(message)
 
@@ -100,7 +100,7 @@ def topspotifyartist(message, bot):
                 text1 = database.get_message_text(message, 'topspotifyartist')
                 text2 = database.get_message_text(message, 'command_topspotifyartist_correct')
                 text = "*" + text1 + "*\n\n" + text2
-                mess = bot.send_message(message.chat.id, text + "\n" + artist_text(artist) + " 🆗", parse_mode = 'Markdown')
+                mess = bot.send_message(message.chat.id, text + "\n" + artist_text(message, artist) + " 🆗", parse_mode = 'Markdown')
                 database.register_last_message(mess)
                 victory(message, bot)
             else:
@@ -111,7 +111,7 @@ def topspotifyartist(message, bot):
                 else:
                     text3 = " ⬇️"
                 text = "*" + text1 + "*\n\n" + text2
-                mess = bot.send_message(message.chat.id, text + "\n" + artist_text(artist) + text3, parse_mode = 'Markdown')
+                mess = bot.send_message(message.chat.id, text + "\n" + artist_text(message, artist) + text3, parse_mode = 'Markdown')
                 database.register_last_message(mess)
                 text = state.split('_')[0] + "_" + str(int(state.split('_')[1]) + 1) + "_" + state.split('_')[2]
                 database.save_current_state(message, text)
