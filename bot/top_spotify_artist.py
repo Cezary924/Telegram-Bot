@@ -25,6 +25,15 @@ def fill_artists():
             break
     return 0
 
+def add_info_about_artist(listeners):
+    response = requests.request('GET', artists[listeners][1])
+    if response.status_code != 200:
+        return -1
+    soup = BeautifulSoup(response.content, "html.parser")
+    soup = soup.select('tbody tr td div')[0]
+    artists[listeners][2] = soup.get_text()
+    artists[listeners][3] = soup.find('a', href=True)['href']
+
 # get index of artist named 'text'
 def get_artist_index(text):
     for artist in artists:
