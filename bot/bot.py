@@ -571,6 +571,9 @@ def ctrl_c(signal, frame):
     sys.exit(0)
 signal.signal(signal.SIGINT, ctrl_c)
 
+# fill artists list
+top_spotify_artist.fill_artists()
+
 # starting log message
 func.print_log("", basic_commands.bot_name, 1)
 
