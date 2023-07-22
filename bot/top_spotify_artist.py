@@ -38,7 +38,10 @@ def add_info_about_artist(listeners):
 def get_artist_index(text):
     for artist in artists:
         if text in artist:
-            return artists.index(artist)
+            index = artists.index(artist)
+            if add_info_about_artist(index) == -1:
+                return -1
+            return index
     return -1
 
 # get string with details about artist
@@ -75,6 +78,7 @@ def command_topspotifyartist(message, bot):
                 mess = bot.send_message(message.chat.id, text, 
                                 parse_mode = 'Markdown')
     listeners = random.randint(0, 199)
+    add_info_about_artist(listeners)
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'start')
     start_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "topspotifyartist")
