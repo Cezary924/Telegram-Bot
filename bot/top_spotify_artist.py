@@ -25,6 +25,7 @@ def fill_artists():
             break
     return 0
 
+# get more info about specific artist
 def add_info_about_artist(listeners):
     response = requests.request('GET', artists[listeners][1])
     if response.status_code != 200:
