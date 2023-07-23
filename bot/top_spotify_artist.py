@@ -48,9 +48,13 @@ def get_artist_index(text):
 # get string with details about artist
 def artist_text(message, number):
     return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_"
- 
+
+# get string with artist's most streamed song
+def song_text(message, number):
+    return database.get_message_text(message, 'command_topspotifyartist_most_streamed_song') + ": _" + artists[number][2] + " (" + artists[number][3] + ")_\n"
+
 # end function of Top Spotify Artist loop, start when artist has been guessed
-def victory(message, bot):
+def victory(message, bot, artist):
     text1 = database.get_message_text(message, 'topspotifyartist')
     text2 = database.get_message_text(message, 'command_topspotifyartist_victory')
     text = "*" + text1 + "*\n\n" + text2
@@ -64,7 +68,7 @@ def defeat(message, bot):
     text1 = database.get_message_text(message, 'topspotifyartist')
     text2 = database.get_message_text(message, 'command_topspotifyartist_defeat')
     text = "*" + text1 + "*\n\n" + text2
-    mess = bot.send_message(message.chat.id, text + artist_text(message, artist), parse_mode = 'Markdown')
+    mess = bot.send_message(message.chat.id, text + artist_text(message, artist) + "\n" + song_text(message, artist), parse_mode = 'Markdown')
     database.register_last_message(mess)
     database.save_current_state(message)
 
@@ -118,9 +122,9 @@ def topspotifyartist(message, bot):
                 text1 = database.get_message_text(message, 'topspotifyartist')
                 text2 = database.get_message_text(message, 'command_topspotifyartist_correct')
                 text = "*" + text1 + "*\n\n" + text2
-                mess = bot.send_message(message.chat.id, text + "\n" + artist_text(message, artist) + " 🆗", parse_mode = 'Markdown')
+                mess = bot.send_message(message.chat.id, text + "\n" + artist_text(message, artist) + " 🆗" + "\n" + song_text(message, artist), parse_mode = 'Markdown')
                 database.register_last_message(mess)
-                victory(message, bot)
+                victory(message, bot, artist)
             else:
                 text1 = database.get_message_text(message, 'topspotifyartist')
                 text2 = database.get_message_text(message, 'command_topspotifyartist_wrong')
