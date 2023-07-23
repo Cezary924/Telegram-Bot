@@ -110,3 +110,4 @@ command_topspotifyartist_wrong: Wrong! 👎
 command_topspotifyartist_correct: Correct! 👍
 command_topspotifyartist_defeat: Unfortunately, you have not guessed the artist 😞\nHere are the details:\n
 command_topspotifyartist_victory: Well done! 👏 You have guessed the artist! 😁
+command_topspotifyartist_most_streamed_song: Most streamed song

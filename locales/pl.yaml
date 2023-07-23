@@ -110,3 +110,4 @@ command_topspotifyartist_wrong: Pudło! 👎
 command_topspotifyartist_correct: Trafiony zatopiony! 👍
 command_topspotifyartist_defeat: Niestety, nie udało Ci się odgadnąć 😞\nOto dane szukanego artysty:\n
 command_topspotifyartist_victory: Brawo! 👏 Odgadłeś artystę! 😁
+command_topspotifyartist_most_streamed_song: Piosenka z największą liczbą odsłuchań
