@@ -45,6 +45,12 @@
 | 0.2 | :x: |
 | 0.1 | :x: |
 
+:white_check_mark: - The version is fully supported. You can expect to get update on every reported vulnerability/problem.
+
+:heavy_check_mark: - The version is partially supported. You can expect to get update on some reported vulnerabilities/problems.
+
+:x: - The version is not supported. You cannot expect to get any update on a reported vulnerability/problem. Please, update your script.
+
 ## Reporting a Vulnerability
 
 To report a vulnerability, please contact me on cezary924@gmail.com. 
