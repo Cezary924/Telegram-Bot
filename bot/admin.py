@@ -123,7 +123,7 @@ def command_admin_update_bot_yes(message, bot):
     bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
-    time.sleep(15)
+    time.sleep(10)
     text = database.get_message_text(message, 'command_admin_update_bot_yes_finish')
     bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
 
