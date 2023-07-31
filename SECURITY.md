@@ -4,15 +4,16 @@
 
 | Version | Supported |
 | - | - |
-| 8.x | :white_check_mark: |
-| 7.x | :heavy_check_mark: |
-| 6.x | :heavy_check_mark: |
-| 5.x | :heavy_check_mark: |
-| 4.x | :x: |
-| 3.x | :x: |
-| 2.x | :x: |
-| 1.x | :x: |
-| 0.x | :x: |
+| **_8.2_** | **:white_check_mark:** |
+| _8.x_ | :heavy_check_mark: |
+| _7.x_ | :heavy_check_mark: |
+| _6.x_ | :heavy_check_mark: |
+| _5.x_ | :heavy_check_mark: |
+| _4.x_ | :x: |
+| _3.x_ | :x: |
+| _2.x_ | :x: |
+| _1.x_ | :x: |
+| _0.x_ | :x: |
 
 :white_check_mark: - _Fully supported_ - You can expect to get update on every reported vulnerability/problem.
 
