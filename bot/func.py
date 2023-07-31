@@ -1,7 +1,10 @@
 import datetime, yaml
 
-# create boolean variable storing info if beta ver of bot is running
+# boolean variable storing info if beta ver of bot is running
 suffix = 0
+
+# int variable storing info how long should log lines be
+log_length = 102
 
 # sync for attributes
 def synchronized_with_attr(lock_name):
@@ -52,20 +55,18 @@ def log_file(name, path):
 
 # print info about bot's tasks
 def print_log(info, bot_name = None, start = 0):
-    if bot_name != None and start == 1:
-        print("|================================================================|")
-        print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
-        print(" " + "               " + bot_name + " has been started. ")
-        print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
-        print("|================================================================|")
-        return
-    elif bot_name != None and start == 0:
-        print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
-        print(" " + "               " + bot_name + " has been stopped. ")
-        print("|++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++|")
-        print("|================================================================|")
+    if bot_name != None:
+        print("|" + "=" * (log_length - 2) + "|")
+        print("|" + "+" * (log_length - 2) + "|")
+        if start == 1:
+            text = bot_name + " has been started."
+        else:
+            text = bot_name + " has been stopped."
+        print(text.center(log_length, ' '))
+        print("|" + "+" * (log_length - 2) + "|")
+        print("|" + "=" * (log_length - 2) + "|")
         return
     print(str(datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S ")))
-    print(" ---------------------------------------------------------------- ")
+    print(" " + "-" * (log_length - 2) + " ")
     print(" " + info + " ")
-    print("|================================================================|")
+    print("|" + "=" * (log_length - 2) + "|")
