@@ -23,7 +23,8 @@ def fill_artists():
         artist_kworb_link = 'https://kworb.net/spotify/' + row.find(class_ = "text").select('a')[0].get('href')
         artist_song_name = None
         artist_song_link = None
-        artists.append([artist_name, artist_kworb_link, artist_song_name, artist_song_link])
+        artist_genre = None
+        artists.append([artist_name, artist_kworb_link, artist_song_name, artist_song_link, artist_genre])
         i += 1
         if i > 200:
             break
@@ -54,6 +55,24 @@ def add_info_about_artist(listeners):
     soup = soup.select('tbody tr td div')[0]
     artists[listeners][2] = soup.get_text()
     artists[listeners][3] = soup.find('a', href=True)['href']
+    headers = {
+        "Authorization": "Bearer " + spotify_token,
+        "Content-Type": "application/json"
+        }
+    response = requests.request('GET', 'https://api.spotify.com/v1/artists/' + artists[listeners][1].split('/artist/')[1].split('_songs')[0], headers=headers)
+    if response.status_code != 200:
+        if get_spotify_token() == -1:
+            return -1
+        headers = {
+            "Authorization": "Bearer " + spotify_token,
+            "Content-Type": "application/json"
+            }
+        response = requests.request('GET', 'https://api.spotify.com/v1/artists/' + artists[listeners][1].split('/artist/')[1].split('_songs')[0], headers=headers)
+        if response.status_code != 200:
+            return -1
+    response = response.json()
+    artists[listeners][4] = response['genres'][0].capitalize()
+    return 0
 
 # get index of artist named 'text'
 def get_artist_index(text):
