@@ -101,6 +101,7 @@ command_crystalball_3_4: Forget about it.
 command_crystalball_3_5: No way.
 nickname: Nickname
 monthly_listeners: Monthly listeners
+genre: Genre
 start: Start ➡️
 topspotifyartist: ᯤ Guess the Spotify artist
 command_topspotifyartist: Guess one of the top Spotify artists. Every time you text me a name, I will tell you how close you were to guessing the randomly chosen artist. 
