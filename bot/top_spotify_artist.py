@@ -91,13 +91,21 @@ def artist_text(message, number, final_number = None):
     else:
         if number > final_number:
             text1 = " ⬆️"
+        elif number == final_number:
+            text1 = " 🆗"
         else:
             text1 = " ⬇️"
         if artists[number][0] > artists[final_number][0]:
             text2 = " ⬆️"
+        elif artists[number][0] == artists[final_number][0]:
+            text2 = " 🆗"
         else:
             text2 = " ⬇️"
-        return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_" + text2 + "\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_" + text1
+        if artists[number][4] == artists[final_number][4]:
+            text3 = " 🆗"
+        else:
+            text3 = " 🆖"
+        return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_" + text2 + "\n" + database.get_message_text(message, 'genre') + ": _" + str(artists[number][4]) + "_" + text3 + "\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_" + text1
     
 # get string with artist's most streamed song
 def song_text(message, number):
