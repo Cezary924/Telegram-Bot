@@ -130,6 +130,15 @@ def topspotifyartist(message, bot):
             mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
             database.register_last_message(mess)
         else:
+            if artists[artist][4] is None:
+                if add_info_about_artist(artist) == -1:
+                    text1 = database.get_message_text(message, 'topspotifyartist')
+                    text2 = database.get_message_text(message, 'error')
+                    text = "*" + text1 + "*\n\n" + text2
+                    mess = bot.send_message(message.chat.id, text, 
+                                            parse_mode = 'Markdown')
+                    database.save_current_state(mess)
+                    return
             if artist == int(state.split("_")[2]):
                 text1 = database.get_message_text(message, 'topspotifyartist')
                 text2 = database.get_message_text(message, 'command_topspotifyartist_correct')
