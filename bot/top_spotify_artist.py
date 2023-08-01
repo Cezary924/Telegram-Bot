@@ -108,6 +108,7 @@ def command_topspotifyartist(message, bot):
     database.register_last_message(mess)
     database.save_current_state(message, str(listeners) + "_topspotifyartist")
 
+# main function
 def topspotifyartist(message, bot):
     state = database.get_current_state(message)
     if "_topspotifyartist" in state:
