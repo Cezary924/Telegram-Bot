@@ -1,10 +1,14 @@
 import random, requests, telebot
 from bs4 import BeautifulSoup
+import base64
 
-import database, basic_commands
+import database, basic_commands, func
 
 # list with artists data
 artists = []
+
+# variable storing Spotify token
+spotify_token = ""
 
 # fill artists list with artists data
 def fill_artists():
@@ -24,6 +28,22 @@ def fill_artists():
         if i > 200:
             break
     return 0
+
+# get Spotify Bearer token
+def get_spotify_token():
+    headers = {'Authorization': 'Basic %s' % base64.b64encode(str(func.tokens['spotify_id'] + ':' + func.tokens['spotify_secret']).encode('ascii')).decode('ascii')}
+    data = {
+        'grant_type': 'client_credentials',
+        'json': True
+        }
+    response = requests.request('POST', 'https://accounts.spotify.com/api/token', data=data, headers=headers)
+    if response.status_code != 200:
+        return -1
+    else:
+        response = response.json()
+        global spotify_token
+        spotify_token = response['access_token']
+        return 0
 
 # get more info about specific artist
 def add_info_about_artist(listeners):
