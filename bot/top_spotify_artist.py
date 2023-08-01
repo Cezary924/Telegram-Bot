@@ -93,8 +93,17 @@ def command_topspotifyartist(message, bot):
                 text = "*" + text1 + "*\n\n" + text2
                 mess = bot.send_message(message.chat.id, text, 
                                 parse_mode = 'Markdown')
+                database.save_current_state(mess)
+                return
     listeners = random.randint(0, 199)
-    add_info_about_artist(listeners)
+    if add_info_about_artist(listeners) == -1:
+        text1 = database.get_message_text(message, 'topspotifyartist')
+        text2 = database.get_message_text(message, 'error')
+        text = "*" + text1 + "*\n\n" + text2
+        mess = bot.send_message(message.chat.id, text, 
+                                parse_mode = 'Markdown')
+        database.save_current_state(mess)
+        return
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'start')
     start_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "topspotifyartist")
