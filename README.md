@@ -34,9 +34,12 @@ pip install -r requirements.txt
    telegram_beta: youranothertelegramtoken
    tiktok: yourrapidapitoken
    twitter: youranotherrapidapitoken
+   spotify_id: yourspotifyclientid
+   spotify_secret: yourspotifyclientsecret
    ```
    > RapidApi for TikTok media: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
    > RapidApi for Twitter media: https://rapidapi.com/3205/api/twitter65
+   > Spotify Tokens: you have to create an app in the Spotify Developer Dashboard https://developer.spotify.com/dashboard
 
 ## 🚀 Starting
 1. To start, execute this command in the main directory:

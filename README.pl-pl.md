@@ -34,9 +34,12 @@ pip install -r requirements.txt
    telegram_beta: youranothertelegramtoken
    tiktok: yourrapidapitoken
    twitter: youranotherrapidapitoken
+   spotify_id: yourspotifyclientid
+   spotify_secret: yourspotifyclientsecret
    ```
    > RapidApi dla multimediów z serwisu TikTok: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
    > RapidApi dla multimediów z serwisu Twitter: https://rapidapi.com/3205/api/twitter65
+   > Tokeny Spotify: należy utworzyć aplikację w serwisie Spotify dla deweloperów https://developer.spotify.com/dashboard
 
 ## 🚀 Start
 1. Aby uruchomić Bota, wykonaj to polecenie będąc w głównym folderze:
