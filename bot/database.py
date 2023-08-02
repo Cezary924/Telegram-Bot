@@ -244,7 +244,16 @@ def send_start_info(bot):
             cursor.execute("SELECT state FROM State WHERE id = ?;", (admin, ))
             (state,)=cursor.fetchone()
             database_lock.release()
-            if "admin_restart_" in state:
+            if state.startswith("err_"):
+                mess = bot.send_message(admin, ".")
+                text = get_message_text(mess, 'send_err_info')
+                text = text + "\n\nError: \n_" + state[4:] + "_"
+                register_last_message(mess)
+                bot.delete_message(mess.chat.id, get_last_message(mess))
+                mess = bot.send_message(admin, text, parse_mode = 'Markdown')
+                set_current_state(mess)
+                func.print_log("The restart (error) info has been sent to: " + str(admin) + ".")
+            elif "admin_restart_" in state:
                 mess = bot.send_message(admin, ".")
                 text = get_message_text(mess, 'send_restart_info')
                 register_last_message(mess)
@@ -280,6 +289,21 @@ def send_stop_info(bot):
             func.print_log("The stop info has been sent to: " + str(admin) + ".")
     else:
         func.print_log("ERROR: Database error - The stop info could not be sent because there are no Admins in the database.")
+
+# set state for every admin
+def set_admins_state(bot, state):
+    database_lock.acquire(True)
+    cursor.execute("SELECT id FROM People WHERE role = 2;")
+    admins=cursor.fetchone()
+    database_lock.release()
+    if admins != None:
+        for admin in admins:
+            mess = bot.send_message(admin, ".")
+            register_last_message(mess)
+            set_current_state(mess, state)
+            bot.delete_message(mess.chat.id, get_last_message(mess))
+    else:
+        func.print_log("ERROR: Database error - The state could not be set because there are no Admins in the database.")
 
 # get code of language that users use
 def get_user_language(message):
