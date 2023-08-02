@@ -126,7 +126,7 @@ def admin_check(message):
         return False
     
 # save last command used by person
-def save_current_state(message, state="0"):
+def set_current_state(message, state="0"):
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM State WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
