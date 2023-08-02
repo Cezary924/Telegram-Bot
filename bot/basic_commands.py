@@ -65,7 +65,7 @@ def command_start(message, bot):
                       parse_mode = 'Markdown', reply_markup = markup)
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "start")
+    database.set_current_state(message, "start")
     database.register_last_message(mess)
 
 # handle /help command

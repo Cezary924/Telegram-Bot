@@ -118,7 +118,7 @@ def victory(message, bot, artist):
     text = "*" + text1 + "*\n\n" + text2
     mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
     database.register_last_message(mess)
-    database.save_current_state(message)
+    database.set_current_state(message)
 
 # end function of Top Spotify Artist loop, start when artist has not been guessed
 def defeat(message, bot):
@@ -128,7 +128,7 @@ def defeat(message, bot):
     text = "*" + text1 + "*\n\n" + text2
     mess = bot.send_message(message.chat.id, text + artist_text(message, artist) + "\n" + song_text(message, artist), parse_mode = 'Markdown')
     database.register_last_message(mess)
-    database.save_current_state(message)
+    database.set_current_state(message)
 
 # handle /topspotifyartist command
 def command_topspotifyartist(message, bot):
@@ -140,7 +140,7 @@ def command_topspotifyartist(message, bot):
                 text = "*" + text1 + "*\n\n" + text2
                 mess = bot.send_message(message.chat.id, text, 
                                 parse_mode = 'Markdown')
-                database.save_current_state(mess)
+                database.set_current_state(mess)
                 return
     listeners = random.randint(0, 199)
     if add_info_about_artist(listeners) == -1:
@@ -149,7 +149,7 @@ def command_topspotifyartist(message, bot):
         text = "*" + text1 + "*\n\n" + text2
         mess = bot.send_message(message.chat.id, text, 
                                 parse_mode = 'Markdown')
-        database.save_current_state(mess)
+        database.set_current_state(mess)
         return
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'start')
@@ -162,7 +162,7 @@ def command_topspotifyartist(message, bot):
                     parse_mode = 'Markdown',
                     reply_markup = markup)
     database.register_last_message(mess)
-    database.save_current_state(message, str(listeners) + "_topspotifyartist")
+    database.set_current_state(message, str(listeners) + "_topspotifyartist")
 
 # main function
 def topspotifyartist(message, bot):
@@ -175,7 +175,7 @@ def topspotifyartist(message, bot):
         mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
         database.register_last_message(mess)
         text = "topspotifyartist_1_" + state.split('_')[0]
-        database.save_current_state(message, text)
+        database.set_current_state(message, text)
         state = text
     elif "_1_" in state or "_2_" in state or "_3_" in state or "_4_" in state or "_5_" in state:
         artist = get_artist_index(message.text)
@@ -193,7 +193,7 @@ def topspotifyartist(message, bot):
                     text = "*" + text1 + "*\n\n" + text2
                     mess = bot.send_message(message.chat.id, text, 
                                             parse_mode = 'Markdown')
-                    database.save_current_state(mess)
+                    database.set_current_state(mess)
                     return
             if artist == int(state.split("_")[2]):
                 text1 = database.get_message_text(message, 'topspotifyartist')
@@ -209,7 +209,7 @@ def topspotifyartist(message, bot):
                 mess = bot.send_message(message.chat.id, text + "\n" + artist_text(message, artist, int(state.split("_")[2])), parse_mode = 'Markdown')
                 database.register_last_message(mess)
                 text = state.split('_')[0] + "_" + str(int(state.split('_')[1]) + 1) + "_" + state.split('_')[2]
-                database.save_current_state(message, text)
+                database.set_current_state(message, text)
                 state = text
                 if "_6_" in state:
                     defeat(message, bot)

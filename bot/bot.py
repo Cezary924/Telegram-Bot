@@ -130,7 +130,7 @@ def command_admin(message):
     func.print_log("/admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "admin")
+    database.set_current_state(message, "admin")
     if database.admin_check(message):
         update = False
         if basic_commands.info_about_version(ver)[0] > ver:
@@ -145,7 +145,7 @@ def command_admin_update_bot(message):
         return
     if "admin" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_update_bot")
+    database.set_current_state(message, "admin_update_bot")
     admin.command_admin_update_bot(message, bot)
 @bot.message_handler(commands=['admin_update_bot_yes'])
 def command_admin_update_bot_yes(message):
@@ -154,7 +154,7 @@ def command_admin_update_bot_yes(message):
         return
     if "admin_update_bot" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_update_bot_yes")
+    database.set_current_state(message, "admin_update_bot_yes")
     admin.command_admin_update_bot_yes(message, bot)
 @bot.message_handler(commands=['admin_shutdown_bot'])
 def command_admin_shutdown_bot(message):
@@ -163,7 +163,7 @@ def command_admin_shutdown_bot(message):
         return
     if "admin" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_shutdown_bot")
+    database.set_current_state(message, "admin_shutdown_bot")
     admin.command_admin_shutdown_bot(message, bot)
 @bot.message_handler(commands=['admin_shutdown_bot_yes'])
 def command_admin_shutdown_bot_yes(message):
@@ -172,7 +172,7 @@ def command_admin_shutdown_bot_yes(message):
         return
     if "admin_shutdown_bot" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_shutdown_bot_yes")
+    database.set_current_state(message, "admin_shutdown_bot_yes")
     admin.command_admin_shutdown_bot_yes(message, bot)
 @bot.message_handler(commands=['admin_shutdown_device'])
 def command_admin_shutdown_device(message):
@@ -181,7 +181,7 @@ def command_admin_shutdown_device(message):
         return
     if "admin" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_shutdown_device")
+    database.set_current_state(message, "admin_shutdown_device")
     admin.command_admin_shutdown_device(message, bot)
 @bot.message_handler(commands=['admin_shutdown_device_yes'])
 def command_admin_shutdown_device_yes(message):
@@ -190,7 +190,7 @@ def command_admin_shutdown_device_yes(message):
         return
     if "admin_shutdown_device" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_shutdown_device_yes")
+    database.set_current_state(message, "admin_shutdown_device_yes")
     admin.command_admin_shutdown_device_yes(message, bot)
 @bot.message_handler(commands=['admin_restart_bot'])
 def command_admin_restart_bot(message):
@@ -199,7 +199,7 @@ def command_admin_restart_bot(message):
         return
     if "admin" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_restart_bot")
+    database.set_current_state(message, "admin_restart_bot")
     admin.command_admin_restart_bot(message, bot)
 @bot.message_handler(commands=['admin_restart_bot_yes'])
 def command_admin_restart_bot_yes(message):
@@ -208,7 +208,7 @@ def command_admin_restart_bot_yes(message):
         return
     if "admin_restart_bot" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_restart_bot_yes")
+    database.set_current_state(message, "admin_restart_bot_yes")
     admin.command_admin_restart_bot_yes(bot, message)
 @bot.message_handler(commands=['admin_restart_device'])
 def command_admin_restart_device(message):
@@ -217,7 +217,7 @@ def command_admin_restart_device(message):
         return
     if "admin" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_restart_device")
+    database.set_current_state(message, "admin_restart_device")
     admin.command_admin_restart_device(message, bot)
 @bot.message_handler(commands=['admin_restart_device_yes'])
 def command_admin_restart_device_yes(message):
@@ -226,7 +226,7 @@ def command_admin_restart_device_yes(message):
         return
     if "admin_restart_device" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "admin_restart_device_yes")
+    database.set_current_state(message, "admin_restart_device_yes")
     admin.command_admin_restart_device_yes(message, bot)
 @bot.message_handler(commands=['admin_return'])
 def command_admin_return(message):
@@ -248,7 +248,7 @@ def command_help(message):
     func.print_log("/help: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "help")
+    database.set_current_state(message, "help")
     basic_commands.command_help(message, bot)
 @bot.message_handler(commands=['help_main'])
 def command_help_main(message):
@@ -257,7 +257,7 @@ def command_help_main(message):
         return
     if "help" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "help_main")
+    database.set_current_state(message, "help_main")
     basic_commands.command_help_main(message, bot)
 @bot.message_handler(commands=['help_features'])
 def command_help_features(message):
@@ -266,7 +266,7 @@ def command_help_features(message):
         return
     if "help" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "help_features")
+    database.set_current_state(message, "help_features")
     basic_commands.command_help_features(message, bot)
 @bot.message_handler(commands=['help_contact'])
 def command_help_contact(message):
@@ -275,7 +275,7 @@ def command_help_contact(message):
         return
     if "help" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "help_contact")
+    database.set_current_state(message, "help_contact")
     basic_commands.command_help_contact(message, bot)
 @bot.message_handler(commands=['help_settings'])
 def command_help_settings(message):
@@ -284,7 +284,7 @@ def command_help_settings(message):
         return
     if "help" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-    database.save_current_state(message, "help_settings")
+    database.set_current_state(message, "help_settings")
     basic_commands.command_help_settings(message, bot)
 @bot.message_handler(commands=['help_return'])
 def command_help_return(message):
@@ -312,7 +312,7 @@ def command_contact(message):
     func.print_log("/contact: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "contact")
+    database.set_current_state(message, "contact")
     basic_commands.command_contact(message, bot)
 
 # handle /report command
@@ -321,7 +321,7 @@ def command_report(message):
     func.print_log("/report: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "report")
+    database.set_current_state(message, "report")
     basic_commands.command_report(message, bot)
 
 # handle /deletedata command
@@ -330,7 +330,7 @@ def command_deletedata(message):
     func.print_log("/deletedata: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "deletedata")
+    database.set_current_state(message, "deletedata")
     basic_commands.command_deletedata(message, bot)
 @bot.message_handler(commands=['deletedata_yes'])
 def command_deletedata_yes(message):
@@ -349,7 +349,7 @@ def command_deletedata_no(message):
         return
     if database.get_current_state(message) == "deletedata":
         basic_commands.delete_previous_bot_message(message, bot)
-        database.save_current_state(message, "0")
+        database.set_current_state(message, "0")
         basic_commands.command_deletedata_no(message, bot)
     else:
         not_working_buttons(message)
@@ -360,7 +360,7 @@ def command_language(message):
     func.print_log("/language: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "language")
+    database.set_current_state(message, "language")
     basic_commands.command_language(message, bot)
 @bot.message_handler(commands=['language_pl'])
 def command_language_pl(message):
@@ -370,7 +370,7 @@ def command_language_pl(message):
     if database.get_current_state(message) == "language":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_pl(message, bot)
-        database.save_current_state(message, "0")
+        database.set_current_state(message, "0")
     else:
         not_working_buttons(message)
 @bot.message_handler(commands=['language_en'])
@@ -381,7 +381,7 @@ def command_language_en(message):
     if database.get_current_state(message) == "language":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_en(message, bot)
-        database.save_current_state(message, "0")
+        database.set_current_state(message, "0")
     else:
         not_working_buttons(message)
 @bot.message_handler(commands=['language_cancel'])
@@ -392,7 +392,7 @@ def command_language_cancel(message):
     if database.get_current_state(message) == "language":
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_language_cancel(message, bot)
-        database.save_current_state(message, "0")
+        database.set_current_state(message, "0")
     else:
         not_working_buttons(message)
 
@@ -402,7 +402,7 @@ def command_about(message):
     func.print_log("/about: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "about")
+    database.set_current_state(message, "about")
     basic_commands.command_about(message, bot, ver)
 
 # handle /tiktok command
@@ -411,7 +411,7 @@ def command_tiktok(message):
     func.print_log("/tiktok: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "tiktok")
+    database.set_current_state(message, "tiktok")
     if database.user_check(message):
         basic_commands.command_tiktok(message, bot)
     else:
@@ -423,7 +423,7 @@ def command_twitter(message):
     func.print_log("/twitter: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "twitter")
+    database.set_current_state(message, "twitter")
     if database.user_check(message):
         basic_commands.command_twitter(message, bot)
     else:
@@ -435,7 +435,7 @@ def command_reddit(message):
     func.print_log("/reddit: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "reddit")
+    database.set_current_state(message, "reddit")
     if database.user_check(message):
         basic_commands.command_reddit(message, bot)
     else:
@@ -447,7 +447,7 @@ def command_tumblr(message):
     func.print_log("/tumblr: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "tumblr")
+    database.set_current_state(message, "tumblr")
     if database.user_check(message):
         basic_commands.command_tumblr(message, bot)
     else:
@@ -459,7 +459,7 @@ def echo_tiktok(message):
     func.print_log("TikTok URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "tiktok_url")
+    database.set_current_state(message, "tiktok_url")
     if database.user_check(message):
         tiktok.start_tiktok(message, bot)
     else:
@@ -471,7 +471,7 @@ def echo_twitter(message):
     func.print_log("Twitter URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "twitter_url")
+    database.set_current_state(message, "twitter_url")
     if database.user_check(message):
         twitter.start_twitter(message, bot)
     else:
@@ -483,7 +483,7 @@ def echo_reddit(message):
     func.print_log("Reddit URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "reddit_url")
+    database.set_current_state(message, "reddit_url")
     if database.user_check(message):
         reddit.start_reddit(message, bot)
     else:
@@ -495,7 +495,7 @@ def echo_tumblr(message):
     func.print_log("Tumblr URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "tumblr_url")
+    database.set_current_state(message, "tumblr_url")
     if database.user_check(message):
         tumblr.start_tumblr(message, bot)
     else:
@@ -507,7 +507,7 @@ def command_crystalball(message):
     func.print_log("/crystalball: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "crystalball")
+    database.set_current_state(message, "crystalball")
     crystal_ball.command_crystalball(message, bot)
 
 # handle /topspotifyartist command
@@ -516,7 +516,7 @@ def command_topspotifyartist(message):
     func.print_log("/topspotifyartist: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "topspotifyartist")
+    database.set_current_state(message, "topspotifyartist")
     top_spotify_artist.command_topspotifyartist(message, bot)
 
 # start topspotifyartist loop
@@ -545,7 +545,7 @@ def echo_unknown_command(message):
     func.print_log("Unknown command: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "0")
+    database.set_current_state(message, "0")
     text = database.get_message_text(message, 'echo_unknown_command')
     mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)
@@ -556,7 +556,7 @@ def echo_all(message):
     func.print_log("Misunderstood message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    database.save_current_state(message, "0")
+    database.set_current_state(message, "0")
     text = database.get_message_text(message, 'echo_all')
     mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)

@@ -195,7 +195,7 @@ def forward_message_to_admin(message, bot):
         func.print_log("ERROR: Database error - The raport could not be sent because there are no Admins in the database.")
         text = get_message_text(message, 'no_admin')
         bot.send_message(message.chat.id, text)
-    save_current_state(message)
+    set_current_state(message)
 
 # register last bot message id
 def register_last_message(message, state = 0):
@@ -212,7 +212,7 @@ def register_last_message(message, state = 0):
         db_conn.commit()
     database_lock.release()
     if state == 1:
-        save_current_state(message, "1")
+        set_current_state(message, "1")
 
 # get last bot message id
 def get_last_message(message):
@@ -250,7 +250,7 @@ def send_start_info(bot):
                 register_last_message(mess)
                 bot.delete_message(mess.chat.id, get_last_message(mess))
                 mess = bot.send_message(admin, text, parse_mode = 'Markdown')
-                save_current_state(mess)
+                set_current_state(mess)
                 func.print_log("The restart info has been sent to: " + str(admin) + ".")
             else:
                 mess = bot.send_message(admin, ".")
@@ -258,7 +258,7 @@ def send_start_info(bot):
                 register_last_message(mess)
                 bot.delete_message(mess.chat.id, get_last_message(mess))
                 mess = bot.send_message(admin, text, parse_mode = 'Markdown')
-                save_current_state(mess)
+                set_current_state(mess)
                 func.print_log("The start info has been sent to: " + str(admin) + ".")
     else:
         func.print_log("ERROR: Database error - The start info could not be sent because there are no Admins in the database.")
@@ -276,7 +276,7 @@ def send_stop_info(bot):
             register_last_message(mess)
             bot.delete_message(mess.chat.id, get_last_message(mess))
             mess = bot.send_message(admin, text, parse_mode = 'Markdown')
-            # save_current_state(mess)
+            # set_current_state(mess)
             func.print_log("The stop info has been sent to: " + str(admin) + ".")
     else:
         func.print_log("ERROR: Database error - The stop info could not be sent because there are no Admins in the database.")
