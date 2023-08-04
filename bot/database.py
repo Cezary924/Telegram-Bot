@@ -246,7 +246,7 @@ def send_start_info(bot):
             database_lock.release()
             if state.startswith("err_"):
                 mess = bot.send_message(admin, ".")
-                text = get_message_text(mess, 'send_err_info')
+                text = get_message_text(mess, 'send_restart_error_info')
                 text = text + "\n\nError: \n_" + state[4:] + "_"
                 register_last_message(mess)
                 bot.delete_message(mess.chat.id, get_last_message(mess))
