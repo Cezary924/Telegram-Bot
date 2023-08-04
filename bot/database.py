@@ -285,10 +285,26 @@ def send_stop_info(bot):
             register_last_message(mess)
             bot.delete_message(mess.chat.id, get_last_message(mess))
             mess = bot.send_message(admin, text, parse_mode = 'Markdown')
-            # set_current_state(mess)
             func.print_log("The stop info has been sent to: " + str(admin) + ".")
     else:
         func.print_log("ERROR: Database error - The stop info could not be sent because there are no Admins in the database.")
+
+# send info about error
+def send_error_info(bot, err):
+    database_lock.acquire(True)
+    cursor.execute("SELECT id FROM People WHERE role = 2;")
+    admins=cursor.fetchone()
+    database_lock.release()
+    if admins != None:
+        for admin in admins:
+            mess = bot.send_message(admin, ".")
+            text = get_message_text(mess, 'send_error_info')
+            register_last_message(mess)
+            bot.delete_message(mess.chat.id, get_last_message(mess))
+            mess = bot.send_message(admin, text + "\n\nError: \n_" + err + "_", parse_mode = 'Markdown')
+            func.print_log("The error info has been sent to: " + str(admin) + ".")
+    else:
+        func.print_log("ERROR: Database error - The error info could not be sent because there are no Admins in the database.")
 
 # set state for every admin
 def set_admins_state(bot, state):
