@@ -589,6 +589,7 @@ if func.suffix == 0:
     except Exception as err:
         func.print_log('ERROR: Telebot error.')
         print(err)
+        database.send_error_info(bot, str(type(err).__name__))
         database.set_admins_state(bot, 'err_' + str(type(err).__name__))
         admin.command_admin_restart_bot_yes(bot, send_mess = 0)
 else:
