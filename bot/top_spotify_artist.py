@@ -87,7 +87,7 @@ def get_artist_index(text):
 # get string with details about artist
 def artist_text(message, number, final_number = None):
     if final_number == None:
-        return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_"
+        return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_\n" + database.get_message_text(message, 'genre') + ": _" + str(artists[number][4]) + "_\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_"
     else:
         if number > final_number:
             text1 = " ⬆️"
