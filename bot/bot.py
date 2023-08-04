@@ -119,10 +119,6 @@ def command_dataprocessing_en_no(message):
     func.print_log("/dataprocessing_en_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     text = database.get_message_text(message, 'command_dataprocessing_no', 'en')
     bot.send_message(message.chat.id, text)
-    
-# send info about bot start to admins
-def send_start_info(bot):
-    database.send_start_info(bot)
 
 # handle /admin command
 @bot.message_handler(commands=['admin'])
@@ -578,7 +574,7 @@ top_spotify_artist.fill_artists()
 func.print_log("", basic_commands.bot_name, 1)
 
 # execute func sending info about restart
-send_start_info(bot)
+database.send_start_info(bot)
 
 # infinite loop
 if func.suffix == 0:
