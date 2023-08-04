@@ -56,7 +56,8 @@ def log_file(name, path):
 # print info about bot's tasks
 def print_log(info, bot_name = None, start = 0):
     if bot_name != None:
-        print("|" + "=" * (log_length - 2) + "|")
+        if start == 1:
+            print("|" + "=" * (log_length - 2) + "|")
         print("|" + "+" * (log_length - 2) + "|")
         if start == 1:
             text = bot_name + " has been started."
