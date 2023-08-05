@@ -4,7 +4,7 @@
 
 | Version | Supported |
 | - | - |
-| **_8.3_** | **:white_check_mark:** |
+| **_8.4_** | **:white_check_mark:** |
 | _8.x_ | :heavy_check_mark: |
 | _7.x_ | :heavy_check_mark: |
 | _6.x_ | :heavy_check_mark: |
