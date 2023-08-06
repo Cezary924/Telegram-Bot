@@ -54,7 +54,6 @@ def echo_reddit(message, bot):
     try:
         with open(vid_name, "wb") as f:
             f.write(response.content)
-            f.close()
     except OSError:
         func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
         text = database.get_message_text(message, 'reddit_url_error')
@@ -62,8 +61,13 @@ def echo_reddit(message, bot):
         return
 
     if audio == False:
-        bot.send_video(message.chat.id, open(vid_name, 'rb'))
-        os.remove(vid_name)
+        try:
+            with open(vid_name, "rb") as f:
+                bot.send_video(message.chat.id, f)
+        except OSError:
+            func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        finally:
+            os.remove(vid_name)
         return
     
     response = requests.request("GET", audio_url, headers = {'User-agent': 'Reddit-Downloader'})
@@ -75,7 +79,6 @@ def echo_reddit(message, bot):
     try:
         with open(audio_name, "wb") as f:
             f.write(response.content)
-            f.close()
     except OSError:
         func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
         text = database.get_message_text(message, 'reddit_url_error')
@@ -91,9 +94,14 @@ def echo_reddit(message, bot):
     final_clip = my_clip.set_audio(audio_background)
     final_clip.write_videofile(final_name, fps=60, logger=None)
     
-    bot.send_video(message.chat.id, open(final_name, 'rb'))
-
-    os.remove(vid_name)
+    try:
+        with open(vid_name, "rb") as f:
+            bot.send_video(message.chat.id, f)
+    except OSError:
+        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+    finally:
+        os.remove(vid_name)
+        
     os.remove(audio_name)
     os.remove(final_name)
 

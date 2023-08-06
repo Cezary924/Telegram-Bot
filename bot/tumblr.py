@@ -43,13 +43,15 @@ def echo_tumblr(message, bot):
     try:
         with open(vid_name, "wb") as f:
             f.write(response.content)
-            f.close()
     except OSError:
         func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
-        
-    bot.send_video(message.chat.id, open(vid_name, 'rb'))
-    
-    os.remove(vid_name)
+    try:
+        with open(vid_name, "rb") as f:
+            bot.send_video(message.chat.id, f)
+    except OSError:
+        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+    finally:
+        os.remove(vid_name)
 
 def start_tumblr(message, bot):
     echo_tumblr(message, bot)
