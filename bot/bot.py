@@ -509,6 +509,18 @@ def echo_tumblr(message):
     else:
         permission_denied(message)
 
+# handle YouTube urls
+@bot.message_handler(func=lambda message: youtube.check_youtube_url(message))
+def echo_youtube(message):
+    func.print_log("YouTube URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "youtube_url")
+    if database.user_check(message):
+        youtube.start_youtube(message, bot)
+    else:
+        permission_denied(message)
+
 # handle /crystalball command
 @bot.message_handler(commands=['crystalball'])
 def command_crystalball(message):
