@@ -3,3 +3,4 @@ requests==2.31.0
 moviepy==1.0.3
 PyYAML==6.0.1
 bs4==0.0.1
+pytube==15.0.0
