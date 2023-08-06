@@ -247,4 +247,9 @@ def command_tumblr(message, bot):
     text = database.get_message_text(message, 'command_tumblr')
     mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
-    
+
+# handle /youtube command
+def command_youtube(message, bot):
+    text = database.get_message_text(message, 'command_youtube')
+    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
+    database.register_last_message(mess)
