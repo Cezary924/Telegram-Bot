@@ -29,6 +29,9 @@ tumblr_url_start: Przetwarzanie linku z Tumblr... ⏳
 tumblr_url_error: Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞
 twitter_url_start: Przetwarzanie linku z Twittera... ⏳
 twitter_url_error: Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞
+youtube_url_start: Przetwarzanie linku z YouTube... ⏳
+youtube_url_error: Niestety, pobranie filmiku z YouTube nie jest teraz możliwe... Spróbuj poźniej 😞
+youtube_url_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
 command_admin_update_bot_yes_finish: 🤖 *Bot został zaktualizowany!*
 command_admin_update_bot_yes: 🤖 *Aktualizacja Bota...*
 command_admin_update_bot: 🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota? Aby aktualizacia przebiegła pomyślnie i jej skutki były odczuwalne, należy uruchomić Bota ponownie.
@@ -53,6 +56,7 @@ command_tumblr: 📄 *Tumblr:*\n\nAby pobrać wideo z serwisu Tumblr wystarczy, 
 command_reddit: 🤖 *Reddit:*\n\nAby pobrać wideo z serwisu Reddit wystarczy, że wyślesz mi do niego link 🔗
 command_twitter: 🐦 *Twitter:*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗
 command_tiktok:  🎵 *TikTok:*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗
+command_youtube:  📺 *YouTube:*\n\nAby pobrać wideo z serwisu YouTube wystarczy, że wyślesz mi do niego link 🔗
 command_about_year: Lata rozwijania
 command_about_ver_status: Status wersji
 command_about_ver: Wersja
@@ -73,7 +77,7 @@ settings: ⚙️ Ustawienia
 return: 🔙 Powrót
 command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
 contact: ☎️ Kontakt
-command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/reddit - _🤖 Pobieranie wideo z serwisu Reddit_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_ *NOWOŚĆ*
+command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/youtube - _📺 Pobieranie wideo z serwisu YouTube_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_
 features: ✨ Funkcje Bota
 command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_
 main: 🤖 Ogólne

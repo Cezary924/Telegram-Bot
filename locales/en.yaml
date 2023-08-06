@@ -29,6 +29,9 @@ tumblr_url_start: Processing the URL of a Tumblr post... ⏳
 tumblr_url_error: Sorry, downloading Tumblr videos is not currently possible... Please, try again later 😞
 twitter_url_start: Processing the URL of a Tweet... ⏳
 twitter_url_error: Sorry, downloading Twitter videos is not currently possible... Please, try again later 😞
+youtube_url_start: Processing the URL of a YouTube post... ⏳
+youtube_url_error: Sorry, downloading YouTube videos is not currently possible... Please, try again later 😞
+youtube_url_processing: Please be patient - this operation may take a while ⌚
 command_admin_update_bot_yes_finish: 🤖 *The Bot has been updated!*
 command_admin_update_bot_yes: 🤖 *The Bot is updating...*
 command_admin_update_bot: 🤖 *The Bot Update:*\n\nAre you sure you want to update the Bot? The update will be successful if you restart the Bot after the update completion.
@@ -53,6 +56,7 @@ command_tumblr: 📄 *Tumblr:*\n\nTo download a video from Tumblr, all you have 
 command_reddit: 🤖 *Reddit:*\n\nTo download a video from Reddit, all you have to do is send me a link to it 🔗
 command_twitter: 🐦 *Twitter:*\n\nTo download a video from Twitter, all you have to do is send me a link to it 🔗
 command_tiktok:  🎵 *TikTok:*\n\nTo download a video from TikTok, all you have to do is send me a link to it 🔗
+command_youtube:  📺 *YouTube:*\n\nTo download a video from YouTube, all you have to do is send me a link to it 🔗
 command_about_year: Development
 command_about_ver_status: Version status
 command_about_ver: Version
@@ -73,7 +77,7 @@ settings: ⚙️ Settings
 return: 🔙 Back
 command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 To report an issue to the Admin._\n
 contact: ☎️ Contact Us
-command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_ *NEW*
+command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/youtube - _📺 To download video from YouTube_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_ *NEW*
 features: ✨ Bot Features
 command_help_main: /start - _🤖 To start conversation with the Bot_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
 main: 🤖 General
