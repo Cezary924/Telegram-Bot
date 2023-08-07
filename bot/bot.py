@@ -19,7 +19,7 @@ if len(sys.argv) == 2 and sys.argv[1] == "beta":
 else:
     token = func.tokens['telegram']
 
-import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball, top_spotify_artist
+import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball, top_spotify_artist, youtube
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -449,6 +449,18 @@ def command_tumblr(message):
     else:
         permission_denied(message)
 
+# handle /youtube command
+@bot.message_handler(commands=['youtube'])
+def command_youtube(message):
+    func.print_log("/youtube: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "youtube")
+    if database.user_check(message):
+        basic_commands.command_youtube(message, bot)
+    else:
+        permission_denied(message)
+
 # handle TikTok urls
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
@@ -494,6 +506,18 @@ def echo_tumblr(message):
     database.set_current_state(message, "tumblr_url")
     if database.user_check(message):
         tumblr.start_tumblr(message, bot)
+    else:
+        permission_denied(message)
+
+# handle YouTube urls
+@bot.message_handler(func=lambda message: youtube.check_youtube_url(message))
+def echo_youtube(message):
+    func.print_log("YouTube URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "youtube_url")
+    if database.user_check(message):
+        youtube.start_youtube(message, bot)
     else:
         permission_denied(message)
 
