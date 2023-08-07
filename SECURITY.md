@@ -4,11 +4,11 @@
 
 | Version | Supported |
 | - | - |
-| **_8.4_** | **:white_check_mark:** |
+| **_9.0_** | **:white_check_mark:** |
 | _8.x_ | :heavy_check_mark: |
 | _7.x_ | :heavy_check_mark: |
 | _6.x_ | :heavy_check_mark: |
-| _5.x_ | :heavy_check_mark: |
+| _5.x_ | :x: |
 | _4.x_ | :x: |
 | _3.x_ | :x: |
 | _2.x_ | :x: |
