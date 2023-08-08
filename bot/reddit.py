@@ -4,16 +4,7 @@ import moviepy.editor as mpe
 
 import database, func
 
-# check Reddit url
-def check_reddit_url(message):
-    if "http" in message.text:
-        url = urlparse(message.text)
-        if url.scheme == "https":
-            if url.hostname == "www.reddit.com":
-                return True
-    return False
-
-# handle Reddit urls
+# handle Reddit URLs
 def echo_reddit(message, bot):
     if "?" in message.text:
         url = message.text.split("?")[0]

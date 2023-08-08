@@ -461,7 +461,7 @@ def command_youtube(message):
     else:
         permission_denied(message)
 
-# handle TikTok urls
+# handle TikTok URLs
 @bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
 def echo_tiktok(message):
     func.print_log("TikTok URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -473,7 +473,7 @@ def echo_tiktok(message):
     else:
         permission_denied(message)
 
-# handle Twitter urls
+# handle Twitter URLs
 @bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
 def echo_twitter(message):
     func.print_log("Twitter URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -485,7 +485,7 @@ def echo_twitter(message):
     else:
         permission_denied(message)
 
-# handle Reddit urls
+# handle Reddit URLs
 @bot.message_handler(func=lambda message: reddit.check_reddit_url(message))
 def echo_reddit(message):
     func.print_log("Reddit URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -497,7 +497,7 @@ def echo_reddit(message):
     else:
         permission_denied(message)
 
-# handle Tumblr urls
+# handle Tumblr URLs
 @bot.message_handler(func=lambda message: tumblr.check_tumblr_url(message))
 def echo_tumblr(message):
     func.print_log("Tumblr URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -509,7 +509,7 @@ def echo_tumblr(message):
     else:
         permission_denied(message)
 
-# handle YouTube urls
+# handle YouTube URLs
 @bot.message_handler(func=lambda message: youtube.check_youtube_url(message))
 def echo_youtube(message):
     func.print_log("YouTube URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")

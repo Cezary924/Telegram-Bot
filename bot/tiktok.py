@@ -10,16 +10,7 @@ def read_rapidapi():
     global rapidapi
     rapidapi = func.tokens['tiktok']
 
-# check TikTok url
-def check_tiktok_url(message):
-    if "http" in message.text:
-        url = urlparse(message.text)
-        if url.scheme == "http" or url.scheme == "https":
-            if url.hostname == "vm.tiktok.com" or url.hostname == "www.tiktok.com":
-                return True
-    return False
-
-# handle TikTok urls
+# handle TikTok URLs
 def echo_tiktok(message, bot):
     url = "https://tiktok-full-info-without-watermark.p.rapidapi.com/vid/index"
     querystring = {"url": message.text}

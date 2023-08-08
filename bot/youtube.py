@@ -4,17 +4,7 @@ from urllib.parse import urlparse
 
 import database
 
-# check Youtube url
-def check_youtube_url(message):
-    if "http" in message.text:
-        url = urlparse(message.text)
-        if url.scheme == "https":
-            if url.hostname == "youtube.com" or url.hostname == "youtu.be":
-                return True
-    return False
-
-# handle Youtube urls
-def echo_youtube(message, bot):
+# handle Youtube URLs
     url = message.text
 
     text = database.get_message_text(message, 'youtube_url_start')

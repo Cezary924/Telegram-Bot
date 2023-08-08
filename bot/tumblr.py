@@ -3,17 +3,7 @@ from urllib.parse import urlparse
 
 import database, func
 
-# check Tumblr url
-def check_tumblr_url(message):
-    if "http" in message.text:
-        url = urlparse(message.text)
-        if url.scheme == "https":
-            if url.hostname == "www.tumblr.com":
-                return True
-    return False
-
-# handle Tumblr urls
-def echo_tumblr(message, bot):
+# handle Tumblr URLs
     url = message.text
 
     text = database.get_message_text(message, 'tumblr_url_start')

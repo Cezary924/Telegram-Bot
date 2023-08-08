@@ -73,7 +73,7 @@ def print_log(info, bot_name = None, start = 0):
     print(" " + info + " ")
     print("|" + "=" * (log_length - 2) + "|")
 
-# check url scheme & url hostname
+# check URL scheme & URL hostname
 def check_url(message, scheme, hostname):
     url = urlparse(message.text)
     if url.scheme in scheme:

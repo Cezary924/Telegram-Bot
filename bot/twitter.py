@@ -10,16 +10,7 @@ def read_rapidapi():
     global rapidapi
     rapidapi = func.tokens['twitter']
 
-# check Twitter url
-def check_twitter_url(message):
-    if "http" in message.text:
-        url = urlparse(message.text)
-        if url.scheme == "https":
-            if url.hostname == "twitter.com":
-                return True
-    return False
-
-# handle Twitter urls
+# handle Twitter URLs
 def echo_twitter(message, bot):
     url = "https://twitter65.p.rapidapi.com/api/twitter/links"
     payload = { "url": message.text }
