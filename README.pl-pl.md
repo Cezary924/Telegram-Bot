@@ -8,7 +8,7 @@
 </div><br/>
 
 ## ✨ Główne funkcje
-- Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr & Reddit)
+- Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr, Reddit & YouTube)
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Angielski & Polski)
