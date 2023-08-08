@@ -8,7 +8,7 @@
 </div><br/>
 
 ## ✨ Main features
-- Video downloader ⬇️ (TikTok, Twitter, Tumblr & Reddit)
+- Video downloader ⬇️ (TikTok, Twitter, Tumblr, Reddit & YouTube)
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
