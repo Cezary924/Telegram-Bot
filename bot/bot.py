@@ -603,7 +603,7 @@ database.send_start_info(bot)
 # infinite loop
 if func.suffix == 0:
     try:
-        bot.polling(non_stop = True)
+        bot.polling(non_stop = True, timeout = 60)
     except KeyboardInterrupt as keyint:
         sys.exit()
     except Exception as err:
@@ -611,6 +611,7 @@ if func.suffix == 0:
         print(err)
         database.send_error_info(bot, str(type(err).__name__))
         database.set_admins_state(bot, 'err_' + str(type(err).__name__))
-        admin.command_admin_restart_bot_yes(bot, send_mess = 0)
+        sys.exit()
+        #admin.command_admin_restart_bot_yes(bot, send_mess = 0)
 else:
     bot.polling(non_stop = True)
