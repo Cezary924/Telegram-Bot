@@ -226,30 +226,35 @@ def command_about(message, bot, ver):
 
 # handle /tiktok command
 def command_tiktok(message, bot):
-    text = database.get_message_text(message, 'command_tiktok')
-    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
+    text1 = database.get_message_text(message, 'command_downloader')
+    text2 = database.get_message_text(message, 'tiktok')
+    mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /twitter command
 def command_twitter(message, bot):
-    text = database.get_message_text(message, 'command_twitter')
-    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
+    text1 = database.get_message_text(message, 'command_downloader')
+    text2 = database.get_message_text(message, 'twitter')
+    mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /reddit command
 def command_reddit(message, bot):
-    text = database.get_message_text(message, 'command_reddit')
-    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
+    text1 = database.get_message_text(message, 'command_downloader')
+    text2 = database.get_message_text(message, 'reddit')
+    mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /tumblr command
 def command_tumblr(message, bot):
-    text = database.get_message_text(message, 'command_tumblr')
-    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
+    text1 = database.get_message_text(message, 'command_downloader')
+    text2 = database.get_message_text(message, 'tumblr')
+    mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /youtube command
 def command_youtube(message, bot):
-    text = database.get_message_text(message, 'command_youtube')
-    mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
+    text1 = database.get_message_text(message, 'command_downloader')
+    text2 = database.get_message_text(message, 'youtube')
+    mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
