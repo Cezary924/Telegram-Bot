@@ -1,76 +1,55 @@
 import requests, os
-from urllib.parse import urlparse
 
-import database, func
+import func, downloader
 
-rapidapi = None
-
-# open file containing RapidApi key and read from it
-def read_rapidapi():
-    global rapidapi
-    rapidapi = func.tokens['twitter']
-
-# check Twitter url
-def check_twitter_url(message):
-    if "http" in message.text:
-        url = urlparse(message.text)
-        if url.scheme == "https":
-            if url.hostname == "twitter.com":
-                return True
-    return False
-
-# handle Twitter urls
-def echo_twitter(message, bot):
+# handle Twitter URLs
+def start_twitter(message, bot):
     url = "https://twitter65.p.rapidapi.com/api/twitter/links"
     payload = { "url": message.text }
     headers = {
         "content-type": "application/json",
-        "X-RapidAPI-Key": rapidapi,
+        "X-RapidAPI-Key": func.tokens['twitter'],
         "X-RapidAPI-Host": "twitter65.p.rapidapi.com"
     }
+    downloader.send_start_message(bot, message, 'twitter')
 
-    text = database.get_message_text(message, 'twitter_url_start')
-    bot.send_message(message.chat.id, text)
-
+    # downloading vid
     response = requests.post(url, json=payload, headers=headers)
     if response.status_code != 200:
-        text = database.get_message_text(message, 'twitter_url_error')
-        bot.send_message(message.chat.id, text)
+        func.print_log("ERROR: Module error - Twitter.")
+        downloader.send_error_message(bot, message, 'twitter')
         return
-    
-    response = response.json()
-
+    try:
+        response = response.json()
+    except Exception as err:
+        func.print_log("ERROR: Module error - Twitter.")
+        downloader.send_error_message(bot, message, 'twitter')
+        return
     best_vid = None
     for vid in response[0]['urls']:
         if 'quality' in vid.keys():
             if best_vid == None or int(best_vid['quality']) < vid['quality']:
                 best_vid = vid
-
     response = requests.request("GET", best_vid['url'], headers=headers)
     if response.status_code != 200:
-        text = database.get_message_text(message, 'twitter_url_error')
-        bot.send_message(message.chat.id, text)
+        func.print_log("ERROR: Module error - Twitter.")
+        downloader.send_error_message(bot, message, 'twitter')
         return
-    
     vid_name = str(message.chat.id) + str(message.message_id) + ".mp4"
     try:
         with open(vid_name, "wb") as f:
             f.write(response.content)
     except OSError:
         func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        downloader.send_error_message(bot, message, 'twitter')
+        return
+    
+    # sending vid
     try:
         with open(vid_name, "rb") as f:
             bot.send_video(message.chat.id, f)
     except OSError:
         func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        downloader.send_error_message(bot, message, 'twitter')
     finally:
         os.remove(vid_name)
-
-def start_twitter(message, bot):
-    if rapidapi == None:
-        read_rapidapi()
-    if rapidapi != None:
-        echo_twitter(message, bot)
-    else:
-        text = database.get_message_text(message, 'twitter_url_error')
-        bot.send_message(message.chat.id, text)

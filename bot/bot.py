@@ -19,7 +19,8 @@ if len(sys.argv) == 2 and sys.argv[1] == "beta":
 else:
     token = func.tokens['telegram']
 
-import admin, basic_commands, database, tiktok, twitter, tumblr, reddit, crystal_ball, top_spotify_artist, youtube
+import admin, basic_commands, database, crystal_ball, top_spotify_artist
+import downloader, tiktok, twitter, tumblr, reddit, youtube
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -461,8 +462,8 @@ def command_youtube(message):
     else:
         permission_denied(message)
 
-# handle TikTok urls
-@bot.message_handler(func=lambda message: tiktok.check_tiktok_url(message))
+# handle TikTok URLs
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['vm.tiktok.com']))
 def echo_tiktok(message):
     func.print_log("TikTok URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -473,8 +474,8 @@ def echo_tiktok(message):
     else:
         permission_denied(message)
 
-# handle Twitter urls
-@bot.message_handler(func=lambda message: twitter.check_twitter_url(message))
+# handle Twitter URLs
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['twitter.com']))
 def echo_twitter(message):
     func.print_log("Twitter URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -485,8 +486,8 @@ def echo_twitter(message):
     else:
         permission_denied(message)
 
-# handle Reddit urls
-@bot.message_handler(func=lambda message: reddit.check_reddit_url(message))
+# handle Reddit URLs
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['www.reddit.com']))
 def echo_reddit(message):
     func.print_log("Reddit URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -497,8 +498,8 @@ def echo_reddit(message):
     else:
         permission_denied(message)
 
-# handle Tumblr urls
-@bot.message_handler(func=lambda message: tumblr.check_tumblr_url(message))
+# handle Tumblr URLs
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['www.tumblr.com']))
 def echo_tumblr(message):
     func.print_log("Tumblr URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -509,8 +510,8 @@ def echo_tumblr(message):
     else:
         permission_denied(message)
 
-# handle YouTube urls
-@bot.message_handler(func=lambda message: youtube.check_youtube_url(message))
+# handle YouTube URLs
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['youtube.com', 'youtu.be']))
 def echo_youtube(message):
     func.print_log("YouTube URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:

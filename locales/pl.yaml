@@ -20,18 +20,6 @@ forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
 no_admin: Niestety, Twoja wiadomość nie mogła być przekazana... Spróbuj poźniej 😞
 message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie
 hi: Cześć
-reddit_url_start: Przetwarzanie linku z Reddita... ⏳
-reddit_url_error: Niestety, pobranie filmiku z Reddita nie jest teraz możliwe... Spróbuj poźniej 😞
-reddit_url_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
-tiktok_url_start: Przetwarzanie linku z TikToka... ⏳
-tiktok_url_error: Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞
-tumblr_url_start: Przetwarzanie linku z Tumblr... ⏳
-tumblr_url_error: Niestety, pobranie filmiku z Tumblr nie jest teraz możliwe... Spróbuj poźniej 😞
-twitter_url_start: Przetwarzanie linku z Twittera... ⏳
-twitter_url_error: Niestety, pobranie filmiku z Twittera nie jest teraz możliwe... Spróbuj poźniej 😞
-youtube_url_start: Przetwarzanie linku z YouTube... ⏳
-youtube_url_error: Niestety, pobranie filmiku z YouTube nie jest teraz możliwe... Spróbuj poźniej 😞
-youtube_url_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
 command_admin_update_bot_yes_finish: 🤖 *Bot został zaktualizowany!*
 command_admin_update_bot_yes: 🤖 *Aktualizacja Bota...*
 command_admin_update_bot: 🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota? Aby aktualizacia przebiegła pomyślnie i jej skutki były odczuwalne, należy uruchomić Bota ponownie.
@@ -52,11 +40,15 @@ restart_bot: 🔁 Restart Bota 🤖
 shutdown_device: 📴 Wyłączenie urządzenia 🖥️
 shutdown_bot: 📴 Wyłączenie Bota 🤖
 update_bot: ⬇️ Aktualizacja Bota 🤖
-command_tumblr: 📄 *Tumblr:*\n\nAby pobrać wideo z serwisu Tumblr wystarczy, że wyślesz mi do niego link 🔗
-command_reddit: 🤖 *Reddit:*\n\nAby pobrać wideo z serwisu Reddit wystarczy, że wyślesz mi do niego link 🔗
-command_twitter: 🐦 *Twitter:*\n\nAby pobrać wideo z serwisu Twitter wystarczy, że wyślesz mi do niego link 🔗
-command_tiktok:  🎵 *TikTok:*\n\nAby pobrać wideo z serwisu TikTok wystarczy, że wyślesz mi do niego link 🔗
-command_youtube:  📺 *YouTube:*\n\nAby pobrać wideo z serwisu YouTube wystarczy, że wyślesz mi do niego link 🔗
+downloader_start: Przetwarzanie linku... ⏳
+downloader_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
+downloader_error: Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞
+command_downloader: Aby pobrać wideo z tego serwisu, wystarczy, że wyślesz mi (udostępnisz) do niego link 🔗
+tumblr: 📄 *Tumblr:*\n\n
+reddit: 🤖 *Reddit:*\n\n
+twitter: 🐦 *Twitter:*\n\n
+tiktok:  🎵 *TikTok:*\n\n
+youtube:  📺 *YouTube:*\n\n
 command_about_year: Lata rozwijania
 command_about_ver_status: Status wersji
 command_about_ver: Wersja
