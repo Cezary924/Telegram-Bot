@@ -463,7 +463,7 @@ def command_youtube(message):
         permission_denied(message)
 
 # handle TikTok URLs
-@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['vm.tiktok.com']))
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['vm.tiktok.com', 'www.tiktok.com']))
 def echo_tiktok(message):
     func.print_log("TikTok URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
