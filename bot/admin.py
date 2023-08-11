@@ -123,9 +123,19 @@ def command_admin_update_bot_yes(message, bot):
     bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
-    time.sleep(10)
+    time.sleep(15)
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'restart_bot')
+    restart_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_bot")
+    markup.add(restart_bot_button)
+    text = database.get_message_text(message, 'shutdown_bot')
+    restart_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_bot")
+    markup.add(restart_device_button)
+    text = database.get_message_text(message, 'exit')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(exit_button)
     text = database.get_message_text(message, 'command_admin_update_bot_yes_finish')
-    bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
+    bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
 
 def command_admin_return(message, bot):
     text = database.get_message_text(message, 'command_admin_return')
