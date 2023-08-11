@@ -1,7 +1,7 @@
 import yaml
 
 # open and read from locale file
-def load_locale_file(path: str) -> dict:
+def load_locale_file(path: str) -> dict[str, str]:
     try:
         with open(path, encoding='utf8') as f:
             x = yaml.load(f, Loader=yaml.Loader)
