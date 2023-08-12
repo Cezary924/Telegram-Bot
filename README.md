@@ -12,7 +12,7 @@
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
-- Device status management ⚙️ (shutdown & restart) 
+- Device status management ⚙️ (Shutdown & Restart) 
 
 ## ⚙️ Installation & Configuration
 1. Clone this repo.

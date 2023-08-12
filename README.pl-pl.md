@@ -12,7 +12,7 @@
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Angielski & Polski)
-- Zarządzanie stanem urządzenia ⚙️ (wyłączanie & ponowne uruchamianie) 
+- Zarządzanie stanem urządzenia ⚙️ (Wyłączanie & Ponowne uruchamianie) 
 
 ## ⚙️ Instalacja i konfiguracja
 1. Sklonuj to repozytorium.
