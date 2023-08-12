@@ -18,7 +18,7 @@ github_username = func.config['github_username']
 github_repo = func.config['github_repo']
 
 # get commits number from GitHub
-def info_about_version(ver, message = None):
+def info_about_version(ver: int, message: telebot.types.Message = None) -> tuple[int, str]:
     response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=1")
     if message == None:
         if response.status_code != 200:
@@ -46,12 +46,12 @@ def info_about_version(ver, message = None):
             return (online_ver, text + ": " + str(online_ver) + ")")
 
 # delete previously sent message by bot
-def delete_previous_bot_message(message, bot):
+def delete_previous_bot_message(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     # func.print_log("Delete previous message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     bot.delete_message(message.chat.id, database.get_last_message(message))
 
 # handle /start command
-def command_start(message, bot):
+def command_start(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'help')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help")
@@ -69,7 +69,7 @@ def command_start(message, bot):
     database.register_last_message(mess)
 
 # handle /help command
-def command_help(message, bot):
+def command_help(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'main')
     main_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_main")
@@ -91,7 +91,7 @@ def command_help(message, bot):
     mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_help_main(message, bot):
+def command_help_main(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'return')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
@@ -101,7 +101,7 @@ def command_help_main(message, bot):
     text3 = database.get_message_text(message, 'command_help_main')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_help_features(message, bot):
+def command_help_features(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'return')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
@@ -111,7 +111,7 @@ def command_help_features(message, bot):
     text3 = database.get_message_text(message, 'command_help_features')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup) 
     database.register_last_message(mess)
-def command_help_contact(message, bot):
+def command_help_contact(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'return')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
@@ -121,7 +121,7 @@ def command_help_contact(message, bot):
     text3 = database.get_message_text(message, 'command_help_contact')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_help_settings(message, bot):
+def command_help_settings(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'return')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
@@ -131,13 +131,13 @@ def command_help_settings(message, bot):
     text3 = database.get_message_text(message, 'command_help_settings')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_help_return(message, bot):
+def command_help_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_help_return')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /contact command
-def command_contact(message, bot):
+def command_contact(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'report')
     report_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_report")
@@ -150,13 +150,13 @@ def command_contact(message, bot):
     database.register_last_message(mess)
 
 # handle /report command
-def command_report(message, bot):
+def command_report(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_report')
     mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /deletedata command
-def command_deletedata(message, bot):
+def command_deletedata(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
     yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_deletedata_yes")
@@ -168,18 +168,18 @@ def command_deletedata(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_deletedata_yes(message, bot):
+def command_deletedata_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     database.deletedata(message)
     text = database.get_message_text(message, 'command_deletedata_yes')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
-def command_deletedata_no(message, bot):
+def command_deletedata_no(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_deletedata_no')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /language command
-def command_language(message, bot):
+def command_language(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     pl_button = telebot.types.InlineKeyboardButton(text = "🇵🇱 Polski", callback_data = "command_language_pl")
     markup.add(pl_button)
@@ -192,21 +192,21 @@ def command_language(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_language_pl(message, bot):
+def command_language_pl(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     database.set_user_language(message, 'pl')
     mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nGotowe 🇵🇱", parse_mode='Markdown')
     database.register_last_message(mess)
-def command_language_en(message, bot):
+def command_language_en(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     database.set_user_language(message, 'en')
     mess = bot.send_message(message.chat.id, "🌐 *Language:*\n\nDone 🇬🇧", parse_mode='Markdown')
     database.register_last_message(mess)
-def command_language_cancel(message, bot):
+def command_language_cancel(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_language_cancel')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /about command
-def command_about(message, bot, ver):
+def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int) -> None:
     #text1 = database.get_message_text(message, 'command_about_year')
     text2 = database.get_message_text(message, 'command_about_ver_status')
     text3 = database.get_message_text(message, 'command_about_ver')
@@ -225,35 +225,35 @@ def command_about(message, bot, ver):
     database.register_last_message(mess)
 
 # handle /tiktok command
-def command_tiktok(message, bot):
+def command_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'command_downloader')
     text2 = database.get_message_text(message, 'tiktok')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /twitter command
-def command_twitter(message, bot):
+def command_twitter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'command_downloader')
     text2 = database.get_message_text(message, 'twitter')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /reddit command
-def command_reddit(message, bot):
+def command_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'command_downloader')
     text2 = database.get_message_text(message, 'reddit')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /tumblr command
-def command_tumblr(message, bot):
+def command_tumblr(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'command_downloader')
     text2 = database.get_message_text(message, 'tumblr')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
 # handle /youtube command
-def command_youtube(message, bot):
+def command_youtube(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'command_downloader')
     text2 = database.get_message_text(message, 'youtube')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
