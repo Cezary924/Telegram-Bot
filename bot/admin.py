@@ -2,7 +2,7 @@ import telebot, os, signal, sys, subprocess, time
 import database
 
 # handle /admin command
-def command_admin(message, bot, update):
+def command_admin(message: telebot.types.Message, bot: telebot.TeleBot, update: bool) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     if update:
         text = database.get_message_text(message, 'update_bot')
@@ -28,8 +28,8 @@ def command_admin(message, bot, update):
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
-# handle bot shutdown command
-def command_admin_shutdown_bot(message, bot):
+# handle Bot shutdown command
+def command_admin_shutdown_bot(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
     yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_bot_yes")
@@ -41,14 +41,14 @@ def command_admin_shutdown_bot(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_admin_shutdown_bot_yes(message, bot):
+def command_admin_shutdown_bot_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_shutdown_bot_yes')
     bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown')
     os.kill(os.getpid(), signal.SIGINT)
 
 # handle device shutdown command
-def command_admin_shutdown_device(message, bot):
+def command_admin_shutdown_device(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
     yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_device_yes")
@@ -60,14 +60,14 @@ def command_admin_shutdown_device(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_admin_shutdown_device_yes(message, bot):
+def command_admin_shutdown_device_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_shutdown_device_yes')
     bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown')
     os.system("shutdown /s /t 1")
 
-# handle bot restart
-def command_admin_restart_bot(message, bot):
+# handle Bot restart
+def command_admin_restart_bot(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
     yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_bot_yes")
@@ -79,7 +79,7 @@ def command_admin_restart_bot(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_admin_restart_bot_yes(bot, message = None, send_mess = 1):
+def command_admin_restart_bot_yes(bot: telebot.TeleBot, message: telebot.types.Message = None, send_mess: bool = 1) -> None:
     if send_mess:
         text = database.get_message_text(message, 'command_admin_restart_bot_yes')
         bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
@@ -87,7 +87,7 @@ def command_admin_restart_bot_yes(bot, message = None, send_mess = 1):
     os.kill(os.getpid(), signal.SIGINT)
 
 # handle device restart
-def command_admin_restart_device(message, bot):
+def command_admin_restart_device(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
     yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_device_yes")
@@ -99,14 +99,14 @@ def command_admin_restart_device(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_admin_restart_device_yes(message, bot):
+def command_admin_restart_device_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_restart_device_yes')
     bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown')
     os.system("shutdown /r /t 1")
 
-# handle bot update
-def command_admin_update_bot(message, bot):
+# handle Bot update
+def command_admin_update_bot(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
     yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_update_bot_yes")
@@ -118,7 +118,7 @@ def command_admin_update_bot(message, bot):
     mess = bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_admin_update_bot_yes(message, bot):
+def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_update_bot_yes')
     bot.send_message(message.chat.id, text, 
                      parse_mode = 'Markdown')
@@ -137,7 +137,7 @@ def command_admin_update_bot_yes(message, bot):
     text = database.get_message_text(message, 'command_admin_update_bot_yes_finish')
     bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
 
-def command_admin_return(message, bot):
+def command_admin_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_return')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
     database.register_last_message(mess)
