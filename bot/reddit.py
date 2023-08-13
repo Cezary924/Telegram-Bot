@@ -1,10 +1,10 @@
-import requests, os
+import telebot, requests, os
 import moviepy.editor as mpe
 
 import func, downloader
 
 # handle Reddit URLs
-def start_reddit(message, bot):
+def start_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     if "?" in message.text:
         url = message.text.split("?")[0]
     else:
