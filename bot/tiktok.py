@@ -1,9 +1,9 @@
-import requests, os
+import telebot, requests, os
 
 import func, downloader
 
 # handle TikTok URLs
-def start_tiktok(message, bot):
+def start_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = "https://tiktok-full-info-without-watermark.p.rapidapi.com/vid/index"
     querystring = {"url": message.text}
     headers = {
