@@ -1,9 +1,9 @@
-import os, requests
+import telebot, os, requests
 
 import func, downloader
 
 # handle Tumblr URLs
-def start_tumblr(message, bot):
+def start_tumblr(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = message.text
     downloader.send_start_message(bot, message, 'tumblr')
 
@@ -21,7 +21,6 @@ def start_tumblr(message, bot):
     if response.status_code != 200:
         downloader.send_error_message(bot, message, 'tumblr')
         return
-    #downloader.send_processing_message(bot, message, 'tumblr')
     vid_name = str(message.chat.id) + str(message.message_id) + ".mp4"
     try:
         with open(vid_name, "wb") as f:
