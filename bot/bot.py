@@ -462,6 +462,18 @@ def command_youtube(message):
     else:
         permission_denied(message)
 
+# handle /instagram command
+@bot.message_handler(commands=['instagram'])
+def command_instagram(message: telebot.types.Message) -> None:
+    func.print_log("/instagram: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "instagram")
+    if database.user_check(message):
+        basic_commands.command_instagram(message, bot)
+    else:
+        permission_denied(message)
+
 # handle TikTok URLs
 @bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['vm.tiktok.com', 'www.tiktok.com']))
 def echo_tiktok(message):

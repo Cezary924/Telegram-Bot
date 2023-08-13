@@ -258,3 +258,10 @@ def command_youtube(message, bot):
     text2 = database.get_message_text(message, 'youtube')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
+
+# handle /instagram command
+def command_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    text1 = database.get_message_text(message, 'command_downloader')
+    text2 = database.get_message_text(message, 'instagram')
+    mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
+    database.register_last_message(mess)
