@@ -20,7 +20,7 @@ else:
     token = func.tokens['telegram']
 
 import admin, basic_commands, database, crystal_ball, top_spotify_artist
-import downloader, tiktok, twitter, tumblr, reddit, youtube
+import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # open file containing version number and write/read to/from it
 os.system('git rev-list --count master > ../version.txt')
@@ -531,6 +531,18 @@ def echo_youtube(message):
     database.set_current_state(message, "youtube_url")
     if database.user_check(message):
         youtube.start_youtube(message, bot)
+    else:
+        permission_denied(message)
+
+# handle Instagram URLs
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['www.instagram.com', 'instagram.com']))
+def echo_instagram(message: telebot.types.Message) -> None:
+    func.print_log("Instagram URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "instagram_url")
+    if database.user_check(message):
+        instagram.start_instagram(message, bot)
     else:
         permission_denied(message)
 
