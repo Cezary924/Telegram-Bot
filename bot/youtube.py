@@ -1,10 +1,10 @@
-import os
+import telebot, os
 from pytube import YouTube
 
 import func, downloader
 
 # handle YouTube URLs
-def start_youtube(message, bot):
+def start_youtube(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = message.text
     downloader.send_start_message(bot, message, 'youtube')
 
