@@ -80,3 +80,14 @@ def check_url(message, scheme, hostname):
         if url.hostname in hostname:
             return True
     return False
+
+# remove file 'name' located in 'path'
+def remove_file(name: str, path: str) -> None:
+    os.remove(path)
+
+# remove directory 'name' located in 'path'
+def remove_directory(name: str, path: str) -> None:
+    files = os.listdir(path)
+    for file in files:
+        remove_file(file, path + "\\" + file)
+    os.rmdir(path)
