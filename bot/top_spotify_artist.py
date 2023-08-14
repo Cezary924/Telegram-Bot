@@ -11,7 +11,7 @@ artists = []
 spotify_token = ""
 
 # fill artists list with artists data
-def fill_artists():
+def fill_artists() -> int:
     response = requests.request('GET', 'https://kworb.net/spotify/listeners.html')
     if response.status_code != 200:
         return -1
@@ -31,7 +31,7 @@ def fill_artists():
     return 0
 
 # get Spotify Bearer token
-def get_spotify_token():
+def get_spotify_token() -> int:
     headers = {'Authorization': 'Basic %s' % base64.b64encode(str(func.tokens['spotify_id'] + ':' + func.tokens['spotify_secret']).encode('ascii')).decode('ascii')}
     data = {
         'grant_type': 'client_credentials',
@@ -47,7 +47,7 @@ def get_spotify_token():
         return 0
 
 # get more info about specific artist
-def add_info_about_artist(listeners):
+def add_info_about_artist(listeners: int) -> int:
     response = requests.request('GET', artists[listeners][1])
     if response.status_code != 200:
         return -1
@@ -75,7 +75,7 @@ def add_info_about_artist(listeners):
     return 0
 
 # get index of artist named 'text'
-def get_artist_index(text):
+def get_artist_index(text: str) -> int:
     for artist in artists:
         if text in artist:
             index = artists.index(artist)
@@ -85,7 +85,7 @@ def get_artist_index(text):
     return -1
 
 # get string with details about artist
-def artist_text(message, number, final_number = None):
+def artist_text(message: telebot.types.Message, number: int, final_number: int = None) -> str:
     if final_number == None:
         return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_\n" + database.get_message_text(message, 'genre') + ": _" + str(artists[number][4]) + "_\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_"
     else:
@@ -108,11 +108,11 @@ def artist_text(message, number, final_number = None):
         return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_" + text2 + "\n" + database.get_message_text(message, 'genre') + ": _" + str(artists[number][4]) + "_" + text3 + "\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_" + text1
     
 # get string with artist's most streamed song
-def song_text(message, number):
+def song_text(message: telebot.types.Message, number: int) -> str:
     return database.get_message_text(message, 'command_topspotifyartist_most_streamed_song') + ": _" + artists[number][2] + " (" + artists[number][3] + ")_\n"
 
 # end function of Top Spotify Artist loop, start when artist has been guessed
-def victory(message, bot, artist):
+def victory(message: telebot.types.Message, bot: telebot.TeleBot, artist: int) -> None:
     text1 = database.get_message_text(message, 'topspotifyartist')
     text2 = database.get_message_text(message, 'command_topspotifyartist_victory')
     text = "*" + text1 + "*\n\n" + text2
@@ -121,7 +121,7 @@ def victory(message, bot, artist):
     database.set_current_state(message)
 
 # end function of Top Spotify Artist loop, start when artist has not been guessed
-def defeat(message, bot):
+def defeat(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     artist = int(database.get_current_state(message).split("_")[2])
     text1 = database.get_message_text(message, 'topspotifyartist')
     text2 = database.get_message_text(message, 'command_topspotifyartist_defeat')
@@ -131,7 +131,7 @@ def defeat(message, bot):
     database.set_current_state(message)
 
 # handle /topspotifyartist command
-def command_topspotifyartist(message, bot):
+def command_topspotifyartist(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     state = database.get_current_state(message)
     if len(artists) == 0:
             if fill_artists() == -1:
@@ -165,7 +165,7 @@ def command_topspotifyartist(message, bot):
     database.set_current_state(message, str(listeners) + "_topspotifyartist")
 
 # main function
-def topspotifyartist(message, bot):
+def topspotifyartist(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     state = database.get_current_state(message)
     if "_topspotifyartist" in state:
         basic_commands.delete_previous_bot_message(message, bot)
