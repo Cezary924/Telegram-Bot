@@ -1,4 +1,4 @@
-import datetime, yaml
+import telebot, io, datetime, yaml
 from urllib.parse import urlparse
 
 # boolean variable storing info if beta ver of bot is running
@@ -8,7 +8,7 @@ suffix = 0
 log_length = 102
 
 # sync for attributes
-def synchronized_with_attr(lock_name):
+def synchronized_with_attr(lock_name: str):
     def decorator(method):
         def synced_method(self, *args, **kws):
             lock = getattr(self, lock_name)
@@ -18,7 +18,7 @@ def synchronized_with_attr(lock_name):
     return decorator
 
 # load file 'name' located in 'path'
-def load_config_file(name, path):
+def load_config_file(name: str, path: str) -> dict[str, str]:
     try:
         with open(path, encoding='utf8') as f:
             x = yaml.load(f, Loader=yaml.Loader)
@@ -30,7 +30,7 @@ config = load_config_file("config.yaml", "../files/config.yaml")
 tokens = load_config_file("tokens.yaml", "../files/tokens.yaml")
 
 # read and open file 'name' located in 'path'
-def read_file(name, path):
+def read_file(name: str, path: str) -> list[str]:
     try:
         with open(path) as f:
             x = f.readlines()
@@ -39,7 +39,7 @@ def read_file(name, path):
     return x
 
 # write and open file 'name' located in 'path' with buffering parameter 'buff'
-def write_file(name, path, buff = -1):
+def write_file(name: str, path: str, buff: int = -1) -> io.TextIOWrapper:
     try:
         x = open(path, 'w', buffering = buff)
     except OSError:
@@ -47,20 +47,20 @@ def write_file(name, path, buff = -1):
     return x
 
 # write and open log file 'name' located in 'path'
-def log_file(name, path):
+def log_file(name: str, path: str) -> io.TextIOWrapper:
     try:
         x = open(path, 'a')
     except OSError:
         print("ERROR: Open error - Could not open the \'" + name + ".txt\' file.")
     return x
 
-# print info about bot's tasks
-def print_log(info, bot_name = None, start = 0):
+# print info about Bot's tasks
+def print_log(info: str, bot_name: str = None, start: bool = 0) -> None:
     if bot_name != None:
-        if start == 1:
+        if start:
             print("|" + "=" * (log_length - 2) + "|")
         print("|" + "+" * (log_length - 2) + "|")
-        if start == 1:
+        if start:
             text = bot_name + " has been started."
         else:
             text = bot_name + " has been stopped."
@@ -74,7 +74,7 @@ def print_log(info, bot_name = None, start = 0):
     print("|" + "=" * (log_length - 2) + "|")
 
 # check URL scheme & URL hostname
-def check_url(message, scheme, hostname):
+def check_url(message:telebot.types.Message, scheme: str, hostname: str) -> bool:
     url = urlparse(message.text)
     if url.scheme in scheme:
         if url.hostname in hostname:

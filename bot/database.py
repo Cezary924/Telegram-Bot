@@ -19,7 +19,7 @@ database_lock = threading.Lock()
 #   0 - guest
 #   1 - user
 #   2 - admin
-def create_table_people():
+def create_table_people() -> None:
     database_lock.acquire(True)
     cursor.execute("""
         create table if not exists People (
@@ -34,7 +34,7 @@ def create_table_people():
 
 # create State table if it does not exist
 # A state is last run command by a person
-def create_table_state():
+def create_table_state() -> None:
     database_lock.acquire(True)
     cursor.execute("""
         create table if not exists State (
@@ -44,7 +44,7 @@ def create_table_state():
     database_lock.release()
 
 # create Last_Bot_Message table if it does not exist
-def create_table_last_bot_message():
+def create_table_last_bot_message() -> None:
     database_lock.acquire(True)
     cursor.execute("""
         create table if not exists Last_Bot_Message (
@@ -54,7 +54,7 @@ def create_table_last_bot_message():
     database_lock.release()
 
 # create Language table if it does not exist
-def create_table_language():
+def create_table_language() -> None:
     database_lock.acquire(True)
     cursor.execute("""
         create table if not exists Language (
@@ -64,14 +64,14 @@ def create_table_language():
     database_lock.release()
 
 # commit changes and close connection with database
-def commit_close():
+def commit_close() -> None:
     database_lock.acquire(True)
     db_conn.commit()
     db_conn.close()
     database_lock.release()
 
 # check if person is present in table
-def guest_check(message, bot = None, dataprocessing = 0):
+def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dataprocessing: bool = 0) -> bool:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -79,7 +79,7 @@ def guest_check(message, bot = None, dataprocessing = 0):
     if present == 1:
         return True
     else:
-        if dataprocessing == 1:
+        if dataprocessing:
             database_lock.acquire(True)
             cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?, ?); ",
                            (message.chat.id, message.chat.first_name, 
@@ -104,7 +104,7 @@ def guest_check(message, bot = None, dataprocessing = 0):
         return False
 
 # check if person is user
-def user_check(message):
+def user_check(message: telebot.types.Message) -> bool:
     database_lock.acquire(True)
     cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
     (role,)=cursor.fetchone()
@@ -115,7 +115,7 @@ def user_check(message):
         return False
 
 # check if person is admin
-def admin_check(message):
+def admin_check(message: telebot.types.Message) -> bool:
     database_lock.acquire(True)
     cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
     (role,)=cursor.fetchone()
@@ -126,7 +126,7 @@ def admin_check(message):
         return False
     
 # save last command used by person
-def set_current_state(message, state="0"):
+def set_current_state(message: telebot.types.Message, state: str = "0") -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM State WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -149,7 +149,7 @@ def set_current_state(message, state="0"):
             guest_check(message, dataprocessing=1)
 
 # get last command used by person
-def get_current_state(message):
+def get_current_state(message: telebot.types.Message) -> str:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM State WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -167,7 +167,7 @@ def get_current_state(message):
         return "0"
 
 # delete all data collected from person
-def deletedata(message):
+def deletedata(message: telebot.types.Message) -> None:
     database_lock.acquire(True)
     cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
@@ -177,7 +177,7 @@ def deletedata(message):
     database_lock.release()
 
 # forward message sent by person to admin
-def forward_message_to_admin(message, bot):
+def forward_message_to_admin(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
@@ -197,8 +197,8 @@ def forward_message_to_admin(message, bot):
         bot.send_message(message.chat.id, text)
     set_current_state(message)
 
-# register last bot message id
-def register_last_message(message, state = 0):
+# register last Bot message id
+def register_last_message(message: telebot.types.Message, state: bool = 0) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM Last_Bot_Message WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -211,11 +211,11 @@ def register_last_message(message, state = 0):
                        (message.chat.id, message.id))
         db_conn.commit()
     database_lock.release()
-    if state == 1:
+    if state:
         set_current_state(message, "1")
 
-# get last bot message id
-def get_last_message(message):
+# get last Bot message id
+def get_last_message(message: telebot.types.Message) -> int:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM Last_Bot_Message WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -233,7 +233,7 @@ def get_last_message(message):
         return message.id
 
 # send info about (re)start
-def send_start_info(bot):
+def send_start_info(bot: telebot.TeleBot) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
@@ -273,7 +273,7 @@ def send_start_info(bot):
         func.print_log("ERROR: Database error - The start info could not be sent because there are no Admins in the database.")
 
 # send info about stop
-def send_stop_info(bot):
+def send_stop_info(bot: telebot.TeleBot) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
@@ -290,7 +290,7 @@ def send_stop_info(bot):
         func.print_log("ERROR: Database error - The stop info could not be sent because there are no Admins in the database.")
 
 # send info about error
-def send_error_info(bot, err):
+def send_error_info(bot: telebot.TeleBot, err: str) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
@@ -307,7 +307,7 @@ def send_error_info(bot, err):
         func.print_log("ERROR: Database error - The error info could not be sent because there are no Admins in the database.")
 
 # set state for every admin
-def set_admins_state(bot, state):
+def set_admins_state(bot: telebot.TeleBot, state: str) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT id FROM People WHERE role = 2;")
     admins=cursor.fetchone()
@@ -322,7 +322,7 @@ def set_admins_state(bot, state):
         func.print_log("ERROR: Database error - The state could not be set because there are no Admins in the database.")
 
 # get code of language that users use
-def get_user_language(message):
+def get_user_language(message: telebot.types.Message) -> str:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -340,7 +340,7 @@ def get_user_language(message):
         return 'en'
 
 # set code of language that users use
-def set_user_language(message, lang_code):
+def set_user_language(message: telebot.types.Message, lang_code: str) -> None:
     database_lock.acquire(True)
     cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
@@ -354,7 +354,7 @@ def set_user_language(message, lang_code):
     database_lock.release()
 
 # get message text
-def get_message_text(message, key, lang = None):
+def get_message_text(message: telebot.types.Message, key: str, lang: str = None) -> str:
     if lang != None:
         if lang != 'pl':
             if key in locales.en.keys():

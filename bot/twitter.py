@@ -1,9 +1,9 @@
-import requests, os
+import telebot, requests, os
 
 import func, downloader
 
 # handle Twitter URLs
-def start_twitter(message, bot):
+def start_twitter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = "https://twitter65.p.rapidapi.com/api/twitter/links"
     payload = { "url": message.text }
     headers = {
