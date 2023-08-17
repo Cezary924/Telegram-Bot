@@ -8,7 +8,7 @@
 </div><br/>
 
 ## ✨ Main features
-- Video downloader ⬇️ (TikTok, Twitter, Tumblr, Reddit & YouTube)
+- Video downloader ⬇️ (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
@@ -61,6 +61,8 @@ python bot/bot.py beta
 - ```/twitter``` - to download video from Twitter.
 - ```/tumblr``` - to download video from Tumblr.
 - ```/reddit``` - to download video from Reddit.
+- ```/youtube``` - to download video from YouTube.
+- ```/instagram``` - to download video from Instagram.
 - ```/topspotifyartist``` - to guess one of the top Spotify artists.
 - ```/crystalball``` - to answer your question.
 - ```/contact``` - to contact the Admin/Creator.

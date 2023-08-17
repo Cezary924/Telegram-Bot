@@ -8,10 +8,10 @@
 </div><br/>
 
 ## ✨ Główne funkcje
-- Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr, Reddit & YouTube)
+- Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
-- Wielojęzyczne odpowiedzi 🌐 (Angielski & Polski)
+- Wielojęzyczne odpowiedzi 🌐 (Polski & Angielski)
 - Zarządzanie stanem urządzenia ⚙️ (Wyłączanie & Ponowne uruchamianie) 
 
 ## ⚙️ Instalacja i konfiguracja
@@ -61,6 +61,8 @@ python bot/bot.py beta
 - ```/twitter``` - Pobieranie wideo z serwisu Twitter.
 - ```/tumblr``` - Pobieranie wideo z serwisu Tumblr.
 - ```/reddit``` - Pobieranie wideo z serwisu Reddit.
+- ```/youtube``` - Pobieranie wideo z serwisu YouTube.
+- ```/instagram``` - Pobieranie wideo z serwisu Instagram.
 - ```/topspotifyartist``` - Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify
 - ```/crystalball``` - Odpowiedź na Twoje pytanie.
 - ```/contact``` - Informacje o drogach kontaktu z Administratorem.
