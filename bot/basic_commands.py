@@ -195,20 +195,18 @@ def command_language_cancel(message: telebot.types.Message, bot: telebot.TeleBot
 
 # handle /about command
 def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int) -> None:
-    #text1 = database.get_message_text(message, 'command_about_year')
-    text2 = database.get_message_text(message, 'command_about_ver_status')
-    text3 = database.get_message_text(message, 'command_about_ver')
-    text4 = database.get_message_text(message, 'command_about_github_username')
-    text5 = database.get_message_text(message, 'description')
-    text6 = database.get_message_text(message, 'command_about_description')
-    text7 = database.get_message_text(message, 'command_about')
-    mess = bot.send_message(message.chat.id, "*ℹ️ " + text7 + ":*\n\n"
+    text1 = database.get_message_text(message, 'command_about_ver_status')
+    text2 = database.get_message_text(message, 'command_about_ver')
+    text3 = database.get_message_text(message, 'command_about_github_username')
+    text4 = database.get_message_text(message, 'description')
+    text5 = database.get_message_text(message, 'command_about_description')
+    text6 = database.get_message_text(message, 'command_about')
+    mess = bot.send_message(message.chat.id, "*ℹ️ " + text6 + ":*\n\n"
                     + "*" + bot_name + "*\n"
-                    + text5 + ": _" + text6 + "_\n"
-                    + text4 + ": _@" + github_username + "_\n"
-                    + text3 + ": _" + subprocess.getoutput('git describe --tags').split('-')[0] + " (" + str(ver) + ")_\n"
-                    + text2 + ": _" + info_about_version(ver, message)[1] + "_\n"
-                    #+ text1 + ": _2023_", parse_mode= 'Markdown')
+                    + text4 + ": _" + text5 + "_\n"
+                    + text3 + ": _@" + github_username + "_\n"
+                    + text2 + ": _" + str(ver) + "_\n"
+                    + text1 + ": _" + info_about_version(ver, message)[1] + "_\n"
                     + "© _2023_", parse_mode= 'Markdown')
     database.register_last_message(mess)
 
