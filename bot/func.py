@@ -1,4 +1,4 @@
-import telebot, io, datetime, yaml
+import telebot, os, io, datetime, yaml
 from urllib.parse import urlparse
 
 # boolean variable storing info if beta ver of bot is running
