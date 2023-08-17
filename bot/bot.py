@@ -130,7 +130,7 @@ def command_admin(message: telebot.types.Message) -> None:
     database.set_current_state(message, "admin")
     if database.admin_check(message):
         update = False
-        if basic_commands.info_about_version(ver)[0] > ver:
+        if basic_commands.info_about_version(ver, message)[0] > ver:
             update = True
         admin.command_admin(message, bot, update)
     else:

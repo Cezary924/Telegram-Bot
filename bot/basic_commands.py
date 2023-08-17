@@ -20,34 +20,22 @@ github_repo = func.config['github_repo']
 # get commits number from GitHub
 def info_about_version(ver: int, message: telebot.types.Message = None) -> tuple[int, str]:
     response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/commits?per_page=1")
-    if message == None:
-        if response.status_code != 200:
-            return (0, "Błąd. Spróbuj później.")
-        online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
-        if ver > online_ver:
-            return (online_ver, "Beta (Stabilna: " + str(online_ver) + ")")
-        elif ver == online_ver:
-            return (online_ver, "Aktualna")
-        else:
-            return (online_ver, "Przestarzała (Aktualna: " + str(online_ver) + ")")
+    if response.status_code != 200:
+        text = database.get_message_text(message, 'error')
+        return (0, text)
+    online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
+    if ver > online_ver:
+        text = database.get_message_text(message, 'beta_ver')
+        return (online_ver, text + ": " + str(online_ver) + ")")
+    elif ver == online_ver:
+        text = database.get_message_text(message, 'up-to-date_ver')
+        return (online_ver, text)
     else:
-        if response.status_code != 200:
-            text = database.get_message_text(message, 'error')
-            return (0, text)
-        online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
-        if ver > online_ver:
-            text = database.get_message_text(message, 'beta_ver')
-            return (online_ver, text + ": " + str(online_ver) + ")")
-        elif ver == online_ver:
-            text = database.get_message_text(message, 'up-to-date_ver')
-            return (online_ver, text)
-        else:
-            text = database.get_message_text(message, 'old_ver')
-            return (online_ver, text + ": " + str(online_ver) + ")")
+        text = database.get_message_text(message, 'old_ver')
+        return (online_ver, text + ": " + str(online_ver) + ")")
 
 # delete previously sent message by bot
 def delete_previous_bot_message(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    # func.print_log("Delete previous message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     bot.delete_message(message.chat.id, database.get_last_message(message))
 
 # handle /start command
