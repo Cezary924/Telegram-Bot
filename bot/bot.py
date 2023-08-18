@@ -19,7 +19,7 @@ if len(sys.argv) == 2 and sys.argv[1] == "beta":
 else:
     token = func.tokens['telegram']
 
-import admin, basic_commands, database, crystal_ball, top_spotify_artist
+import admin, basic_commands, database, crystal_ball, top_spotify_artist, reminder
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # open file containing version number and write/read to/from it
