@@ -8,9 +8,8 @@ os.chdir(dir)
 
 import func, logger
 
-# write stdout & stdeer to both console and file
-sys.stdout = logger.LoggerStdout()
-sys.stderr = logger.LoggerStderr()
+# write stdout to both console and file
+sys.stdout = logger.Logger()
 
 # get Telegram token from tokens dict in func.py
 if len(sys.argv) == 2 and sys.argv[1] == "beta":
