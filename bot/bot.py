@@ -486,7 +486,7 @@ def echo_tiktok(message: telebot.types.Message) -> None:
         permission_denied(message)
 
 # handle Twitter URLs
-@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['twitter.com']))
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['twitter.com', 'x.com']))
 def echo_twitter(message: telebot.types.Message) -> None:
     func.print_log("Twitter URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
