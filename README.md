@@ -23,19 +23,19 @@ pip install -r requirements.txt
 3. Create:
    - ```config.yaml``` file in *files* folder and write following code to it:
    ```
-   bot_name: yourbotname
-   github_repo: yourgithubrepo
-   github_username: yourgithubusername
-   telegram_username: yourtelegramusername
+   bot_name: your_bot_name
+   github_repo: your_github_repo_name
+   github_username: your_github_username
+   telegram_username: your_telegram_username
    ```
    - ```tokens.yaml``` file in *files* folder and write following code to it:
    ```
-   telegram: yourtelegramtoken
-   telegram_beta: youranothertelegramtoken
-   tiktok: yourrapidapitoken
-   twitter: youranotherrapidapitoken
-   spotify_id: yourspotifyclientid
-   spotify_secret: yourspotifyclientsecret
+   telegram: your_telegram_token
+   telegram_beta: your_another_telegram_token
+   tiktok: your_rapidapi_token
+   twitter: your_another_rapidapi_token
+   spotify_id: your_spotify_client_id
+   spotify_secret: your_spotify_client_secret
    ```
    > RapidApi for TikTok media: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
    > RapidApi for Twitter media: https://rapidapi.com/3205/api/twitter65
