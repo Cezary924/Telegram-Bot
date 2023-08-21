@@ -9,6 +9,7 @@
 
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
+   > Due to a name change to X, Twitter video downloader is currently unavailable.
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
