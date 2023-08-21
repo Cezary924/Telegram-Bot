@@ -379,3 +379,18 @@ def get_message_text(message: telebot.types.Message, key: str, lang: str = None)
                 if locales.en[key] != None:
                     return locales.en[key].replace(r'\n', '\n')
         return locales.pl[key].replace(r'\n', '\n')
+
+# get reminders that users have created
+def get_reminders(message: telebot.types.Message):
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Reminder WHERE id = ?;", (message.chat.id, ))
+    (count,)=cursor.fetchone()
+    if count > 0:
+        cursor.execute("SELECT rowid, date, description FROM Reminder WHERE id = ?;", 
+                       (message.chat.id, ))
+        reminders = cursor.fetchall()
+        database_lock.release()
+        return (len(reminders), reminders)
+    else:
+        database_lock.release()
+        return (0, [])
