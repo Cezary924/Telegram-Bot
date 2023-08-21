@@ -566,6 +566,49 @@ def command_topspotifyartist(message: telebot.types.Message) -> None:
     database.set_current_state(message, "topspotifyartist")
     top_spotify_artist.command_topspotifyartist(message, bot)
 
+# handle /reminder command
+@bot.message_handler(commands=['reminder'])
+def command_reminder(message: telebot.types.Message) -> None:
+    func.print_log("/reminder: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "reminder")
+    if database.user_check(message):
+        reminder.command_reminder(message, bot)
+    else:
+        permission_denied(message)
+@bot.message_handler(commands=['reminder_set'])
+def command_reminder_set(message: telebot.types.Message) -> None:
+    func.print_log("/reminder_set: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "reminder" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "reminder_set")
+    reminder.command_reminder_set(message, bot)
+@bot.message_handler(commands=['reminder_manage'])
+def command_reminder_manage(message: telebot.types.Message) -> None:
+    func.print_log("/reminder_manage: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "reminder" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "reminder_manage")
+    reminder.command_reminder_manage(message, bot)
+@bot.message_handler(commands=['reminder_return'])
+def command_reminder_return(message: telebot.types.Message) -> None:
+    func.print_log("/reminder_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "reminder" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        reminder.command_reminder_return(message, bot)
+    elif "reminder_" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_reminder(message)
+    else:
+        not_working_buttons(message)
+
 # start topspotifyartist loop
 def topspotifyartist(message: telebot.types.Message) -> None:
     func.print_log("Top Spotify artist: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
