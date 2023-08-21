@@ -9,6 +9,7 @@
 
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
+   > Z powodu zmiany nazwy na X, pobieranie wideo z Twittera jest obecnie niedostępne.
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Polski & Angielski)
