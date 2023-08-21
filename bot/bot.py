@@ -43,6 +43,9 @@ database.create_table_last_bot_message()
 # create Language table if it does not exist
 database.create_table_language()
 
+# create Reminder table if it does not exist
+database.create_table_reminder()
+
 # send permission denied message
 def permission_denied(message: telebot.types.Message) -> None:
     func.print_log("Permission denied: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
