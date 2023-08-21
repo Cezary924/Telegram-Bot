@@ -63,6 +63,17 @@ def create_table_language() -> None:
             ); """)
     database_lock.release()
 
+# create Reminder table if it does not exist
+def create_table_reminder() -> None:
+    database_lock.acquire(True)
+    cursor.execute("""
+        create table if not exists Reminder (
+            id integer,
+            date text,
+            description text
+            ); """)
+    database_lock.release()
+
 # commit changes and close connection with database
 def commit_close() -> None:
     database_lock.acquire(True)
@@ -173,6 +184,7 @@ def deletedata(message: telebot.types.Message) -> None:
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Last_Bot_Message WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Language WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM Reminder WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()
     database_lock.release()
 
