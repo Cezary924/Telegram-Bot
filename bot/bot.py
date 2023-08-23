@@ -603,6 +603,9 @@ def command_reminder_return(message: telebot.types.Message) -> None:
     if "reminder" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         reminder.command_reminder_return(message, bot)
+    elif "reminder_set_correct" in database.get_current_state(message):
+        bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=database.get_last_message(message), reply_markup=None)
+        command_reminder(message)
     elif "reminder_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         command_reminder(message)
@@ -628,6 +631,18 @@ def forward_message_to_admin(message: telebot.types.Message) -> None:
 def echo_topspotifyartist(message: telebot.types.Message) -> None:
     func.print_log("Top Spotify artist guess: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     top_spotify_artist.topspotifyartist(message, bot)
+
+# handle reminder_set_date messages
+@bot.message_handler(func=lambda message: "reminder_set_" in database.get_current_state(message))
+def echo_reminder_set_date(message: telebot.types.Message) -> None:
+    func.print_log("Reminder setting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    reminder.command_reminder_set_date(message, bot)
+
+# handle reminder_set messages
+@bot.message_handler(func=lambda message: "reminder_set" in database.get_current_state(message))
+def echo_reminder_set(message: telebot.types.Message) -> None:
+    func.print_log("Reminder setting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    reminder.command_reminder_set_date(message, bot)
 
 # handle unknown command
 @bot.message_handler(func=lambda message: message.text.startswith("/"))
