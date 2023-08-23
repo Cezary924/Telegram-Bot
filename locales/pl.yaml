@@ -115,6 +115,11 @@ reminder: Przypomnienia
 command_reminder: Liczba Twoich przypomnień
 reminder_set_button: ➕ Utwórz przypomnienie
 reminder_manage_button: 📝 Zarządzaj przypomnieniami
-command_reminder_set: Wprowadź datę (oczekiwany format - YYYY-MM-DD, np. 2023-12-31)
+command_reminder_set: Wprowadź treść przypomnienia
+command_reminder_set_date: Wprowadź datę (oczekiwany format - YYYY-MM-DD HH:MM, np. 2023-12-31 23:59)
+command_reminder_set_date_wrong: Zły format daty ❗
+command_reminder_set_correct: Przypomnienie zostało utworzone pomyślnie 😊
 command_reminder_manage: Oto Twoje przypomnienia
-command_reminder_return: 🔔 *Przypomnienia:*\n\nOpuszczono panel _/reminder_ ❌
+command_reminder_return: 🔔 *Przypomnienia:*\n\nOpuszczono panel _/reminder_ 
+content: Treść
+date: Data
