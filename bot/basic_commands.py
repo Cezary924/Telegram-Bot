@@ -44,6 +44,9 @@ def command_start(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'help')
     help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help")
     markup.add(help_button)
+    text = database.get_message_text(message, 'features')
+    features_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_features")
+    markup.add(features_button)
     text = database.get_message_text(message, 'about')
     about_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_about")
     markup.add(about_button)
@@ -54,6 +57,13 @@ def command_start(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     if database.guest_check(message, bot) != True:
         return
     database.set_current_state(message, "start")
+    database.register_last_message(mess)
+
+# handle /features command
+def command_features(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    text2 = database.get_message_text(message, 'features')
+    text3 = database.get_message_text(message, 'command_help_features')
+    mess = bot.send_message(message.chat.id, "*" + text2 + ":*\n\n" + text3, parse_mode= 'Markdown') 
     database.register_last_message(mess)
 
 # handle /help command

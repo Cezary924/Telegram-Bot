@@ -62,7 +62,7 @@ def not_working_buttons(message: telebot.types.Message) -> None:
 
 # handle callback queries
 @bot.callback_query_handler(func=lambda call: True)
-def callback(call: telebot.types.CallbackQuery) -> None:
+def callback_handler(call: telebot.types.CallbackQuery) -> None:
     func.print_log("Callback query: " + call.message.chat.first_name + " (" + str(call.message.chat.id) + ").")
     if "command_dataprocessing_pl_yes" in str(call.data) or "command_dataprocessing_pl_no" in str(call.data) or "command_dataprocessing_en_yes" in str(call.data) or "command_dataprocessing_en_no" in str(call.data):
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, inline_message_id=call.inline_message_id, reply_markup=None)
@@ -303,6 +303,12 @@ def command_help_return(message: telebot.types.Message) -> None:
 def command_start(message: telebot.types.Message) -> None:
     func.print_log("/start: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     basic_commands.command_start(message, bot)
+
+# handle /features command
+@bot.message_handler(commands=['features'])
+def command_features(message: telebot.types.Message) -> None:
+    func.print_log("/features: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.command_features(message, bot)
 
 # handle /contact command
 @bot.message_handler(commands=['contact'])
