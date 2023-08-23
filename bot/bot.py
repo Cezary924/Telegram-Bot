@@ -62,7 +62,7 @@ def not_working_buttons(message: telebot.types.Message) -> None:
 
 # handle callback queries
 @bot.callback_query_handler(func=lambda call: True)
-def test_callback(call: telebot.types.CallbackQuery) -> None:
+def callback(call: telebot.types.CallbackQuery) -> None:
     func.print_log("Callback query: " + call.message.chat.first_name + " (" + str(call.message.chat.id) + ").")
     if "command_dataprocessing_pl_yes" in str(call.data) or "command_dataprocessing_pl_no" in str(call.data) or "command_dataprocessing_en_yes" in str(call.data) or "command_dataprocessing_en_no" in str(call.data):
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, inline_message_id=call.inline_message_id, reply_markup=None)
