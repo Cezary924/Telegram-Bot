@@ -55,6 +55,7 @@ python bot/bot.py beta
 
 ## 🧑‍💻 Basic commands
 - ```/start``` - to start conversation with the Bot.
+- ```/features``` - to check all Bot features list.
 - ```/help``` - to get info about available commands.
 - ```/about``` - to get info about the Bot and its Creator.
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.

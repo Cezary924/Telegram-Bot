@@ -55,6 +55,7 @@ python bot/bot.py beta
 
 ## 🧑‍💻 Podstawowe komendy
 - ```/start``` - Zaczęcie rozmowy z Botem.
+- ```/features``` - Sprawdzenie listy wszystkich funkcji Bota.
 - ```/help``` - Wyświetlenie menu pomocy z listą dostępnych komend.
 - ```/about``` - Informacje o Bocie.
 - ```/admin``` - _(ukryta komenda)_ Wyświetlenie menu Administratora.
