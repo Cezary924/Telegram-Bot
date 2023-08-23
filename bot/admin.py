@@ -135,7 +135,8 @@ def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.Te
     exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(exit_button)
     text = database.get_message_text(message, 'command_admin_update_bot_yes_finish')
-    bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
+    mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 
 def command_admin_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_return')
