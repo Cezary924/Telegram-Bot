@@ -257,27 +257,18 @@ def send_start_info(bot: telebot.TeleBot) -> None:
             (state,)=cursor.fetchone()
             database_lock.release()
             if state.startswith("err_"):
-                mess = bot.send_message(admin, ".")
-                text = get_message_text(mess, 'send_restart_error_info')
+                text = get_message_text(create_empty_message(admin), 'send_restart_error_info')
                 text = text + "\n\nError: \n_" + state[4:] + "_"
-                register_last_message(mess)
-                bot.delete_message(mess.chat.id, get_last_message(mess))
                 mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
                 set_current_state(mess)
                 func.print_log("The restart (error) info has been sent to: " + str(admin) + ".")
             elif "admin_restart_" in state:
-                mess = bot.send_message(admin, ".")
-                text = get_message_text(mess, 'send_restart_info')
-                register_last_message(mess)
-                bot.delete_message(mess.chat.id, get_last_message(mess))
+                text = get_message_text(create_empty_message(admin), 'send_restart_info')
                 mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
                 set_current_state(mess)
                 func.print_log("The restart info has been sent to: " + str(admin) + ".")
             else:
-                mess = bot.send_message(admin, ".")
-                text = get_message_text(mess, 'send_start_info')
-                register_last_message(mess)
-                bot.delete_message(mess.chat.id, get_last_message(mess))
+                text = get_message_text(create_empty_message(admin), 'send_start_info')
                 mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
                 set_current_state(mess)
                 func.print_log("The start info has been sent to: " + str(admin) + ".")
@@ -292,10 +283,7 @@ def send_stop_info(bot: telebot.TeleBot) -> None:
     database_lock.release()
     if admins != None:
         for admin in admins:
-            mess = bot.send_message(admin, ".")
-            text = get_message_text(mess, 'send_stop_info')
-            register_last_message(mess)
-            bot.delete_message(mess.chat.id, get_last_message(mess))
+            text = get_message_text(create_empty_message(admin), 'send_stop_info')
             mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
             func.print_log("The stop info has been sent to: " + str(admin) + ".")
     else:
@@ -309,10 +297,7 @@ def send_error_info(bot: telebot.TeleBot, err: str) -> None:
     database_lock.release()
     if admins != None:
         for admin in admins:
-            mess = bot.send_message(admin, ".")
-            text = get_message_text(mess, 'send_error_info')
-            register_last_message(mess)
-            bot.delete_message(mess.chat.id, get_last_message(mess))
+            text = get_message_text(create_empty_message(admin), 'send_error_info')
             mess = bot.send_message(admin, text + "\n\nError: \n_" + err + "_", disable_notification = True, parse_mode = 'Markdown')
             func.print_log("The error info has been sent to: " + str(admin) + ".")
     else:
@@ -326,10 +311,7 @@ def set_admins_state(bot: telebot.TeleBot, state: str) -> None:
     database_lock.release()
     if admins != None:
         for admin in admins:
-            mess = bot.send_message(admin, ".")
-            register_last_message(mess)
-            set_current_state(mess, state)
-            bot.delete_message(mess.chat.id, get_last_message(mess))
+            set_current_state(create_empty_message(admin), state)
     else:
         func.print_log("ERROR: Database error - The state could not be set because there are no Admins in the database.")
 
@@ -379,6 +361,12 @@ def get_message_text(message: telebot.types.Message, key: str, lang: str = None)
                 if locales.en[key] != None:
                     return locales.en[key].replace(r'\n', '\n')
         return locales.pl[key].replace(r'\n', '\n')
+
+# create empty message
+def create_empty_message(id: int) -> telebot.types.Message:
+    from_user = telebot.types.User(id=id, is_bot=False, first_name="0")
+    chat = telebot.types.User(id=id, is_bot=False, first_name="0")
+    return telebot.types.Message(message_id=0, from_user=from_user, content_type=None, options="", json_string="0", date=0, chat=chat)
 
 # get reminders that users have created
 def get_reminders(message: telebot.types.Message) -> tuple[int, list[tuple[int, str, str]]]:
