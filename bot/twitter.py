@@ -7,9 +7,8 @@ def start_twitter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = "https://twitter65.p.rapidapi.com/api/twitter/links"
     payload = { "url": message.text }
     headers = {
-        "content-type": "application/json",
-        "X-RapidAPI-Key": func.tokens['twitter'],
-        "X-RapidAPI-Host": "twitter65.p.rapidapi.com"
+        "X-RapidAPI-Key": func.tokens['rapidapi'],
+        "X-RapidAPI-Host": "twitter-downloader-download-twitter-videos-gifs-and-images.p.rapidapi.com"
     }
     downloader.send_start_message(bot, message, 'twitter')
 

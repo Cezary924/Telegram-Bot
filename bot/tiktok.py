@@ -7,7 +7,7 @@ def start_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = "https://tiktok-full-info-without-watermark.p.rapidapi.com/vid/index"
     querystring = {"url": message.text}
     headers = {
-        "X-RapidAPI-Key": func.tokens['tiktok'],
+        "X-RapidAPI-Key": func.tokens['rapidapi'],
         "X-RapidAPI-Host": "tiktok-full-info-without-watermark.p.rapidapi.com"
     }
     downloader.send_start_message(bot, message, 'tiktok')
