@@ -9,7 +9,6 @@
 
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
-   > Z powodu zmiany nazwy na X, pobieranie wideo z Twittera jest obecnie niedostępne.
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Polski & Angielski)
@@ -33,13 +32,12 @@ pip install -r requirements.txt
    ```
    telegram: token_telegram
    telegram_beta: inny_token_telegram
-   tiktok: rapidapi_token
-   twitter: inny_rapidapi_token
+   rapidapi: rapidapi_token
    spotify_id: spotify_client_id
    spotify_secret: spotify_client_secret
    ```
-   > RapidApi dla multimediów z serwisu TikTok: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
-   > RapidApi dla multimediów z serwisu Twitter: https://rapidapi.com/3205/api/twitter65
+   > RapidApi dla multimediów z serwisu TikTok: należy zasubskrybować https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
+   > RapidApi dla multimediów z serwisu Twitter: należy zasubskrybować https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Tokeny Spotify: należy utworzyć aplikację w serwisie Spotify dla deweloperów https://developer.spotify.com/dashboard
 
 ## 🚀 Start
