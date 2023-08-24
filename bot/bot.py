@@ -14,7 +14,11 @@ sys.stdout = logger.Logger()
 # get Telegram token from tokens dict in func.py
 if len(sys.argv) == 2 and sys.argv[1] == "beta":
     func.suffix = 1
-    token = func.tokens['telegram_beta']
+    try:
+        token = func.tokens['telegram_beta']
+    except Exception as err:
+        print('ERROR: No telegram_beta token in tokens.yaml!')
+        sys.exit(1)
 else:
     token = func.tokens['telegram']
 
