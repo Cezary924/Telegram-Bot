@@ -120,6 +120,10 @@ command_reminder_set_date: Wprowadź datę (oczekiwany format - YYYY-MM-DD HH:MM
 command_reminder_set_date_wrong: Zły format daty ❗
 command_reminder_set_correct: Przypomnienie zostało utworzone pomyślnie 😊
 command_reminder_manage: Oto Twoje przypomnienia
+command_reminder_manage_menu: Wybrane przypomnienie
+command_reminder_manage_menu_edit_content: ✏️📄 Edytuj treść
+command_reminder_manage_menu_edit_date: ✏️📆 Edytuj datę
+command_reminder_manage_menu_delete: 🗑️ Usuń
 command_reminder_return: 🔔 *Przypomnienia:*\n\nOpuszczono panel _/reminder_ 
 content: Treść
 date: Data

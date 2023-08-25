@@ -120,6 +120,10 @@ command_reminder_set_date: Enter date (expected format - YYYY-MM-DD HH:MM, e. g.
 command_reminder_set_date_wrong: Wrong date format ❗
 command_reminder_set_correct: The reminder has been created successfully 😊
 command_reminder_manage: These are your reminders
+command_reminder_manage_menu: The selected reminder
+command_reminder_manage_menu_edit_content: ✏️📄 Edit the text
+command_reminder_manage_menu_edit_date: ✏️📆 Edit the date
+command_reminder_manage_menu_delete: 🗑️ Delete
 command_reminder_return: 🔔 *Reminder:*\n\nThe _/reminder_ menu has been closed ❌
 content: Text
 date: Date
