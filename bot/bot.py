@@ -71,6 +71,11 @@ def callback_handler(call: telebot.types.CallbackQuery) -> None:
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, inline_message_id=call.inline_message_id, reply_markup=None)
     if str(call.data) in ['test', 'text']:
         return
+    if str(call.data).split('_')[-1].isnumeric():
+        database.set_current_state(call.message, str(call.data))
+        call.data = str(call.data).replace('_' + str(call.data).split('_')[-1], '')
+        globals()[str(call.data)](call.message)
+        return
     globals()[str(call.data)](call.message)
 
 # handle data processing check callback queries
@@ -608,15 +613,18 @@ def command_reminder_return(message: telebot.types.Message) -> None:
     func.print_log("/reminder_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    if "reminder" == database.get_current_state(message):
-        basic_commands.delete_previous_bot_message(message, bot)
-        reminder.command_reminder_return(message, bot)
-    elif "reminder_set_correct" in database.get_current_state(message):
+    if "reminder_set_correct" in database.get_current_state(message):
         bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=database.get_last_message(message), reply_markup=None)
         command_reminder(message)
+    elif "reminder_manage_menu" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        reminder.command_reminder_manage(message, bot)
     elif "reminder_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         command_reminder(message)
+    elif "reminder" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        reminder.command_reminder_return(message, bot)
     else:
         not_working_buttons(message)
 
@@ -639,6 +647,13 @@ def forward_message_to_admin(message: telebot.types.Message) -> None:
 def echo_topspotifyartist(message: telebot.types.Message) -> None:
     func.print_log("Top Spotify artist guess: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     top_spotify_artist.topspotifyartist(message, bot)
+
+# handle command_reminder_manage_menu messages
+@bot.message_handler(func=lambda message: "command_reminder_manage_menu_" in database.get_current_state(message))
+def echo_reminder_manage_menu(message: telebot.types.Message) -> None:
+    func.print_log("Reminder managing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_manage_menu(message, bot)
 
 # handle reminder_set_date messages
 @bot.message_handler(func=lambda message: "reminder_set_" in database.get_current_state(message))
