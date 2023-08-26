@@ -75,9 +75,48 @@ def command_reminder_set(message: telebot.types.Message, bot: telebot.TeleBot) -
     database.register_last_message(mess)
     database.set_current_state(message, 'reminder_set')
 
+# handle reminder date setting/editing
 def command_reminder_set_date(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     state = database.get_current_state(message)
     state_splitted = state.split('_')
+    if 'reminder_manage_menu_edit_date_' in state:
+        if len(state_splitted) > 7:
+            try:
+                date = datetime.strptime(str(message.text), '%Y-%m-%d %H:%M').strftime('%Y-%m-%d %H:%M')
+            except:
+                text1 = database.get_message_text(message, 'reminder')
+                text2 = database.get_message_text(message, 'reminder_manage_button')
+                text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+                text4 = database.get_message_text(message, 'command_reminder_manage_menu_edit_date')
+                text5 = database.get_message_text(message, 'command_reminder_set_date_wrong')
+                text6 = database.get_message_text(message, 'command_reminder_set_date')
+                mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + "\n" + text6 + ":", parse_mode='Markdown')
+                database.register_last_message(mess)
+            else:
+                text1 = database.get_message_text(message, 'reminder')
+                text2 = database.get_message_text(message, 'reminder_manage_button')
+                text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+                text4 = database.get_message_text(message, 'command_reminder_manage_menu_edit_date')
+                text5 = database.get_message_text(message, 'command_reminder_update_correct')
+                text6 = database.get_message_text(message, 'content')
+                text7 = database.get_message_text(message, 'date')
+                markup = telebot.types.InlineKeyboardMarkup()
+                text8 = database.get_message_text(message, 'return')
+                return_button = telebot.types.InlineKeyboardButton(text = text8, callback_data = "command_reminder_return")
+                markup.add(return_button)
+                mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + "\n" + text6 + ": _" + database.get_reminder_rowid(state_splitted[-2])[1] + "_\n" + text7 + ": _" + date + "_", reply_markup=markup, parse_mode='Markdown')
+                database.register_last_message(mess)
+                database.edit_reminder_date(message, state_splitted[-2], date)
+        else:
+            text1 = database.get_message_text(message, 'reminder')
+            text2 = database.get_message_text(message, 'reminder_manage_button')
+            text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+            text4 = database.get_message_text(message, 'command_reminder_manage_menu_edit_date')
+            text5 = database.get_message_text(message, 'command_reminder_set_date')
+            mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + ":", parse_mode='Markdown')
+            database.register_last_message(mess)
+            database.set_current_state(message, state + "_waiting")
+        return
     if len(state_splitted) > 2:
         try:
             date = datetime.strptime(str(message.text), '%Y-%m-%d %H:%M').strftime('%Y-%m-%d %H:%M')
