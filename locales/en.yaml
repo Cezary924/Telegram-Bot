@@ -119,6 +119,7 @@ command_reminder_set: Enter reminder text
 command_reminder_set_date: Enter date (expected format - YYYY-MM-DD HH:MM, e. g. 2023-12-31 23:59)
 command_reminder_set_date_wrong: Wrong date format ❗
 command_reminder_set_correct: The reminder has been created successfully 😊
+command_reminder_update_correct: The reminder has been updated successfully 😊
 command_reminder_manage: These are your reminders
 command_reminder_manage_menu: The selected reminder
 command_reminder_manage_menu_edit_content: ✏️📄 Edit the text
