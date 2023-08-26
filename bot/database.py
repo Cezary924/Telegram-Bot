@@ -399,3 +399,19 @@ def set_reminder(message: telebot.types.Message, date: str, description: str) ->
                        (message.chat.id, date, description))
     db_conn.commit()
     database_lock.release()
+
+# edit reminder content text
+def edit_reminder_content(message: telebot.types.Message, id: int, content: str) -> None:
+    database_lock.acquire(True)
+    cursor.execute("UPDATE Reminder SET description = ? WHERE rowid = ?;", 
+                       (content, id))
+    db_conn.commit()
+    database_lock.release()
+
+# edit reminder date
+def edit_reminder_date(message: telebot.types.Message, id: int, date: str) -> None:
+    database_lock.acquire(True)
+    cursor.execute("UPDATE Reminder SET date = ? WHERE rowid = ?;", 
+                       (date, id))
+    db_conn.commit()
+    database_lock.release()
