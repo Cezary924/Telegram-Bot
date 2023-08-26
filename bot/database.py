@@ -368,6 +368,15 @@ def create_empty_message(id: int) -> telebot.types.Message:
     chat = telebot.types.User(id=id, is_bot=False, first_name="0")
     return telebot.types.Message(message_id=0, from_user=from_user, content_type=None, options="", json_string="0", date=0, chat=chat)
 
+# get reminders with rowid
+def get_reminder_rowid(rowid: int) -> list[str, str]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT date, description FROM Reminder WHERE rowid = ?;", 
+                       (rowid, ))
+    reminders = cursor.fetchone()
+    database_lock.release()
+    return reminders
+
 # get reminders that users have created
 def get_reminders(message: telebot.types.Message) -> tuple[int, list[tuple[int, str, str]]]:
     database_lock.acquire(True)
