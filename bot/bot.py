@@ -648,8 +648,17 @@ def echo_topspotifyartist(message: telebot.types.Message) -> None:
     func.print_log("Top Spotify artist guess: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     top_spotify_artist.topspotifyartist(message, bot)
 
+
+# handle reminder_edit_content messages
+@bot.message_handler(func=lambda message: "reminder_manage_menu_edit_content_" in database.get_current_state(message))
+def command_reminder_manage_menu_edit_content(message: telebot.types.Message) -> None:
+    func.print_log("Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if len(database.get_current_state(message).split('_')) <= 7:
+        basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_set(message, bot)
+
 # handle command_reminder_manage_menu messages
-@bot.message_handler(func=lambda message: "command_reminder_manage_menu_" in database.get_current_state(message))
+@bot.message_handler(func=lambda message: "reminder_manage_menu_" in database.get_current_state(message))
 def echo_reminder_manage_menu(message: telebot.types.Message) -> None:
     func.print_log("Reminder managing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     basic_commands.delete_previous_bot_message(message, bot)

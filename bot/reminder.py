@@ -34,7 +34,40 @@ def command_reminder(message: telebot.types.Message, bot: telebot.TeleBot) -> No
     database.register_last_message(mess)
     database.set_current_state(message, 'reminder')
 
+# handle reminder content setting/editing
 def command_reminder_set(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    state = database.get_current_state(message)
+    state_splitted = state.split('_')
+    if 'reminder_manage_menu_edit_content_' in state:
+        if state_splitted[-1] == 'waiting':
+            state_splitted.append(message.text)
+        if(len(state_splitted) > 7):
+            text1 = database.get_message_text(message, 'reminder')
+            text2 = database.get_message_text(message, 'reminder_manage_button')
+            text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+            text4 = database.get_message_text(message, 'command_reminder_manage_menu_edit_date')
+            
+            text5 = database.get_message_text(message, 'command_reminder_update_correct')
+            text6 = database.get_message_text(message, 'content')
+            text7 = database.get_message_text(message, 'date')
+            markup = telebot.types.InlineKeyboardMarkup()
+            text8 = database.get_message_text(message, 'return')
+            return_button = telebot.types.InlineKeyboardButton(text = text8, callback_data = "command_reminder_return")
+            markup.add(return_button)
+            mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + "\n" + text6 + ": _" + state_splitted[-1] + "_\n" + text7 + ": _" + database.get_reminder_rowid(state_splitted[-3])[0] + "_", reply_markup=markup, parse_mode='Markdown')
+            database.register_last_message(mess)
+            database.edit_reminder_content(message, state_splitted[-3], state_splitted[-1])
+            return
+        text1 = database.get_message_text(message, 'reminder')
+        text2 = database.get_message_text(message, 'reminder_manage_button')
+        text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+        text4 = database.get_message_text(message, 'command_reminder_manage_menu_edit_date')
+        
+        text5 = database.get_message_text(message, 'command_reminder_set')
+        mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + ":", parse_mode='Markdown')
+        database.register_last_message(mess)
+        database.set_current_state(message, state + '_waiting')
+        return
     text1 = database.get_message_text(message, 'reminder')
     text2 = database.get_message_text(message, 'reminder_set_button')
     text3 = database.get_message_text(message, 'command_reminder_set')
