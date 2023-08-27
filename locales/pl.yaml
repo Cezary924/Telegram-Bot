@@ -125,6 +125,8 @@ command_reminder_manage_menu: Wybrane przypomnienie
 command_reminder_manage_menu_edit_content: ✏️📄 Edytuj treść
 command_reminder_manage_menu_edit_date: ✏️📆 Edytuj datę
 command_reminder_manage_menu_delete: 🗑️ Usuń
+command_reminder_delete: Czy na pewno chcesz usunąć to przypomnienie?
+command_reminder_deleted: Przypomnienie zostało usunięte ✖️
 command_reminder_return: 🔔 *Przypomnienia:*\n\nOpuszczono panel _/reminder_ 
 content: Treść
 date: Data

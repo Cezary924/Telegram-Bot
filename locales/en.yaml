@@ -125,6 +125,8 @@ command_reminder_manage_menu: The selected reminder
 command_reminder_manage_menu_edit_content: ✏️📄 Edit the text
 command_reminder_manage_menu_edit_date: ✏️📆 Edit the date
 command_reminder_manage_menu_delete: 🗑️ Delete
+command_reminder_delete: Are you sure you want to delete this reminder?
+command_reminder_deleted: The reminder has been deleted ✖️
 command_reminder_return: 🔔 *Reminder:*\n\nThe _/reminder_ menu has been closed ❌
 content: Text
 date: Date
