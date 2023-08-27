@@ -415,3 +415,10 @@ def edit_reminder_date(message: telebot.types.Message, id: int, date: str) -> No
                        (date, id))
     db_conn.commit()
     database_lock.release()
+
+# delete reminder
+def delete_reminder_rowid(rowid: int) -> None:
+    database_lock.acquire(True)
+    cursor.execute("DELETE FROM Reminder WHERE rowid = ?; ", (rowid, ))
+    db_conn.commit()
+    database_lock.release()
