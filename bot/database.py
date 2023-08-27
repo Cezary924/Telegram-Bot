@@ -87,6 +87,7 @@ def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dat
                             message.from_user.language_code, 0))
             db_conn.commit()
             database_lock.release()
+            send_new_user_info(bot, message.chat.id, message.chat.first_name)
             return True
         func.print_log("/dataprocessing_pl: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
         markup = telebot.types.InlineKeyboardMarkup()
@@ -243,6 +244,10 @@ def send_stop_info(bot: telebot.TeleBot) -> None:
 # send info about error
 def send_error_info(bot: telebot.TeleBot, err: str) -> None:
     send_message_to_admins(bot, "\n\nError: \n_" + err + "_", False, 'send_error_info')
+
+# send new user info
+def send_new_user_info(bot: telebot.TeleBot, user_id: int, user_first_name: str) -> None:
+    send_message_to_admins(bot, "\n\nNick: _" + user_first_name + "_\nID: _" + str(user_id) + "_", False, 'send_new_user_info')
 
 # send message to Admins
 def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
