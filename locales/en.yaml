@@ -11,11 +11,10 @@ command_dataprocessing_lang_switch: 🇵🇱 Polski
 not_working_buttons: Sorry, this button does not work anymore... 😥
 permission_denied: Sorry, you cannot use this command... 😭\n\nPlease, contact the Administrator for a higher permission level 🧑‍🔬
 permission_denied_contact_button: 🧑‍🔬 Contact the Admin
-send_restart_info: 🤖 *The Bot has been restarted successfully!*
-send_restart_error_info: 🤖 *The Bot has been restarted due to an error!*
 send_start_info: 🤖 *The Bot has been started successfully!*
 send_stop_info: 🤖 *The Bot has been stopped!*
 send_error_info: 🤖 *The Bot has encountered an error!*
+send_new_user_info: 🤖 *The Bot has inserted new user details to the database!*
 forward_message_to_admin: Your report-message has been sent successfully 😁
 no_admin: Sorry, your report-message could not be sent... Please, try again later 😞
 message_forwarded_to_admin: would like to send you this report-message
