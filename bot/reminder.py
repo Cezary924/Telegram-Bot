@@ -139,7 +139,6 @@ def command_reminder_set_date(message: telebot.types.Message, bot: telebot.TeleB
             markup.add(return_button)
             mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + ":*\n\n" + text3 + "\n" + text4 + ": _" + state_splitted[-1] + "_\n" + text5 + ": _" + date + "_", reply_markup=markup, parse_mode='Markdown')
             database.register_last_message(mess)
-            database.set_current_state(message, 'reminder_set_correct')
             database.set_reminder(message, date, state_splitted[-1])
     else:
         text1 = database.get_message_text(message, 'reminder')
@@ -149,6 +148,7 @@ def command_reminder_set_date(message: telebot.types.Message, bot: telebot.TeleB
         database.register_last_message(mess)
         database.set_current_state(message, state + "_" + str(message.text))
 
+# handle reminder managing
 def command_reminder_manage(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'reminder')
     text2 = database.get_message_text(message, 'reminder_manage_button')
@@ -165,6 +165,7 @@ def command_reminder_manage(message: telebot.types.Message, bot: telebot.TeleBot
     database.register_last_message(mess)
     database.set_current_state(message, 'reminder_manage')
 
+# handle reminder managing menu
 def command_reminder_manage_menu(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'reminder')
     text2 = database.get_message_text(message, 'reminder_manage_button')
@@ -194,6 +195,44 @@ def command_reminder_manage_menu(message: telebot.types.Message, bot: telebot.Te
     mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4 + ": _" + reminders[reminder][1] + "_\n" + text5 + ": _" + reminders[reminder][2] + "_", reply_markup = markup, parse_mode='Markdown')
     database.register_last_message(mess)
 
+# handle reminder deleting
+def command_reminder_manage_menu_delete(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    state = database.get_current_state(message)
+    state_splitted = state.split('_')
+    text1 = database.get_message_text(message, 'reminder')
+    text2 = database.get_message_text(message, 'reminder_manage_button')
+    text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+    text4 = database.get_message_text(message, 'command_reminder_manage_menu_delete')
+    text5 = database.get_message_text(message, 'command_reminder_delete')
+    text6 = database.get_message_text(message, 'content')
+    text7 = database.get_message_text(message, 'date')
+    markup = telebot.types.InlineKeyboardMarkup()
+    yes = database.get_message_text(message, 'yes')
+    no = database.get_message_text(message, 'no')
+    yes_button = telebot.types.InlineKeyboardButton(text = yes, callback_data = "command_reminder_manage_menu_delete_yes")
+    markup.add(yes_button)
+    no_button = telebot.types.InlineKeyboardButton(text = no, callback_data = "command_reminder_return")
+    markup.add(no_button)
+    reminder = database.get_reminder_rowid(state_splitted[-1])
+    mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + "\n" + text6 + ": _" + reminder[1] + "_\n" + text7 + ": _" + reminder[0] + "_", reply_markup=markup, parse_mode='Markdown')
+    database.register_last_message(mess)
+def command_reminder_manage_menu_delete_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    state = database.get_current_state(message)
+    state_splitted = state.split('_')
+    text1 = database.get_message_text(message, 'reminder')
+    text2 = database.get_message_text(message, 'reminder_manage_button')
+    text3 = "🔔" + database.get_message_text(message, 'command_reminder_manage_menu')
+    text4 = database.get_message_text(message, 'command_reminder_manage_menu_delete')
+    text5 = database.get_message_text(message, 'command_reminder_deleted')
+    markup = telebot.types.InlineKeyboardMarkup()
+    text6 = database.get_message_text(message, 'return')
+    return_button = telebot.types.InlineKeyboardButton(text = text6, callback_data = "command_reminder_return")
+    markup.add(return_button)
+    database.delete_reminder_rowid(state_splitted[-1])
+    mess = bot.send_message(message.chat.id, "🔔 *" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5, reply_markup=markup, parse_mode='Markdown')
+    database.register_last_message(mess)
+
+# handle reminder menu exit
 def command_reminder_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_reminder_return')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')

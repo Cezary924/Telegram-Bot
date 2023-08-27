@@ -613,11 +613,12 @@ def command_reminder_return(message: telebot.types.Message) -> None:
     func.print_log("/reminder_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
-    if "reminder_set_correct" in database.get_current_state(message):
-        bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=database.get_last_message(message), reply_markup=None)
-        command_reminder(message)
-    elif "reminder_manage_menu" in database.get_current_state(message):
+    if "reminder_manage_menu" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
+        number, reminders = database.get_reminders(message)
+        if number == 0:
+            command_reminder(message)
+            return
         reminder.command_reminder_manage(message, bot)
     elif "reminder_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
@@ -663,6 +664,17 @@ def command_reminder_manage_menu_edit_content(message: telebot.types.Message) ->
     if len(database.get_current_state(message).split('_')) <= 7:
         basic_commands.delete_previous_bot_message(message, bot)
     reminder.command_reminder_set(message, bot)
+
+# handle reminder_delete messages
+@bot.message_handler(func=lambda message: "reminder_manage_menu_delete_" in database.get_current_state(message))
+def command_reminder_manage_menu_delete(message: telebot.types.Message) -> None:
+    func.print_log("Reminder deleting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_manage_menu_delete(message, bot)
+def command_reminder_manage_menu_delete_yes(message: telebot.types.Message) -> None:
+    func.print_log("Reminder deleting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_manage_menu_delete_yes(message, bot)
 
 # handle command_reminder_manage_menu messages
 @bot.message_handler(func=lambda message: "reminder_manage_menu_" in database.get_current_state(message))
