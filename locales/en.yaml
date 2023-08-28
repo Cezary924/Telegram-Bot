@@ -112,6 +112,8 @@ command_topspotifyartist_defeat: Unfortunately, you have not guessed the artist 
 command_topspotifyartist_victory: Well done! 👏 You have guessed the artist! 😁
 command_topspotifyartist_most_streamed_song: Most streamed song
 reminder: Reminders
+reminder_notification: One of your reminders has just been completed 😁
+reminder_notification_delayed: While the Bot was not running, one of your reminders was not completed 😞
 command_reminder: The number of your reminders
 reminder_set_button: ➕ Set a reminder
 reminder_manage_button: 📝 Manage reminders
@@ -127,6 +129,6 @@ command_reminder_manage_menu_edit_date: ✏️📆 Edit the date
 command_reminder_manage_menu_delete: 🗑️ Delete
 command_reminder_delete: Are you sure you want to delete this reminder?
 command_reminder_deleted: The reminder has been deleted ✖️
-command_reminder_return: 🔔 *Reminder:*\n\nThe _/reminder_ menu has been closed ❌
+command_reminder_return: 🔔 *Reminders:*\n\nThe _/reminder_ menu has been closed ❌
 content: Text
 date: Date

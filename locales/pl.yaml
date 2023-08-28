@@ -112,6 +112,8 @@ command_topspotifyartist_defeat: Niestety, nie udało Ci się odgadnąć 😞\nO
 command_topspotifyartist_victory: Brawo! 👏 Odgadłeś artystę! 😁
 command_topspotifyartist_most_streamed_song: Piosenka z największą liczbą odsłuchań
 reminder: Przypomnienia
+reminder_notification: Zrealizowane zostało właśnie jedno z Twoich przypomnień 😁
+reminder_notification_delayed: Gdy Bot nie był uruchomiony, nie zostało zrealizowane jedno z Twoich przypomnień 😞
 command_reminder: Liczba Twoich przypomnień
 reminder_set_button: ➕ Utwórz przypomnienie
 reminder_manage_button: 📝 Zarządzaj przypomnieniami
