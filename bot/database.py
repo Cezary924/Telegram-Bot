@@ -1,4 +1,5 @@
 import sqlite3, threading, telebot
+from datetime import datetime
 import func, locales
 
 # connect to users database
@@ -392,6 +393,14 @@ def get_reminders(message: telebot.types.Message) -> tuple[int, list[tuple[int, 
         database_lock.release()
         return (0, [])
 
+# get reminders that users have created
+def get_unnotified_reminders() -> tuple[int, list[tuple[int, str, str, int]]]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT rowid, date, description, id FROM Reminder WHERE notified = ?;", (0, ))
+    reminders = cursor.fetchall()
+    database_lock.release()
+    return (len(reminders), reminders)
+    
 # set reminder that user has created
 def set_reminder(message: telebot.types.Message, date: str, description: str) -> None:
     database_lock.acquire(True)
@@ -413,6 +422,14 @@ def edit_reminder_date(message: telebot.types.Message, id: int, date: str) -> No
     database_lock.acquire(True)
     cursor.execute("UPDATE Reminder SET date = ? WHERE rowid = ?;", 
                        (date, id))
+    db_conn.commit()
+    database_lock.release()
+
+# edit notified status
+def edit_notified_status(id: int, notified: int) -> None:
+    database_lock.acquire(True)
+    cursor.execute("UPDATE Reminder SET notified = ? WHERE rowid = ?;", 
+                       (notified, id))
     db_conn.commit()
     database_lock.release()
 
