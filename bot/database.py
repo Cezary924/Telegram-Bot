@@ -412,9 +412,15 @@ def get_unnotified_reminders() -> tuple[int, list[tuple[int, str, str, int]]]:
     
 # set reminder that user has created
 def set_reminder(message: telebot.types.Message, date: str, description: str) -> None:
+    date_obj = datetime.strptime(date, '%Y-%m-%d %H:%M')
+    now_obj = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
+    if now_obj < date_obj:
+        notified = 0
+    else:
+        notified = 1
     database_lock.acquire(True)
-    cursor.execute("INSERT INTO Reminder VALUES (?, ?, ?); ",
-                       (message.chat.id, date, description))
+    cursor.execute("INSERT INTO Reminder VALUES (?, ?, ?, ?); ",
+                       (message.chat.id, date, description, notified))
     db_conn.commit()
     database_lock.release()
 
@@ -428,6 +434,12 @@ def edit_reminder_content(message: telebot.types.Message, id: int, content: str)
 
 # edit reminder date
 def edit_reminder_date(message: telebot.types.Message, id: int, date: str) -> None:
+    date_obj = datetime.strptime(date, '%Y-%m-%d %H:%M')
+    now_obj = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
+    if now_obj < date_obj:
+        edit_notified_status(id, 0)
+    else:
+        edit_notified_status(id, 1)
     database_lock.acquire(True)
     cursor.execute("UPDATE Reminder SET date = ? WHERE rowid = ?;", 
                        (date, id))
