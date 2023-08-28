@@ -1,4 +1,5 @@
 import telebot, os, sys, signal, time
+from threading import Thread
 
 # get path of directory containing bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -735,6 +736,10 @@ func.print_log("", basic_commands.bot_name, 1)
 
 # execute func sending info about restart
 database.send_start_info(bot)
+
+# create new thread for reminders checker
+thread = Thread(target = reminder.check_reminders, args = (bot, ), daemon = True)
+thread.start()
 
 # infinite loop
 if func.suffix == 0:
