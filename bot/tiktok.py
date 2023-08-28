@@ -18,7 +18,16 @@ def start_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         func.print_log("ERROR: Module error - TikTok.")
         downloader.send_error_message(bot, message, 'tiktok')
         return
-    vid_url = response.json()['video'][0]
+    try:
+        vid_url = str(response.json()['video'][0])
+    except:
+        func.print_log("ERROR: Module error - TikTok.")
+        downloader.send_error_message(bot, message, 'tiktok')
+        return
+    if vid_url.endswith('.mp3'):
+        func.print_log("ERROR: Module error - TikTok.")
+        downloader.send_error_message(bot, message, 'tiktok')
+        return
     response = requests.request("GET", vid_url, headers=headers, params=querystring)
     if response.status_code != 200:
         func.print_log("ERROR: Module error - TikTok.")
