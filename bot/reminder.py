@@ -1,18 +1,34 @@
 import telebot, time
-from threading import Thread
 from datetime import datetime
 
-import database
+import database, func
 
-def check_reminders() -> None:
+# loop for checking users reminders status and notifying them
+def check_reminders(bot: telebot.TeleBot) -> None:
     while True:
         t = datetime.utcnow()
         sleeptime = 60 - (t.second + t.microsecond/1000000.0)
         time.sleep(sleeptime)
-        #print(datetime.utcnow())
-
-thread = Thread(target = check_reminders, daemon = True)
-thread.start()
+        size, reminders = database.get_unnotified_reminders()
+        now_obj = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
+        for i in range(size):
+            date_obj = datetime.strptime(reminders[i][1], '%Y-%m-%d %H:%M')
+            if now_obj == date_obj:
+                text1 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'reminder')
+                text5 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'reminder_notification')
+                text6 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'content')
+                text7 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'date')
+                bot.send_message(reminders[i][3], "🔔 *" + text1 + ":*\n\n" + text5 + "\n" + text6 + ": _" + reminders[i][2] + "_\n" + text7 + ": _" + reminders[i][1] + "_", parse_mode='Markdown')
+                database.edit_notified_status(reminders[i][0], 1)
+                func.print_log("Reminder notification: " + database.get_user_details(reminders[i][3])[0] + " (" + str(reminders[i][3]) + ").")
+            elif now_obj > date_obj:
+                text1 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'reminder')
+                text5 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'reminder_notification_delayed')
+                text6 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'content')
+                text7 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'date')
+                bot.send_message(reminders[i][3], "🔔 *" + text1 + ":*\n\n" + text5 + "\n" + text6 + ": _" + reminders[i][2] + "_\n" + text7 + ": _" + reminders[i][1] + "_", parse_mode='Markdown')
+                database.edit_notified_status(reminders[i][0], 1)
+                func.print_log("Reminder delayed notification: " + database.get_user_details(reminders[i][3])[0] + " (" + str(reminders[i][3]) + ").")
 
 # handle /reminder command
 def command_reminder(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
