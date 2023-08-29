@@ -63,8 +63,9 @@ python bot/bot.py beta
 - ```/reddit``` - Pobieranie wideo z serwisu Reddit.
 - ```/youtube``` - Pobieranie wideo z serwisu YouTube.
 - ```/instagram``` - Pobieranie wideo z serwisu Instagram.
-- ```/topspotifyartist``` - Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify
 - ```/crystalball``` - Odpowiedź na Twoje pytanie.
+- ```/topspotifyartist``` - Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify.
+- ```/reminder``` - Przypominanie o danych zdarzeniach.
 - ```/contact``` - Informacje o drogach kontaktu z Administratorem.
 - ```/report``` - Wysłanie zgłoszenia do Administratora.
 - ```/language``` - Zmiana języka.

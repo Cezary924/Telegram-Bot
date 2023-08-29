@@ -63,8 +63,9 @@ python bot/bot.py beta
 - ```/reddit``` - to download video from Reddit.
 - ```/youtube``` - to download video from YouTube.
 - ```/instagram``` - to download video from Instagram.
-- ```/topspotifyartist``` - to guess one of the top Spotify artists.
 - ```/crystalball``` - to answer your question.
+- ```/topspotifyartist``` - to guess one of the top Spotify artists.
+- ```/reminder``` - to be reminded of specific events.
 - ```/contact``` - to contact the Admin/Creator.
 - ```/report``` - to report an issue to the Admin.
 - ```/language``` - to change your display language.
