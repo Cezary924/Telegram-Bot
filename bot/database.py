@@ -1,4 +1,5 @@
 import sqlite3, threading, telebot
+from datetime import datetime
 import func, locales
 
 # connect to users database
@@ -60,6 +61,18 @@ def create_table_language() -> None:
         create table if not exists Language (
             id integer primary key,
             lang_code text
+            ); """)
+    database_lock.release()
+
+# create Reminder table if it does not exist
+def create_table_reminder() -> None:
+    database_lock.acquire(True)
+    cursor.execute("""
+        create table if not exists Reminder (
+            id integer,
+            date text,
+            description text,
+            notified integer
             ); """)
     database_lock.release()
 
@@ -125,7 +138,15 @@ def admin_check(message: telebot.types.Message) -> bool:
         return True
     else:
         return False
-    
+
+# get tuple with user details
+def get_user_details(id: int) -> tuple[str, str, str, str, int]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT first_name, last_name, username, language_code, role FROM People WHERE id = ?;", (id, ))
+    user = cursor.fetchone()
+    database_lock.release()
+    return user
+
 # save last command used by person
 def set_current_state(message: telebot.types.Message, state: str = "0") -> None:
     database_lock.acquire(True)
@@ -174,6 +195,7 @@ def deletedata(message: telebot.types.Message) -> None:
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Last_Bot_Message WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Language WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM Reminder WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()
     database_lock.release()
 
@@ -274,10 +296,7 @@ def set_admins_state(bot: telebot.TeleBot, state: str) -> None:
     database_lock.release()
     if admins != None:
         for admin in admins:
-            mess = bot.send_message(admin, ".")
-            register_last_message(mess)
-            set_current_state(mess, state)
-            bot.delete_message(mess.chat.id, get_last_message(mess))
+            set_current_state(create_empty_message(admin), state)
     else:
         func.print_log("ERROR: Database error - The state could not be set because there are no Admins in the database.")
 
@@ -333,3 +352,86 @@ def create_empty_message(id: int) -> telebot.types.Message:
     from_user = telebot.types.User(id=id, is_bot=False, first_name="0")
     chat = telebot.types.User(id=id, is_bot=False, first_name="0")
     return telebot.types.Message(message_id=0, from_user=from_user, content_type=None, options="", json_string="0", date=0, chat=chat)
+
+# get reminders with rowid
+def get_reminder_rowid(rowid: int) -> list[str, str]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT date, description FROM Reminder WHERE rowid = ?;", 
+                       (rowid, ))
+    reminders = cursor.fetchone()
+    database_lock.release()
+    return reminders
+
+# get reminders that users have created
+def get_reminders(message: telebot.types.Message) -> tuple[int, list[tuple[int, str, str]]]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Reminder WHERE id = ?;", (message.chat.id, ))
+    (count,)=cursor.fetchone()
+    if count > 0:
+        cursor.execute("SELECT rowid, date, description FROM Reminder WHERE id = ?;", 
+                       (message.chat.id, ))
+        reminders = cursor.fetchall()
+        database_lock.release()
+        return (len(reminders), reminders)
+    else:
+        database_lock.release()
+        return (0, [])
+
+# get reminders that users have created
+def get_unnotified_reminders() -> tuple[int, list[tuple[int, str, str, int]]]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT rowid, date, description, id FROM Reminder WHERE notified = ?;", (0, ))
+    reminders = cursor.fetchall()
+    database_lock.release()
+    return (len(reminders), reminders)
+    
+# set reminder that user has created
+def set_reminder(message: telebot.types.Message, date: str, description: str) -> None:
+    date_obj = datetime.strptime(date, '%Y-%m-%d %H:%M')
+    now_obj = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
+    if now_obj < date_obj:
+        notified = 0
+    else:
+        notified = 1
+    database_lock.acquire(True)
+    cursor.execute("INSERT INTO Reminder VALUES (?, ?, ?, ?); ",
+                       (message.chat.id, date, description, notified))
+    db_conn.commit()
+    database_lock.release()
+
+# edit reminder content text
+def edit_reminder_content(message: telebot.types.Message, id: int, content: str) -> None:
+    database_lock.acquire(True)
+    cursor.execute("UPDATE Reminder SET description = ? WHERE rowid = ?;", 
+                       (content, id))
+    db_conn.commit()
+    database_lock.release()
+
+# edit reminder date
+def edit_reminder_date(message: telebot.types.Message, id: int, date: str) -> None:
+    date_obj = datetime.strptime(date, '%Y-%m-%d %H:%M')
+    now_obj = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M'), '%Y-%m-%d %H:%M')
+    if now_obj < date_obj:
+        edit_notified_status(id, 0)
+    else:
+        edit_notified_status(id, 1)
+    database_lock.acquire(True)
+    cursor.execute("UPDATE Reminder SET date = ? WHERE rowid = ?;", 
+                       (date, id))
+    db_conn.commit()
+    database_lock.release()
+
+# edit notified status
+def edit_notified_status(id: int, notified: int) -> None:
+    database_lock.acquire(True)
+    cursor.execute("UPDATE Reminder SET notified = ? WHERE rowid = ?;", 
+                       (notified, id))
+    db_conn.commit()
+    database_lock.release()
+
+# delete reminder
+def delete_reminder_rowid(rowid: int) -> None:
+    database_lock.acquire(True)
+    cursor.execute("DELETE FROM Reminder WHERE rowid = ?; ", (rowid, ))
+    db_conn.commit()
+    database_lock.release()

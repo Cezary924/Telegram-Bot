@@ -69,7 +69,7 @@ settings: ⚙️ Ustawienia
 return: 🔙 Powrót
 command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
 contact: ☎️ Kontakt
-command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/youtube - _📺 Pobieranie wideo z serwisu YouTube_\n/instagram - _📸 Pobieranie wideo z serwisu Instagram_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_
+command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/youtube - _📺 Pobieranie wideo z serwisu YouTube_\n/instagram - _📸 Pobieranie wideo z serwisu Instagram_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_\n/reminder - _🔔 Przypominanie o danych zdarzeniach_
 features: ✨ Funkcje Bota
 command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/features - _✨ Sprawdzenie listy wszystkich funkcji Bota_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_
 main: 🤖 Ogólne
@@ -110,3 +110,24 @@ command_topspotifyartist_correct: Trafiony zatopiony! 👍
 command_topspotifyartist_defeat: Niestety, nie udało Ci się odgadnąć 😞\nOto dane szukanego artysty:\n
 command_topspotifyartist_victory: Brawo! 👏 Odgadłeś artystę! 😁
 command_topspotifyartist_most_streamed_song: Piosenka z największą liczbą odsłuchań
+reminder: Przypomnienia
+reminder_notification: Zrealizowane zostało właśnie jedno z Twoich przypomnień 😁
+reminder_notification_delayed: Gdy Bot nie był uruchomiony, nie zostało zrealizowane jedno z Twoich przypomnień 😞
+command_reminder: Liczba Twoich przypomnień
+reminder_set_button: ➕ Utwórz przypomnienie
+reminder_manage_button: 📝 Zarządzaj przypomnieniami
+command_reminder_set: Wprowadź treść przypomnienia
+command_reminder_set_date: Wprowadź datę (oczekiwany format - YYYY-MM-DD HH:MM, np. 2023-12-31 23:59)
+command_reminder_set_date_wrong: Zły format daty ❗
+command_reminder_set_correct: Przypomnienie zostało utworzone pomyślnie 😊
+command_reminder_update_correct: Przypomnienie zostało zaktualizowane pomyślnie 😊
+command_reminder_manage: Oto Twoje przypomnienia
+command_reminder_manage_menu: Wybrane przypomnienie
+command_reminder_manage_menu_edit_content: ✏️📄 Edytuj treść
+command_reminder_manage_menu_edit_date: ✏️📆 Edytuj datę
+command_reminder_manage_menu_delete: 🗑️ Usuń
+command_reminder_delete: Czy na pewno chcesz usunąć to przypomnienie?
+command_reminder_deleted: Przypomnienie zostało usunięte ✖️
+command_reminder_return: 🔔 *Przypomnienia:*\n\nOpuszczono panel _/reminder_ 
+content: Treść
+date: Data

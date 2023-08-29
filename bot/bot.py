@@ -1,4 +1,5 @@
 import telebot, os, sys, signal, time
+from threading import Thread
 
 # get path of directory containing bot script
 dir = os.path.dirname(os.path.realpath(__file__)) + "/"
@@ -22,7 +23,7 @@ if len(sys.argv) == 2 and sys.argv[1] == "beta":
 else:
     token = func.tokens['telegram']
 
-import admin, basic_commands, database, crystal_ball, top_spotify_artist
+import admin, basic_commands, database, crystal_ball, top_spotify_artist, reminder
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # open file containing version number and write/read to/from it
@@ -46,6 +47,9 @@ database.create_table_last_bot_message()
 
 # create Language table if it does not exist
 database.create_table_language()
+
+# create Reminder table if it does not exist
+database.create_table_reminder()
 
 # send permission denied message
 def permission_denied(message: telebot.types.Message) -> None:
@@ -71,6 +75,11 @@ def callback_handler(call: telebot.types.CallbackQuery) -> None:
     if "command_dataprocessing_pl_yes" in str(call.data) or "command_dataprocessing_pl_no" in str(call.data) or "command_dataprocessing_en_yes" in str(call.data) or "command_dataprocessing_en_no" in str(call.data):
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.id, inline_message_id=call.inline_message_id, reply_markup=None)
     if str(call.data) in ['test', 'text']:
+        return
+    if str(call.data).split('_')[-1].isnumeric():
+        database.set_current_state(call.message, str(call.data))
+        call.data = str(call.data).replace('_' + str(call.data).split('_')[-1], '')
+        globals()[str(call.data)](call.message)
         return
     globals()[str(call.data)](call.message)
 
@@ -575,6 +584,56 @@ def command_topspotifyartist(message: telebot.types.Message) -> None:
     database.set_current_state(message, "topspotifyartist")
     top_spotify_artist.command_topspotifyartist(message, bot)
 
+# handle /reminder command
+@bot.message_handler(commands=['reminder'])
+def command_reminder(message: telebot.types.Message) -> None:
+    func.print_log("/reminder: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    database.set_current_state(message, "reminder")
+    if database.user_check(message):
+        reminder.command_reminder(message, bot)
+    else:
+        permission_denied(message)
+@bot.message_handler(commands=['reminder_set'])
+def command_reminder_set(message: telebot.types.Message) -> None:
+    func.print_log("/reminder_set: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "reminder" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "reminder_set")
+    reminder.command_reminder_set(message, bot)
+@bot.message_handler(commands=['reminder_manage'])
+def command_reminder_manage(message: telebot.types.Message) -> None:
+    func.print_log("/reminder_manage: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "reminder" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "reminder_manage")
+    reminder.command_reminder_manage(message, bot)
+@bot.message_handler(commands=['reminder_return'])
+def command_reminder_return(message: telebot.types.Message) -> None:
+    func.print_log("/reminder_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "reminder_manage_menu" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        number, reminders = database.get_reminders(message)
+        if number == 0:
+            command_reminder(message)
+            return
+        reminder.command_reminder_manage(message, bot)
+    elif "reminder_" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_reminder(message)
+    elif "reminder" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        reminder.command_reminder_return(message, bot)
+    else:
+        not_working_buttons(message)
+
 # start topspotifyartist loop
 def topspotifyartist(message: telebot.types.Message) -> None:
     func.print_log("Top Spotify artist: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -594,6 +653,52 @@ def forward_message_to_admin(message: telebot.types.Message) -> None:
 def echo_topspotifyartist(message: telebot.types.Message) -> None:
     func.print_log("Top Spotify artist guess: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     top_spotify_artist.topspotifyartist(message, bot)
+
+# handle reminder_edit_date messages
+@bot.message_handler(func=lambda message: "reminder_manage_menu_edit_date_" in database.get_current_state(message))
+def command_reminder_manage_menu_edit_date(message: telebot.types.Message) -> None:
+    func.print_log("Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if len(database.get_current_state(message).split('_')) <= 7:
+        basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_set_date(message, bot)
+
+# handle reminder_edit_content messages
+@bot.message_handler(func=lambda message: "reminder_manage_menu_edit_content_" in database.get_current_state(message))
+def command_reminder_manage_menu_edit_content(message: telebot.types.Message) -> None:
+    func.print_log("Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if len(database.get_current_state(message).split('_')) <= 7:
+        basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_set(message, bot)
+
+# handle reminder_delete messages
+@bot.message_handler(func=lambda message: "reminder_manage_menu_delete_" in database.get_current_state(message))
+def command_reminder_manage_menu_delete(message: telebot.types.Message) -> None:
+    func.print_log("Reminder deleting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_manage_menu_delete(message, bot)
+def command_reminder_manage_menu_delete_yes(message: telebot.types.Message) -> None:
+    func.print_log("Reminder deleting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_manage_menu_delete_yes(message, bot)
+
+# handle command_reminder_manage_menu messages
+@bot.message_handler(func=lambda message: "reminder_manage_menu_" in database.get_current_state(message))
+def echo_reminder_manage_menu(message: telebot.types.Message) -> None:
+    func.print_log("Reminder managing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    basic_commands.delete_previous_bot_message(message, bot)
+    reminder.command_reminder_manage_menu(message, bot)
+
+# handle reminder_set_date messages
+@bot.message_handler(func=lambda message: "reminder_set_" in database.get_current_state(message))
+def echo_reminder_set_date(message: telebot.types.Message) -> None:
+    func.print_log("Reminder setting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    reminder.command_reminder_set_date(message, bot)
+
+# handle reminder_set messages
+@bot.message_handler(func=lambda message: "reminder_set" in database.get_current_state(message))
+def echo_reminder_set(message: telebot.types.Message) -> None:
+    func.print_log("Reminder setting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    reminder.command_reminder_set_date(message, bot)
 
 # handle unknown command
 @bot.message_handler(func=lambda message: message.text.startswith("/"))
@@ -635,6 +740,10 @@ func.print_log("", basic_commands.bot_name, 1)
 
 # execute func sending info about restart
 database.send_start_info(bot)
+
+# create new thread for reminders checker
+thread = Thread(target = reminder.check_reminders, args = (bot, ), daemon = True)
+thread.start()
 
 # infinite loop
 if func.suffix == 0:

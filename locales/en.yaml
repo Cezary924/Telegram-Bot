@@ -69,7 +69,7 @@ settings: ⚙️ Settings
 return: 🔙 Back
 command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 To report an issue to the Admin._\n
 contact: ☎️ Contact Us
-command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/youtube - _📺 To download video from YouTube_\n/instagram - _📸 To download video from Instagram_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_ *NEW*
+command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/youtube - _📺 To download video from YouTube_\n/instagram - _📸 To download video from Instagram_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_\n/reminder - _🔔 To be reminded of specific events_
 features: ✨ Bot Features
 command_help_main: /start - _🤖 To start conversation with the Bot_\n/features - _✨ To check all Bot features list_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
 main: 🤖 General
@@ -110,3 +110,24 @@ command_topspotifyartist_correct: Correct! 👍
 command_topspotifyartist_defeat: Unfortunately, you have not guessed the artist 😞\nHere are the details:\n
 command_topspotifyartist_victory: Well done! 👏 You have guessed the artist! 😁
 command_topspotifyartist_most_streamed_song: Most streamed song
+reminder: Reminders
+reminder_notification: One of your reminders has just been completed 😁
+reminder_notification_delayed: While the Bot was not running, one of your reminders was not completed 😞
+command_reminder: The number of your reminders
+reminder_set_button: ➕ Set a reminder
+reminder_manage_button: 📝 Manage reminders
+command_reminder_set: Enter reminder text
+command_reminder_set_date: Enter date (expected format - YYYY-MM-DD HH:MM, e. g. 2023-12-31 23:59)
+command_reminder_set_date_wrong: Wrong date format ❗
+command_reminder_set_correct: The reminder has been created successfully 😊
+command_reminder_update_correct: The reminder has been updated successfully 😊
+command_reminder_manage: These are your reminders
+command_reminder_manage_menu: The selected reminder
+command_reminder_manage_menu_edit_content: ✏️📄 Edit the text
+command_reminder_manage_menu_edit_date: ✏️📆 Edit the date
+command_reminder_manage_menu_delete: 🗑️ Delete
+command_reminder_delete: Are you sure you want to delete this reminder?
+command_reminder_deleted: The reminder has been deleted ✖️
+command_reminder_return: 🔔 *Reminders:*\n\nThe _/reminder_ menu has been closed ❌
+content: Text
+date: Date
