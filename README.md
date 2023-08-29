@@ -9,7 +9,6 @@
 
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
-   > Due to a name change to X, Twitter video downloader is currently unavailable.
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
@@ -33,13 +32,12 @@ pip install -r requirements.txt
    ```
    telegram: your_telegram_token
    telegram_beta: your_another_telegram_token
-   tiktok: your_rapidapi_token
-   twitter: your_another_rapidapi_token
+   rapidapi: your_rapidapi_token
    spotify_id: your_spotify_client_id
    spotify_secret: your_spotify_client_secret
    ```
-   > RapidApi for TikTok media: https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
-   > RapidApi for Twitter media: https://rapidapi.com/3205/api/twitter65
+   > RapidApi for TikTok media: you have to subscribe to https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
+   > RapidApi for Twitter media: you have to subscribe to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Spotify Tokens: you have to create an app in the Spotify Developer Dashboard https://developer.spotify.com/dashboard
 
 ## 🚀 Starting

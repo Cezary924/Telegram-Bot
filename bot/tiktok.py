@@ -7,7 +7,7 @@ def start_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     url = "https://tiktok-full-info-without-watermark.p.rapidapi.com/vid/index"
     querystring = {"url": message.text}
     headers = {
-        "X-RapidAPI-Key": func.tokens['tiktok'],
+        "X-RapidAPI-Key": func.tokens['rapidapi'],
         "X-RapidAPI-Host": "tiktok-full-info-without-watermark.p.rapidapi.com"
     }
     downloader.send_start_message(bot, message, 'tiktok')
@@ -18,7 +18,16 @@ def start_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         func.print_log("ERROR: Module error - TikTok.")
         downloader.send_error_message(bot, message, 'tiktok')
         return
-    vid_url = response.json()['video'][0]
+    try:
+        vid_url = str(response.json()['video'][0])
+    except:
+        func.print_log("ERROR: Module error - TikTok.")
+        downloader.send_error_message(bot, message, 'tiktok')
+        return
+    if vid_url.endswith('.mp3'):
+        func.print_log("ERROR: Module error - TikTok.")
+        downloader.send_error_message(bot, message, 'tiktok')
+        return
     response = requests.request("GET", vid_url, headers=headers, params=querystring)
     if response.status_code != 200:
         func.print_log("ERROR: Module error - TikTok.")

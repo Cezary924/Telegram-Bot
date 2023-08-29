@@ -11,11 +11,10 @@ command_dataprocessing_lang_switch: 🇬🇧 English
 not_working_buttons: Niestety, ten przycisk już nie działa... 😥
 permission_denied: Niestety, nie możesz skorzystać z tego polecenia... 😭\n\nAby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
 permission_denied_contact_button: 🧑‍🔬 Kontakt z administratorem
-send_restart_info: 🤖 *Bot został pomyślnie uruchomiony ponownie!*
-send_restart_error_info: 🤖 *Bot został pomyślnie uruchomiony ponownie na skutek błędu!*
 send_start_info: 🤖 *Bot został uruchomiony pomyślnie!*
 send_stop_info: 🤖 *Bot został wyłączony!*
 send_error_info: 🤖 *Bot napotkał błąd!*
+send_new_user_info: 🤖 *Bot wprowadził do bazy danych dane nowego użytkownika!*
 forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
 no_admin: Niestety, Twoja wiadomość nie mogła być przekazana... Spróbuj poźniej 😞
 message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie

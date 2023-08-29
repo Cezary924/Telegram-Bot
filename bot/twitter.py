@@ -4,17 +4,16 @@ import func, downloader
 
 # handle Twitter URLs
 def start_twitter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    url = "https://twitter65.p.rapidapi.com/api/twitter/links"
-    payload = { "url": message.text }
+    url = "https://twitter-downloader-download-twitter-videos-gifs-and-images.p.rapidapi.com/status"
+    querystring = {"url" : message.text}
     headers = {
-        "content-type": "application/json",
-        "X-RapidAPI-Key": func.tokens['twitter'],
-        "X-RapidAPI-Host": "twitter65.p.rapidapi.com"
+        "X-RapidAPI-Key": func.tokens['rapidapi'],
+        "X-RapidAPI-Host": "twitter-downloader-download-twitter-videos-gifs-and-images.p.rapidapi.com"
     }
     downloader.send_start_message(bot, message, 'twitter')
 
     # downloading vid
-    response = requests.post(url, json=payload, headers=headers)
+    response = requests.get(url, headers=headers, params=querystring)
     if response.status_code != 200:
         func.print_log("ERROR: Module error - Twitter.")
         downloader.send_error_message(bot, message, 'twitter')
@@ -26,9 +25,13 @@ def start_twitter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         downloader.send_error_message(bot, message, 'twitter')
         return
     best_vid = None
-    for vid in response[0]['urls']:
-        if 'quality' in vid.keys():
-            if best_vid == None or int(best_vid['quality']) < vid['quality']:
+    if 'media' not in response or response['media'] is None or response['media']['video'] is None:
+        func.print_log("ERROR: Module error - Twitter.")
+        downloader.send_error_message(bot, message, 'twitter')
+        return
+    for vid in response['media']['video']['videoVariants']:
+        if 'bitrate' in vid.keys():
+            if best_vid == None or int(best_vid['bitrate']) < vid['bitrate']:
                 best_vid = vid
     response = requests.request("GET", best_vid['url'], headers=headers)
     if response.status_code != 200:

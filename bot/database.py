@@ -100,6 +100,7 @@ def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dat
                             message.from_user.language_code, 0))
             db_conn.commit()
             database_lock.release()
+            send_new_user_info(bot, message.chat.id, message.chat.first_name)
             return True
         func.print_log("/dataprocessing_pl: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
         markup = telebot.types.InlineKeyboardMarkup()
@@ -256,62 +257,36 @@ def get_last_message(message: telebot.types.Message) -> int:
 
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
-    database_lock.acquire(True)
-    cursor.execute("SELECT id FROM People WHERE role = 2;")
-    admins=cursor.fetchone()
-    database_lock.release()
-    if admins != None:
-        for admin in admins:
-            database_lock.acquire(True)
-            cursor.execute("SELECT state FROM State WHERE id = ?;", (admin, ))
-            (state,)=cursor.fetchone()
-            database_lock.release()
-            if state.startswith("err_"):
-                text = get_message_text(create_empty_message(admin), 'send_restart_error_info')
-                text = text + "\n\nError: \n_" + state[4:] + "_"
-                mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
-                set_current_state(mess)
-                func.print_log("The restart (error) info has been sent to: " + str(admin) + ".")
-            elif "admin_restart_" in state:
-                text = get_message_text(create_empty_message(admin), 'send_restart_info')
-                mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
-                set_current_state(mess)
-                func.print_log("The restart info has been sent to: " + str(admin) + ".")
-            else:
-                text = get_message_text(create_empty_message(admin), 'send_start_info')
-                mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
-                set_current_state(mess)
-                func.print_log("The start info has been sent to: " + str(admin) + ".")
-    else:
-        func.print_log("ERROR: Database error - The start info could not be sent because there are no Admins in the database.")
+    send_message_to_admins(bot, "", True, 'send_start_info')
 
 # send info about stop
 def send_stop_info(bot: telebot.TeleBot) -> None:
-    database_lock.acquire(True)
-    cursor.execute("SELECT id FROM People WHERE role = 2;")
-    admins=cursor.fetchone()
-    database_lock.release()
-    if admins != None:
-        for admin in admins:
-            text = get_message_text(create_empty_message(admin), 'send_stop_info')
-            mess = bot.send_message(admin, text, disable_notification = True, parse_mode = 'Markdown')
-            func.print_log("The stop info has been sent to: " + str(admin) + ".")
-    else:
-        func.print_log("ERROR: Database error - The stop info could not be sent because there are no Admins in the database.")
+    send_message_to_admins(bot, "", True, 'send_stop_info')
 
 # send info about error
 def send_error_info(bot: telebot.TeleBot, err: str) -> None:
+    send_message_to_admins(bot, "\n\nError: \n_" + err + "_", False, 'send_error_info')
+
+# send new user info
+def send_new_user_info(bot: telebot.TeleBot, user_id: int, user_first_name: str) -> None:
+    send_message_to_admins(bot, "\n\nNick: _" + user_first_name + "_\nID: _" + str(user_id) + "_", False, 'send_new_user_info')
+
+# send message to Admins
+def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
     database_lock.acquire(True)
-    cursor.execute("SELECT id FROM People WHERE role = 2;")
-    admins=cursor.fetchone()
+    cursor.execute("SELECT id, first_name FROM People WHERE role = 2;")
+    admins = cursor.fetchall()
     database_lock.release()
-    if admins != None:
-        for admin in admins:
-            text = get_message_text(create_empty_message(admin), 'send_error_info')
-            mess = bot.send_message(admin, text + "\n\nError: \n_" + err + "_", disable_notification = True, parse_mode = 'Markdown')
-            func.print_log("The error info has been sent to: " + str(admin) + ".")
+    if len(admins) > 0:
+        names = [x[1] for x in admins]
+        ids = [x[0] for x in admins]
+        for i in range(len(ids)):
+            if get_msg_text != None:
+                text = get_message_text(create_empty_message(ids[i]), get_msg_text) + text
+            bot.send_message(ids[i], text, disable_notification=disable_notification, parse_mode = 'Markdown')
+            func.print_log("The message has been sent to: " + names[i] + " (" + str(ids[i]) + ").")
     else:
-        func.print_log("ERROR: Database error - The error info could not be sent because there are no Admins in the database.")
+        func.print_log("ERROR: Database error - The messages could not be sent because there are no Admins in the database.")
 
 # set state for every admin
 def set_admins_state(bot: telebot.TeleBot, state: str) -> None:
