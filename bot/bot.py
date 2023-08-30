@@ -152,7 +152,6 @@ def command_admin(message: telebot.types.Message) -> None:
         admin.command_admin(message, bot, update)
     else:
         permission_denied(message)
-@bot.message_handler(commands=['admin_update_bot'])
 def command_admin_update_bot(message: telebot.types.Message) -> None:
     func.print_log("/admin_update_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -161,7 +160,6 @@ def command_admin_update_bot(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_update_bot")
     admin.command_admin_update_bot(message, bot)
-@bot.message_handler(commands=['admin_update_bot_yes'])
 def command_admin_update_bot_yes(message: telebot.types.Message) -> None:
     func.print_log("/admin_update_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -170,7 +168,6 @@ def command_admin_update_bot_yes(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_update_bot_yes")
     admin.command_admin_update_bot_yes(message, bot)
-@bot.message_handler(commands=['admin_shutdown_bot'])
 def command_admin_shutdown_bot(message: telebot.types.Message) -> None:
     func.print_log("/admin_shutdown_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -179,7 +176,6 @@ def command_admin_shutdown_bot(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_shutdown_bot")
     admin.command_admin_shutdown_bot(message, bot)
-@bot.message_handler(commands=['admin_shutdown_bot_yes'])
 def command_admin_shutdown_bot_yes(message: telebot.types.Message) -> None:
     func.print_log("/admin_shutdown_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -188,7 +184,6 @@ def command_admin_shutdown_bot_yes(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_shutdown_bot_yes")
     admin.command_admin_shutdown_bot_yes(message, bot)
-@bot.message_handler(commands=['admin_shutdown_device'])
 def command_admin_shutdown_device(message: telebot.types.Message) -> None:
     func.print_log("/admin_shutdown_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -197,7 +192,6 @@ def command_admin_shutdown_device(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_shutdown_device")
     admin.command_admin_shutdown_device(message, bot)
-@bot.message_handler(commands=['admin_shutdown_device_yes'])
 def command_admin_shutdown_device_yes(message: telebot.types.Message) -> None:
     func.print_log("/admin_shutdown_device_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -206,7 +200,6 @@ def command_admin_shutdown_device_yes(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_shutdown_device_yes")
     admin.command_admin_shutdown_device_yes(message, bot)
-@bot.message_handler(commands=['admin_restart_bot'])
 def command_admin_restart_bot(message: telebot.types.Message) -> None:
     func.print_log("/admin_restart_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -215,7 +208,6 @@ def command_admin_restart_bot(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_restart_bot")
     admin.command_admin_restart_bot(message, bot)
-@bot.message_handler(commands=['admin_restart_bot_yes'])
 def command_admin_restart_bot_yes(message: telebot.types.Message) -> None:
     func.print_log("/admin_restart_bot_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -224,7 +216,6 @@ def command_admin_restart_bot_yes(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_restart_bot_yes")
     admin.command_admin_restart_bot_yes(bot, message)
-@bot.message_handler(commands=['admin_restart_device'])
 def command_admin_restart_device(message: telebot.types.Message) -> None:
     func.print_log("/admin_restart_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -233,7 +224,6 @@ def command_admin_restart_device(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_restart_device")
     admin.command_admin_restart_device(message, bot)
-@bot.message_handler(commands=['admin_restart_device_yes'])
 def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
     func.print_log("/admin_restart_device_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -242,7 +232,6 @@ def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_restart_device_yes")
     admin.command_admin_restart_device_yes(message, bot)
-@bot.message_handler(commands=['admin_return'])
 def command_admin_return(message: telebot.types.Message) -> None:
     func.print_log("/admin_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -264,7 +253,6 @@ def command_help(message: telebot.types.Message) -> None:
         return
     database.set_current_state(message, "help")
     basic_commands.command_help(message, bot)
-@bot.message_handler(commands=['help_main'])
 def command_help_main(message: telebot.types.Message) -> None:
     func.print_log("/help_main: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -273,7 +261,6 @@ def command_help_main(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "help_main")
     basic_commands.command_help_main(message, bot)
-@bot.message_handler(commands=['help_features'])
 def command_help_features(message: telebot.types.Message) -> None:
     func.print_log("/help_features: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -282,7 +269,6 @@ def command_help_features(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "help_features")
     basic_commands.command_help_features(message, bot)
-@bot.message_handler(commands=['help_contact'])
 def command_help_contact(message: telebot.types.Message) -> None:
     func.print_log("/help_contact: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -291,7 +277,6 @@ def command_help_contact(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "help_contact")
     basic_commands.command_help_contact(message, bot)
-@bot.message_handler(commands=['help_settings'])
 def command_help_settings(message: telebot.types.Message) -> None:
     func.print_log("/help_settings: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -300,7 +285,6 @@ def command_help_settings(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "help_settings")
     basic_commands.command_help_settings(message, bot)
-@bot.message_handler(commands=['help_return'])
 def command_help_return(message: telebot.types.Message) -> None:
     func.print_log("/help_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -352,7 +336,6 @@ def command_deletedata(message: telebot.types.Message) -> None:
         return
     database.set_current_state(message, "deletedata")
     basic_commands.command_deletedata(message, bot)
-@bot.message_handler(commands=['deletedata_yes'])
 def command_deletedata_yes(message: telebot.types.Message) -> None:
     func.print_log("/deletedata_yes: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -362,7 +345,6 @@ def command_deletedata_yes(message: telebot.types.Message) -> None:
         basic_commands.command_deletedata_yes(message, bot)
     else:
         not_working_buttons(message)
-@bot.message_handler(commands=['deletedata_no'])
 def command_deletedata_no(message: telebot.types.Message) -> None:
     func.print_log("/deletedata_no: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -382,7 +364,6 @@ def command_language(message: telebot.types.Message) -> None:
         return
     database.set_current_state(message, "language")
     basic_commands.command_language(message, bot)
-@bot.message_handler(commands=['language_pl'])
 def command_language_pl(message: telebot.types.Message) -> None:
     func.print_log("/language_pl: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -393,7 +374,6 @@ def command_language_pl(message: telebot.types.Message) -> None:
         database.set_current_state(message, "0")
     else:
         not_working_buttons(message)
-@bot.message_handler(commands=['language_en'])
 def command_language_en(message: telebot.types.Message) -> None:
     func.print_log("/language_en: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -404,7 +384,6 @@ def command_language_en(message: telebot.types.Message) -> None:
         database.set_current_state(message, "0")
     else:
         not_working_buttons(message)
-@bot.message_handler(commands=['language_cancel'])
 def command_language_cancel(message: telebot.types.Message) -> None:
     func.print_log("/language_cancel: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -598,7 +577,6 @@ def command_reminder(message: telebot.types.Message) -> None:
         reminder.command_reminder(message, bot)
     else:
         permission_denied(message)
-@bot.message_handler(commands=['reminder_set'])
 def command_reminder_set(message: telebot.types.Message) -> None:
     func.print_log("/reminder_set: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -607,7 +585,6 @@ def command_reminder_set(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "reminder_set")
     reminder.command_reminder_set(message, bot)
-@bot.message_handler(commands=['reminder_manage'])
 def command_reminder_manage(message: telebot.types.Message) -> None:
     func.print_log("/reminder_manage: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -616,7 +593,6 @@ def command_reminder_manage(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "reminder_manage")
     reminder.command_reminder_manage(message, bot)
-@bot.message_handler(commands=['reminder_return'])
 def command_reminder_return(message: telebot.types.Message) -> None:
     func.print_log("/reminder_return: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
