@@ -7,10 +7,7 @@ dir = os.path.dirname(os.path.realpath(__file__)) + "/"
 # change current working directory to 'dir'
 os.chdir(dir)
 
-import func, logger
-
-# write stdout to both console and file
-sys.stdout = logger.Logger()
+import func
 
 # create LoadingString object & run its 'run' function in new thread
 loading = func.LoadingString()
@@ -28,7 +25,8 @@ if len(sys.argv) == 2 and sys.argv[1] == "beta":
 else:
     token = func.tokens['telegram']
 
-import admin, basic_commands, database, crystal_ball, top_spotify_artist, reminder
+import admin, basic_commands, database, logger
+import crystal_ball, top_spotify_artist, reminder
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # open file containing version number and write/read to/from it
@@ -743,6 +741,9 @@ top_spotify_artist.fill_artists()
 # stop LoadingString object loop
 loading.stop()
 time.sleep(1)
+
+# write stdout to both console and file
+sys.stdout = logger.Logger()
 
 # starting log message
 func.print_log("", basic_commands.bot_name, 1)
