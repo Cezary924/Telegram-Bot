@@ -12,6 +12,11 @@ import func, logger
 # write stdout to both console and file
 sys.stdout = logger.Logger()
 
+# create LoadingString object & run its 'run' function in new thread
+loading = func.LoadingString()
+thread = Thread(target = loading.run, daemon = True)
+thread.start()
+
 # get Telegram token from tokens dict in func.py
 if len(sys.argv) == 2 and sys.argv[1] == "beta":
     func.suffix = 1
@@ -734,6 +739,10 @@ signal.signal(signal.SIGINT, ctrl_c)
 
 # fill artists list
 top_spotify_artist.fill_artists()
+
+# stop LoadingString object loop
+loading.stop()
+time.sleep(1)
 
 # starting log message
 func.print_log("", basic_commands.bot_name, 1)
