@@ -41,7 +41,7 @@ shutdown_bot: 📴 Wyłączenie Bota 🤖
 update_bot: ⬇️ Aktualizacja Bota 🤖
 downloader_start: Przetwarzanie linku... ⏳
 downloader_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
-downloader_error: Niestety, pobranie filmiku z TikToka nie jest teraz możliwe... Spróbuj poźniej 😞
+downloader_error: Niestety, pobranie filmiku z tego serwisu nie jest teraz możliwe... Spróbuj poźniej 😞
 command_downloader: Aby pobrać wideo z tego serwisu, wystarczy, że wyślesz mi (udostępnisz) do niego link 🔗
 tumblr: 📄 *Tumblr:*\n\n
 reddit: 🤖 *Reddit:*\n\n

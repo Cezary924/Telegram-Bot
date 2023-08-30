@@ -41,7 +41,7 @@ shutdown_bot: 📴 The Bot Shutdown 🤖
 update_bot: ⬇️ The Bot Update 🤖
 downloader_start: Processing the URL... ⏳
 downloader_processing: Please be patient - this operation may take a while ⌚
-downloader_error: Sorry, downloading is not currently possible... Please, try again later 😞
+downloader_error: Sorry, downloading videos from this website is not currently possible... Please, try again later 😞
 command_downloader: To download a video from this website, all you have to do is send me (share) a link to it 🔗
 tumblr: 📄 *Tumblr:*\n\n
 reddit: 🤖 *Reddit:*\n\n
