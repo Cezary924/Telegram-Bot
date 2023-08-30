@@ -1,4 +1,4 @@
-import telebot, os, io, datetime, yaml
+import telebot, os, io, datetime, yaml, time
 from urllib.parse import urlparse
 
 # boolean variable storing info if beta ver of bot is running
@@ -54,12 +54,36 @@ def log_file(name: str, path: str) -> io.TextIOWrapper:
         print("ERROR: Open error - Could not open the \'" + name + ".txt\' file.")
     return x
 
+# class defining LoadingString objects
+class LoadingString():
+    def __init__(self) -> None:
+        self._dots = 0
+        self._stop = False
+        print("|" + "=" * (log_length - 2) + "|")
+        print("|" + "+" * (log_length - 2) + "|")
+        print('Loading'.center(log_length, ' '), end = '\r')
+    def __str__(self) -> str:
+        if self._dots >= 4:
+            self._dots = 0
+        text = 'Loading'.center(log_length, ' ')
+        text_split = text.split('Loading')
+        text = text_split[0] + 'Loading' + '.' * self._dots + text_split[1][:-self._dots]
+        self._dots = self._dots + 1
+        return text
+    def run(self) -> None:
+        while self._stop == False:
+            print(self, end = '\r')
+            time.sleep(0.5)
+    def stop(self) -> None:
+        self._stop = True
+
 # print info about Bot's tasks
 def print_log(info: str, bot_name: str = None, start: bool = 0) -> None:
     if bot_name != None:
         if start:
-            print("|" + "=" * (log_length - 2) + "|")
-        print("|" + "+" * (log_length - 2) + "|")
+            print('\r', end = '')
+        if start == 0:
+            print("|" + "+" * (log_length - 2) + "|")
         if start:
             text = bot_name + " has been started."
         else:
