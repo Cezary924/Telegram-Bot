@@ -25,14 +25,22 @@ def info_about_version(ver: int, message: telebot.types.Message = None) -> tuple
         return (0, text)
     online_ver = int(parse_qs(urlparse(response.links["last"]["url"]).query)["page"][0])
     if ver > online_ver:
+        response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/releases/latest")
+        if response.status_code != 200:
+            text = database.get_message_text(message, 'error')
+            return (0, text)
         text = database.get_message_text(message, 'beta_ver')
-        return (online_ver, text + ": " + str(online_ver) + ")")
+        return (online_ver, (text + ": " + response.json()['tag_name'] + " (" + str(online_ver) + "))").replace('\n', ''))
     elif ver == online_ver:
         text = database.get_message_text(message, 'up-to-date_ver')
-        return (online_ver, text)
+        return (online_ver, text.replace('\n', ''))
     else:
+        response = requests.get("https://api.github.com/repos/" + github_username + "/" + github_repo + "/releases/latest")
+        if response.status_code != 200:
+            text = database.get_message_text(message, 'error')
+            return (0, text)
         text = database.get_message_text(message, 'old_ver')
-        return (online_ver, text + ": " + str(online_ver) + ")")
+        return (online_ver, (text + ": " + response.json()['tag_name'] + " (" + str(online_ver) + "))").replace('\n', ''))
 
 # delete previously sent message by bot
 def delete_previous_bot_message(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
