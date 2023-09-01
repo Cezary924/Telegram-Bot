@@ -143,10 +143,43 @@ def command_admin(message: telebot.types.Message) -> None:
         return
     database.set_current_state(message, "admin")
     if database.admin_check(message):
+        admin.command_admin(message, bot)
+    else:
+        permission_denied(message)
+def command_admin_users(message: telebot.types.Message) -> None:
+    func.print_log("/admin_users: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "admin_users")
+    if database.admin_check(message):
+        admin.command_admin_users(message, bot)
+    else:
+        permission_denied(message)
+def command_admin_bot(message: telebot.types.Message) -> None:
+    func.print_log("/admin_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "admin_bot")
+    if database.admin_check(message):
         update = False
         if basic_commands.info_about_version(commit_count, message)[0] > commit_count:
             update = True
-        admin.command_admin(message, bot, update)
+        admin.command_admin_bot(message, bot, update)
+    else:
+        permission_denied(message)
+def command_admin_device(message: telebot.types.Message) -> None:
+    func.print_log("/admin_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if "admin" == database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "admin_device")
+    if database.admin_check(message):
+        admin.command_admin_device(message, bot)
     else:
         permission_denied(message)
 def command_admin_update_bot(message: telebot.types.Message) -> None:
@@ -236,9 +269,18 @@ def command_admin_return(message: telebot.types.Message) -> None:
     if "admin" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         admin.command_admin_return(message, bot)
-    elif "admin_" in database.get_current_state(message):
+    elif database.get_current_state(message) in ['admin_users', 'admin_bot', 'admin_device']:
         basic_commands.delete_previous_bot_message(message, bot)
         command_admin(message)
+    elif '_users' in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_admin_users(message)
+    elif '_bot' in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_admin_bot(message)
+    elif '_device' in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_admin_device(message)
     else:
         not_working_buttons(message)
 
