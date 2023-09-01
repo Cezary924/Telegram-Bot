@@ -37,13 +37,19 @@ def command_admin_shutdown_bot(message: telebot.types.Message, bot: telebot.Tele
     text = database.get_message_text(message, 'no')
     no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(no_button)
-    text = database.get_message_text(message, 'command_admin_shutdown_bot')
-    mess = bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_shutdown_bot')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_shutdown_bot_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_admin_shutdown_bot_yes')
-    bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_shutdown_bot_yes')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown')
     os.kill(os.getpid(), signal.SIGINT)
 
@@ -56,13 +62,19 @@ def command_admin_shutdown_device(message: telebot.types.Message, bot: telebot.T
     text = database.get_message_text(message, 'no')
     no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(no_button)
-    text = database.get_message_text(message, 'command_admin_shutdown_device')
-    mess = bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_shutdown_device')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_shutdown_device_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_admin_shutdown_device_yes')
-    bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_shutdown_device_yes')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown')
     os.system("shutdown /s /t 1")
 
@@ -75,14 +87,21 @@ def command_admin_restart_bot(message: telebot.types.Message, bot: telebot.TeleB
     text = database.get_message_text(message, 'no')
     no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(no_button)
-    text = database.get_message_text(message, 'command_admin_restart_bot')
-    mess = bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_restart_bot')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_restart_bot_yes(bot: telebot.TeleBot, message: telebot.types.Message = None, send_mess: bool = 1) -> None:
     if send_mess:
-        text = database.get_message_text(message, 'command_admin_restart_bot_yes')
-        bot.send_message(message.chat.id, text, parse_mode = 'Markdown')
+        text1 = database.get_message_text(message, 'admin')
+        text2 = database.get_message_text(message, 'admin_device')
+        text3 = database.get_message_text(message, 'shutdown')
+        text4 = database.get_message_text(message, 'command_admin_restart_bot_yes')
+        mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
+                        parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'run.vbs'] + sys.argv[1:], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
     os.kill(os.getpid(), signal.SIGINT)
 
@@ -95,13 +114,19 @@ def command_admin_restart_device(message: telebot.types.Message, bot: telebot.Te
     text = database.get_message_text(message, 'no')
     no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(no_button)
-    text = database.get_message_text(message, 'command_admin_restart_device')
-    mess = bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_restart_device')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_restart_device_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_admin_restart_device_yes')
-    bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_restart_device_yes')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown')
     os.system("shutdown /r /t 1")
 
@@ -114,13 +139,19 @@ def command_admin_update_bot(message: telebot.types.Message, bot: telebot.TeleBo
     text = database.get_message_text(message, 'no')
     no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(no_button)
-    text = database.get_message_text(message, 'command_admin_update_bot')
-    mess = bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_update_bot')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_admin_update_bot_yes')
-    bot.send_message(message.chat.id, text, 
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'shutdown')
+    text4 = database.get_message_text(message, 'command_admin_update_bot_yes')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
     time.sleep(15)
