@@ -265,11 +265,11 @@ def send_stop_info(bot: telebot.TeleBot) -> None:
 
 # send info about error
 def send_error_info(bot: telebot.TeleBot, err: str) -> None:
-    send_message_to_admins(bot, "\n\nError: \n_" + err + "_", False, 'send_error_info')
+    send_message_to_admins(bot, "\nError: _" + err + "_", False, 'send_error_info')
 
 # send new user info
 def send_new_user_info(bot: telebot.TeleBot, user_id: int, user_first_name: str) -> None:
-    send_message_to_admins(bot, "\n\nNick: _" + user_first_name + "_\nID: _" + str(user_id) + "_", False, 'send_new_user_info')
+    send_message_to_admins(bot, "\nNick: _" + user_first_name + "_\nID: _" + str(user_id) + "_", False, 'send_new_user_info')
 
 # send message to Admins
 def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
@@ -283,7 +283,7 @@ def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification
         for i in range(len(ids)):
             if get_msg_text != None:
                 text = get_message_text(create_empty_message(ids[i]), get_msg_text) + text
-            bot.send_message(ids[i], text, disable_notification=disable_notification, parse_mode = 'Markdown')
+            bot.send_message(ids[i], "*" + get_message_text(create_empty_message(ids[i]), 'admin_bot') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
             func.print_log("The message has been sent to: " + names[i] + " (" + str(ids[i]) + ").")
     else:
         func.print_log("ERROR: Database error - The messages could not be sent because there are no Admins in the database.")
