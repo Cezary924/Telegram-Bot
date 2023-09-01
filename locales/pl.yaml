@@ -11,34 +11,36 @@ command_dataprocessing_lang_switch: 🇬🇧 English
 not_working_buttons: Niestety, ten przycisk już nie działa... 😥
 permission_denied: Niestety, nie możesz skorzystać z tego polecenia... 😭\n\nAby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
 permission_denied_contact_button: 🧑‍🔬 Kontakt z administratorem
-send_start_info: 🤖 *Bot został uruchomiony pomyślnie!*
-send_stop_info: 🤖 *Bot został wyłączony!*
-send_error_info: 🤖 *Bot napotkał błąd!*
-send_new_user_info: 🤖 *Bot wprowadził do bazy danych dane nowego użytkownika!*
+send_start_info: Bot został uruchomiony pomyślnie!
+send_stop_info: Bot został wyłączony!
+send_error_info: Bot napotkał błąd!
+send_new_user_info: Bot wprowadził do bazy danych dane nowego użytkownika!
 forward_message_to_admin: Wiadomość została przekazana pomyślnie 😁
 no_admin: Niestety, Twoja wiadomość nie mogła być przekazana... Spróbuj poźniej 😞
 message_forwarded_to_admin: chciałby przekazać Ci tę wiadomość-zgłoszenie
 hi: Cześć
-command_admin_update_bot_yes_finish: 🤖 *Bot został zaktualizowany!*
-command_admin_update_bot_yes: 🤖 *Aktualizacja Bota...*
-command_admin_update_bot: 🤖 *Aktualizacja Bota:*\n\nCzy na pewno chcesz zaktualizować Bota? Aby aktualizacia przebiegła pomyślnie i jej skutki były odczuwalne, należy uruchomić Bota ponownie.
+admin_users: 🙋‍♂️🙋‍♀️ Zarządzanie użytkownikami
+admin_bot: 🤖 Zarządzanie Botem 
+admin_device: 🖥️ Zarządzanie urządzeniem
+command_admin_update_bot_yes_finish: Bot został zaktualizowany!
+command_admin_update_bot_yes: Aktualizacja Bota...
+command_admin_update_bot: Czy na pewno chcesz zaktualizować Bota? Aby aktualizacia przebiegła pomyślnie i jej skutki były odczuwalne, należy uruchomić Bota ponownie.
 'no': ❌ Nie
 'yes': ✅ Tak
-command_admin_restart_device_yes: 🖥️ *Restart urządzenia...*
-command_admin_restart_device: 🖥️ *Restart urządzenia:*\n\nCzy na pewno chcesz uruchomić ponownie urządzenie, na którym uruchomiony jest Bot?
-command_admin_restart_bot_yes: 🤖 *Restart Bota...*
-command_admin_restart_bot: 🤖 *Restart Bota:*\n\nCzy na pewno chcesz uruchomić ponownie Bota?
-command_admin_shutdown_device_yes: 🖥️ *Wyłączenie urządzenia...*
-command_admin_shutdown_device: 🖥️ *Wyłączenie urządzenia:*\n\nCzy na pewno chcesz wyłączyć urządzenie, na którym uruchomiony jest Bot?
-command_admin_shutdown_bot_yes: 🤖 *Wyłączenie Bota...*
-command_admin_shutdown_bot: 🤖 *Wyłączenie Bota:*\n\nCzy na pewno chcesz wyłączyć skrypt Bota?
-admin_menu: 🛠️ *Admin:*\n\nWybierz zadanie z podanych
+command_admin_restart_device_yes: Restart urządzenia...
+command_admin_restart_device: Czy na pewno chcesz uruchomić ponownie urządzenie, na którym uruchomiony jest Bot?
+command_admin_restart_bot_yes: Restart Bota...
+command_admin_restart_bot: Czy na pewno chcesz uruchomić ponownie Bota?
+command_admin_shutdown_device_yes: Wyłączenie urządzenia...
+command_admin_shutdown_device: Czy na pewno chcesz wyłączyć urządzenie, na którym uruchomiony jest Bot?
+command_admin_shutdown_bot_yes: Wyłączenie Bota...
+command_admin_shutdown_bot: Czy na pewno chcesz wyłączyć skrypt Bota?
+admin: 🛠️ Admin
+admin_menu: 'Wybierz zadanie z podanych:'
 exit: ❌ Wyjście
-restart_device: 🔁 Restart urządzenia 🖥️
-restart_bot: 🔁 Restart Bota 🤖
-shutdown_device: 📴 Wyłączenie urządzenia 🖥️
-shutdown_bot: 📴 Wyłączenie Bota 🤖
-update_bot: ⬇️ Aktualizacja Bota 🤖
+restart: 🔁 Restart
+shutdown: 📴 Shutdown
+update: ⬇️ Update
 downloader_start: Przetwarzanie linku... ⏳
 downloader_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
 downloader_error: Niestety, pobranie filmiku z tego serwisu nie jest teraz możliwe... Spróbuj poźniej 😞
