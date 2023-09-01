@@ -2,29 +2,90 @@ import telebot, os, signal, sys, subprocess, time
 import database
 
 # handle /admin command
-def command_admin(message: telebot.types.Message, bot: telebot.TeleBot, update: bool) -> None:
+def command_admin(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
-    if update:
-        text = database.get_message_text(message, 'update_bot')
-        update_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_update_bot")
-        markup.add(update_bot_button)
-    text = database.get_message_text(message, 'shutdown_bot')
-    shutdown_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_bot")
-    markup.add(shutdown_bot_button)
-    text = database.get_message_text(message, 'shutdown_device')
-    shutdown_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_device")
-    markup.add(shutdown_device_button)
-    text = database.get_message_text(message, 'restart_bot')
-    restart_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_bot")
-    markup.add(restart_bot_button)
-    text = database.get_message_text(message, 'restart_device')
-    restart_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_device")
-    markup.add(restart_device_button)
+    text = database.get_message_text(message, 'admin_users')
+    users_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_users")
+    markup.add(users_button)
+    text = database.get_message_text(message, 'admin_bot')
+    bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_bot")
+    markup.add(bot_button)
+    text = database.get_message_text(message, 'admin_device')
+    device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_device")
+    markup.add(device_button)
     text = database.get_message_text(message, 'exit')
     exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(exit_button)
-    text = database.get_message_text(message, 'admin_menu')
-    mess = bot.send_message(message.chat.id, text,
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_menu')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2,
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
+# handle Admin Users menu
+def command_admin_users(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'shutdown')
+    shutdown_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_bot")
+    markup.add(shutdown_bot_button)
+    text = database.get_message_text(message, 'shutdown')
+    shutdown_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_device")
+    markup.add(shutdown_device_button)
+    text = database.get_message_text(message, 'restart')
+    restart_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_bot")
+    markup.add(restart_bot_button)
+    text = database.get_message_text(message, 'restart')
+    restart_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_device")
+    markup.add(restart_device_button)
+    text = database.get_message_text(message, 'return')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(exit_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'admin_menu')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3,
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
+# handle Admin Bot menu
+def command_admin_bot(message: telebot.types.Message, bot: telebot.TeleBot, update: bool) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    if update:
+        text = database.get_message_text(message, 'update')
+        update_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_update_bot")
+        markup.add(update_bot_button)
+    text = database.get_message_text(message, 'shutdown')
+    shutdown_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_bot")
+    markup.add(shutdown_bot_button)
+    text = database.get_message_text(message, 'restart')
+    restart_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_bot")
+    markup.add(restart_bot_button)
+    text = database.get_message_text(message, 'return')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(exit_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_bot')
+    text3 = database.get_message_text(message, 'admin_menu')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3,
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
+# handle Admin Device menu
+def command_admin_device(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'shutdown')
+    shutdown_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_shutdown_device")
+    markup.add(shutdown_device_button)
+    text = database.get_message_text(message, 'restart')
+    restart_device_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_device")
+    markup.add(restart_device_button)
+    text = database.get_message_text(message, 'return')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(exit_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_device')
+    text3 = database.get_message_text(message, 'admin_menu')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
