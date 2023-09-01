@@ -42,7 +42,7 @@ def info_about_version(ver: int, message: telebot.types.Message = None) -> tuple
         text = database.get_message_text(message, 'old_ver')
         return (online_ver, (text + ": " + response.json()['tag_name'] + " (" + str(online_ver) + "))").replace('\n', ''))
 
-# delete previously sent message by bot
+# delete previously sent message by Bot
 def delete_previous_bot_message(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     bot.delete_message(message.chat.id, database.get_last_message(message))
 
@@ -212,7 +212,7 @@ def command_language_cancel(message: telebot.types.Message, bot: telebot.TeleBot
     database.register_last_message(mess)
 
 # handle /about command
-def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int) -> None:
+def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int, tag: str) -> None:
     text1 = database.get_message_text(message, 'command_about_ver_status')
     text2 = database.get_message_text(message, 'command_about_ver')
     text3 = database.get_message_text(message, 'command_about_github_username')
@@ -223,7 +223,7 @@ def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int
                     + "*" + bot_name + "*\n"
                     + text4 + ": _" + text5 + "_\n"
                     + text3 + ": _@" + github_username + "_\n"
-                    + text2 + ": _" + str(ver) + "_\n"
+                    + text2 + ": _" + tag + " (" + str(ver) + ")_\n"
                     + text1 + ": _" + info_about_version(ver, message)[1] + "_\n"
                     + "© _2023_", parse_mode= 'Markdown')
     database.register_last_message(mess)
