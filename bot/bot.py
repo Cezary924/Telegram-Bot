@@ -1,4 +1,4 @@
-import telebot, os, sys, signal, time
+import telebot, os, sys, signal, time, subprocess
 from threading import Thread
 
 # get path of directory containing bot script
@@ -29,12 +29,9 @@ import admin, basic_commands, database, logger
 import crystal_ball, top_spotify_artist, reminder
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
-# open file containing version number and write/read to/from it
-os.system('git rev-list --count master > ../version.txt')
-ver = func.read_file("version.txt", "../version.txt")
-os.remove('../version.txt')
-ver = str(ver[0])
-ver = int(ver)
+# get commit count & current tag name
+commit_count = int(subprocess.check_output('git rev-list --count master').decode("utf-8").replace('\n', ''))
+version_tag = subprocess.check_output('git describe --abbrev=0 --tags').decode("utf-8").replace('\n', '')
 
 # create bot instance
 bot = telebot.TeleBot(token)
@@ -147,7 +144,7 @@ def command_admin(message: telebot.types.Message) -> None:
     database.set_current_state(message, "admin")
     if database.admin_check(message):
         update = False
-        if basic_commands.info_about_version(ver, message)[0] > ver:
+        if basic_commands.info_about_version(commit_count, message)[0] > commit_count:
             update = True
         admin.command_admin(message, bot, update)
     else:
@@ -402,7 +399,7 @@ def command_about(message: telebot.types.Message) -> None:
     if database.guest_check(message, bot) != True:
         return
     database.set_current_state(message, "about")
-    basic_commands.command_about(message, bot, ver)
+    basic_commands.command_about(message, bot, commit_count, version_tag)
 
 # handle /tiktok command
 @bot.message_handler(commands=['tiktok'])
