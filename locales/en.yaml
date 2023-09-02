@@ -11,6 +11,7 @@ command_dataprocessing_lang_switch: 🇵🇱 Polski
 not_working_buttons: Sorry, this button does not work anymore... 😥
 permission_denied: Sorry, you cannot use this command... 😭\n\nPlease, contact the Administrator for a higher permission level 🧑‍🔬
 permission_denied_contact_button: 🧑‍🔬 Contact the Admin
+banned_info: Sorry, you are not allowed to communicate with me 😐
 send_start_info: The Bot has been started successfully!
 send_stop_info: The Bot has been stopped!
 send_error_info: The Bot has encountered an error!
