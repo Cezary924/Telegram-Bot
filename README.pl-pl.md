@@ -13,6 +13,7 @@
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Polski & Angielski)
+- Zarządzanie użytkownikami 🙋‍♂️🙋‍♀️ (Zmiana ról & Usuwanie danych)
 - Zarządzanie stanem urządzenia ⚙️ (Wyłączanie & Ponowne uruchamianie) 
 
 ## ⚙️ Instalacja i konfiguracja
