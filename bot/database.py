@@ -273,6 +273,22 @@ def get_last_message(message: telebot.types.Message) -> int:
         database_lock.release()
         return message.id
 
+# get list of users
+def get_users() -> list[tuple[int, int, str]]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT rowid, id, first_name FROM People;")
+    users = cursor.fetchall()
+    database_lock.release()
+    return users
+
+# get user data
+def get_user_data(userid: int) -> tuple[int, str, str, str, int]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT rowid, first_name, last_name, username, role FROM People WHERE id = ?;", (userid, ))
+    data = cursor.fetchone()
+    database_lock.release()
+    return data
+
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
     send_message_to_admins(bot, "", True, 'send_start_info')
