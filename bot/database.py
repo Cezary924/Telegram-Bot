@@ -117,6 +117,24 @@ def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dat
         bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
         return False
 
+# check if person is banned
+def banned_check(message: telebot.types.Message) -> bool:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    database_lock.release()
+    if present == 1:
+        database_lock.acquire(True)
+        cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
+        (role,)=cursor.fetchone()
+        database_lock.release()
+        if role >= 0:
+            return False
+        else:
+            return True
+    else:
+        return False
+
 # check if person is user
 def user_check(message: telebot.types.Message) -> bool:
     database_lock.acquire(True)
