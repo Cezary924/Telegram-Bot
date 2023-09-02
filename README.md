@@ -12,6 +12,7 @@
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
+- User management 🙋‍♂️🙋‍♀️ (Changing roles & Deleting data)
 - Device status management ⚙️ (Shutdown & Restart) 
 
 ## ⚙️ Installation & Configuration
