@@ -332,6 +332,18 @@ def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_restart_device_yes")
     admin.command_admin_restart_device_yes(message, bot)
+
+def command_admin_users_search(message: telebot.types.Message) -> None:
+    func.print_log("/command_admin_users_search: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "admin_users_search")
+    admin.command_admin_users_search(message, bot)
 def command_admin_users_id_check(message: telebot.types.Message) -> None:
     func.print_log("/admin_users_id_check: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -962,6 +974,17 @@ def echo_reminder_set(message: telebot.types.Message) -> None:
         banned_info(message)
         return
     reminder.command_reminder_set_date(message, bot)
+
+# handle admin_users_search messages
+@bot.message_handler(func=lambda message: "admin_users_search" in database.get_current_state(message))
+def echo_admin_users_search(message: telebot.types.Message) -> None:
+    func.print_log("Searching for user with their ID: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    admin.command_admin_users_search_received_message(message, bot)
 
 # handle admin_users_id_check messages
 @bot.message_handler(func=lambda message: "admin_users_id_check" in database.get_current_state(message))
