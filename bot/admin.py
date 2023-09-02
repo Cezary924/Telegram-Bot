@@ -230,6 +230,36 @@ def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.Te
     mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
+# handle checking userid of message creator
+def command_admin_users_id_check(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_users_id_check')
+    text4 = database.get_message_text(message, 'command_admin_users_id_check_mess')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
+                     parse_mode = 'Markdown')
+    database.register_last_message(mess)
+def command_admin_users_id_check_received_message(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'return')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(exit_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_users_id_check')
+    try:
+        userid = message.forward_from.id
+        first_name = message.forward_from.first_name
+    except:
+        text4 = database.get_message_text(message, 'command_admin_users_id_check_received_message_wrong')
+        mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
+                        parse_mode = 'Markdown', reply_markup = markup)
+    else:
+        text4 = database.get_message_text(message, 'command_admin_users_id_check_received_message')
+        mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4 + " " + first_name + " (" + str(userid) + ").",
+                        parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
 def command_admin_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_admin_return')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
