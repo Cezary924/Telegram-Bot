@@ -20,7 +20,7 @@ def check_reminders(bot: telebot.TeleBot) -> None:
                 text7 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'date')
                 bot.send_message(reminders[i][3], "🔔 *" + text1 + ":*\n\n" + text5 + "\n" + text6 + ": _" + reminders[i][2] + "_\n" + text7 + ": _" + reminders[i][1] + "_", parse_mode='Markdown')
                 database.edit_notified_status(reminders[i][0], 1)
-                func.print_log("Reminder notification: " + database.get_user_details(reminders[i][3])[0] + " (" + str(reminders[i][3]) + ").")
+                func.print_log("Reminder notification: " + database.get_user_data(reminders[i][3])[1] + " (" + str(reminders[i][3]) + ").")
             elif now_obj > date_obj:
                 text1 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'reminder')
                 text5 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'reminder_notification_delayed')
@@ -28,7 +28,7 @@ def check_reminders(bot: telebot.TeleBot) -> None:
                 text7 = database.get_message_text(database.create_empty_message(reminders[i][3]), 'date')
                 bot.send_message(reminders[i][3], "🔔 *" + text1 + ":*\n\n" + text5 + "\n" + text6 + ": _" + reminders[i][2] + "_\n" + text7 + ": _" + reminders[i][1] + "_", parse_mode='Markdown')
                 database.edit_notified_status(reminders[i][0], 1)
-                func.print_log("Reminder delayed notification: " + database.get_user_details(reminders[i][3])[0] + " (" + str(reminders[i][3]) + ").")
+                func.print_log("Reminder delayed notification: " + database.get_user_data(reminders[i][3])[1] + " (" + str(reminders[i][3]) + ").")
 
 # handle /reminder command
 def command_reminder(message: telebot.types.Message, bot: telebot.TeleBot) -> None:

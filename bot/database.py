@@ -157,14 +157,6 @@ def admin_check(message: telebot.types.Message) -> bool:
     else:
         return False
 
-# get tuple with user details
-def get_user_details(id: int) -> tuple[str, str, str, str, int]:
-    database_lock.acquire(True)
-    cursor.execute("SELECT first_name, last_name, username, language_code, role FROM People WHERE id = ?;", (id, ))
-    user = cursor.fetchone()
-    database_lock.release()
-    return user
-
 # save last command used by person
 def set_current_state(message: telebot.types.Message, state: str = "0") -> None:
     database_lock.acquire(True)
