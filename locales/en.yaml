@@ -36,6 +36,15 @@ command_admin_shutdown_device_yes: The device is shutting down...
 command_admin_shutdown_device: Are you sure you want to shut down the device running the Bot?
 command_admin_shutdown_bot_yes: The Bot is shutting down...
 command_admin_shutdown_bot: Are you sure you want to shut down the Bot?
+command_admin_users_list: 📃 Choose the User from a list
+command_admin_users_list_mess: Manage User details
+command_admin_users_search: 🔎 Search for the User using their ID
+command_admin_users_search_mess: Enter the User ID
+command_admin_users_search_mess_wrong: The User with entered ID has not been found in the database 😞
+command_admin_users_id_check: 🆔 Find the User ID
+command_admin_users_id_check_mess: Forward a message created by the User whose ID you want to find 😁
+command_admin_users_id_check_received_message: I have received a message which is created by 
+command_admin_users_id_check_received_message_wrong: I have not received the forwarded message 😐
 admin: 🛠️ Admin
 admin_menu: 'Select the task of the following:'
 exit: ❌ Exit
