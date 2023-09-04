@@ -281,6 +281,14 @@ def get_user_data(userid: int) -> tuple[int, str, str, str, int]:
     database_lock.release()
     return data
 
+# get user data with rowid
+def get_user_data_rowid(rowid: int) -> tuple[int, str, str, str, int]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT id, first_name, last_name, username, role FROM People WHERE rowid = ?;", (rowid, ))
+    data = cursor.fetchone()
+    database_lock.release()
+    return data
+
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
     send_message_to_admins(bot, "", True, 'send_start_info')
