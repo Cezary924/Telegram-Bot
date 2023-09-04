@@ -333,6 +333,17 @@ def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
     database.set_current_state(message, "admin_restart_device_yes")
     admin.command_admin_restart_device_yes(message, bot)
 
+def command_admin_users_list(message: telebot.types.Message) -> None:
+    func.print_log("/command_admin_users_list: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "admin_users_list")
+    admin.command_admin_users_list(message, bot)
 def command_admin_users_search(message: telebot.types.Message) -> None:
     func.print_log("/command_admin_users_search: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -366,9 +377,15 @@ def command_admin_return(message: telebot.types.Message) -> None:
     if "admin" == database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         admin.command_admin_return(message, bot)
+    elif "admin_users_id_check_correct" == database.get_current_state(message):
+        bot.edit_message_reply_markup(chat_id = message.chat.id, message_id = database.get_last_message(message), reply_markup = None)
+        command_admin_users(message)
     elif database.get_current_state(message) in ['admin_users', 'admin_bot', 'admin_device']:
         basic_commands.delete_previous_bot_message(message, bot)
         command_admin(message)
+    elif '_user' in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+        command_admin_users(message)
     elif '_users' in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         command_admin_users(message)
