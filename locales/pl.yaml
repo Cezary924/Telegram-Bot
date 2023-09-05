@@ -39,7 +39,10 @@ command_admin_shutdown_bot: Czy na pewno chcesz wyłączyć skrypt Bota?
 command_admin_user: 🙋‍♀️ Użytkownik
 command_admin_user_mess: Dane użytkownika
 command_admin_user_role_change: 🎖️ Zmień rangę
+command_admin_user_role_change_mess: Wybierz nową rangę
 command_admin_user_delete: 🗑️ Usuń dane użytkownika
+command_admin_user_delete_mess: Czy na pewno chcesz usunąć wszystkie dane tego użytkownika?
+command_admin_user_delete_mess_yes: Usunięto wszystkie dane tego użytkownika
 command_admin_users_list: 📃 Wybierz użytkownika z listy
 command_admin_users_list_mess: Zarządzaj danymi użytkownika
 command_admin_users_search: 🔎 Wyszukaj użytkownika po jego ID
