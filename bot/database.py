@@ -266,25 +266,17 @@ def get_last_message(message: telebot.types.Message) -> int:
         return message.id
 
 # get list of users
-def get_users() -> list[tuple[int, int, str]]:
+def get_users() -> list[tuple[int, str]]:
     database_lock.acquire(True)
-    cursor.execute("SELECT rowid, id, first_name FROM People;")
+    cursor.execute("SELECT id, first_name FROM People;")
     users = cursor.fetchall()
     database_lock.release()
     return users
 
 # get user data
-def get_user_data(userid: int) -> tuple[int, str, str, str, int]:
+def get_user_data(userid: int) -> tuple[str, str, str, int]:
     database_lock.acquire(True)
-    cursor.execute("SELECT rowid, first_name, last_name, username, role FROM People WHERE id = ?;", (userid, ))
-    data = cursor.fetchone()
-    database_lock.release()
-    return data
-
-# get user data with rowid
-def get_user_data_rowid(rowid: int) -> tuple[int, str, str, str, int]:
-    database_lock.acquire(True)
-    cursor.execute("SELECT id, first_name, last_name, username, role FROM People WHERE rowid = ?;", (rowid, ))
+    cursor.execute("SELECT first_name, last_name, username, role FROM People WHERE id = ?;", (userid, ))
     data = cursor.fetchone()
     database_lock.release()
     return data
