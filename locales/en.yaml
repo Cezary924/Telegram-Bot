@@ -20,7 +20,7 @@ forward_message_to_admin: Your report-message has been sent successfully 😁
 no_admin: Sorry, your report-message could not be sent... Please, try again later 😞
 message_forwarded_to_admin: would like to send you this report-message
 hi: Hi
-admin_users: 🙋‍♂️🙋‍♀️ Users Management
+admin_users: 🙋‍♂️ Users Management
 admin_bot: 🤖 Bot Management
 admin_device: 🖥️ Device Management
 command_admin_update_bot_yes_finish: The Bot has been updated!
@@ -36,6 +36,10 @@ command_admin_shutdown_device_yes: The device is shutting down...
 command_admin_shutdown_device: Are you sure you want to shut down the device running the Bot?
 command_admin_shutdown_bot_yes: The Bot is shutting down...
 command_admin_shutdown_bot: Are you sure you want to shut down the Bot?
+command_admin_user: 🙋‍♀️ User
+command_admin_user_mess: User details
+command_admin_user_role_change: 🎖️ Change the rank
+command_admin_user_delete: 🗑️ Usuń dane użytkownika
 command_admin_users_list: 📃 Choose the User from a list
 command_admin_users_list_mess: Manage User details
 command_admin_users_search: 🔎 Search for the User using their ID
@@ -45,6 +49,14 @@ command_admin_users_id_check: 🆔 Find the User ID
 command_admin_users_id_check_mess: Forward a message created by the User whose ID you want to find 😁
 command_admin_users_id_check_received_message: I have received a message which is created by 
 command_admin_users_id_check_received_message_wrong: I have not received the forwarded message 😐
+first_name: First name
+last_name: Last name
+username: Username
+role: Rank
+role_banned: Banned
+role_guest: Guest
+role_user: User
+role_admin: Admin
 admin: 🛠️ Admin
 admin_menu: 'Select the task of the following:'
 exit: ❌ Exit
