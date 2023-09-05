@@ -227,12 +227,53 @@ def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.Te
     mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
-# handle searching for user with userid
+# show & edit user details
+def command_admin_user(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    userid = int(database.get_current_state(message).split('_')[-1])
+    markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'command_admin_user_role_change'), callback_data = "command_admin_user_role_change_" + str(userid)))
+    markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'command_admin_user_delete'), callback_data = "command_admin_user_delete_" + str(userid)))
+    markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'return'), callback_data = "command_admin_return"))
+    user = database.get_user_data(userid)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_user')
+    text4 = database.get_message_text(message, 'command_admin_user_mess')
+    if user[0] == None:
+        text4 = text4 + ":\n" + database.get_message_text(message, 'first_name') + ": _-_"
+    else:
+        text4 = text4 + ":\n" + database.get_message_text(message, 'first_name') + ": _" + user[0] + "_"
+    if user[1] == None:
+        text4 = text4 + "\n" + database.get_message_text(message, 'last_name') + ": _-_"
+    else:
+        text4 = text4 + "\n" + database.get_message_text(message, 'last_name') + ": _" + user[1] + "_"
+    if user[2] == None:
+        text4 = text4 + "\n" + database.get_message_text(message, 'username') + ": _-_"
+    else:
+        text4 = text4 + "\n" + database.get_message_text(message, 'username') + ": _" + user[2] + "_"
+    if user[3] == None:
+        role = "-"
+    else:
+        if user[3] == -1:
+            role = database.get_message_text(message, 'role_banned')
+        elif user[3] == 0:
+            role = database.get_message_text(message, 'role_guest')
+        elif user[3] == 1:
+            role = database.get_message_text(message, 'role_user')
+        else:
+            role = database.get_message_text(message, 'role_admin')
+    text4 = text4 + "\n" + database.get_message_text(message, 'role') + ": _" + role + "_"
+    text4 = text4 + "\n" + "Telegram ID" + ": _" + str(userid) + "_"
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
+# handle choosing user from users list
 def command_admin_users_list(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     users = database.get_users()
     for user in users:
-        markup.add(telebot.types.InlineKeyboardButton(text = user[2] + " (" + str(user[1]) + ")", callback_data = "command_admin_user_" + str(user[0])))
+        markup.add(telebot.types.InlineKeyboardButton(text = user[1] + " (" + str(user[0]) + ")", callback_data = "command_admin_user_" + str(user[0])))
     text = database.get_message_text(message, 'return')
     exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
     markup.add(exit_button)
@@ -252,29 +293,6 @@ def command_admin_users_search(message: telebot.types.Message, bot: telebot.Tele
     text4 = database.get_message_text(message, 'command_admin_users_search_mess')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4 + ":",
                      parse_mode = 'Markdown')
-    database.register_last_message(mess)
-def command_admin_users_search_received_message(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    if message.text.isnumeric() == True:
-        userid = int(message.text)
-        users = database.get_users()
-        userrowid = -1
-        for i in range(len(users)):
-            if users[i][1] == userid:
-                userrowid = users[i][0]
-                break
-        if userrowid != -1:
-            
-            return
-    markup = telebot.types.InlineKeyboardMarkup()
-    text = database.get_message_text(message, 'return')
-    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
-    markup.add(exit_button)
-    text1 = database.get_message_text(message, 'admin')
-    text2 = database.get_message_text(message, 'admin_users')
-    text3 = database.get_message_text(message, 'command_admin_users_search')
-    text4 = database.get_message_text(message, 'command_admin_users_search_mess_wrong')
-    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
-                        parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
 # handle checking userid of message creator
