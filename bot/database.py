@@ -281,6 +281,14 @@ def get_user_data(userid: int) -> tuple[str, str, str, int]:
     database_lock.release()
     return data
 
+# edit user role
+def edit_user_role(userid: int, role: int):
+    database_lock.acquire(True)
+    cursor.execute("UPDATE People SET role = ? WHERE id = ?;", 
+                       (role, userid))
+    db_conn.commit()
+    database_lock.release()
+
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
     send_message_to_admins(bot, "", True, 'send_start_info')
