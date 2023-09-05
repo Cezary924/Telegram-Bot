@@ -333,6 +333,17 @@ def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
     database.set_current_state(message, "admin_restart_device_yes")
     admin.command_admin_restart_device_yes(message, bot)
 
+def command_admin_user(message: telebot.types.Message, delete_previous_message: int = 0) -> None:
+    func.print_log("/command_admin_user: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "admin" in database.get_current_state(message) and delete_previous_message == 0:
+        basic_commands.delete_previous_bot_message(message, bot)
+    #database.set_current_state(message, "admin_users_list")
+    admin.command_admin_user(message, bot)
 def command_admin_users_list(message: telebot.types.Message) -> None:
     func.print_log("/command_admin_users_list: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -366,7 +377,6 @@ def command_admin_users_id_check(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "admin_users_id_check")
     admin.command_admin_users_id_check(message, bot)
-
 def command_admin_return(message: telebot.types.Message) -> None:
     func.print_log("", "Admin Menu Return Button: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -1001,7 +1011,29 @@ def echo_admin_users_search(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
-    admin.command_admin_users_search_received_message(message, bot)
+    if message.text.isnumeric() == True:
+        userid = int(message.text)
+        users = database.get_users()
+        userrowid = -1
+        for i in range(len(users)):
+            if users[i][0] == userid:
+                userrowid = users[i][0]
+                break
+        if userrowid != -1:
+            database.set_current_state(message, 'command_admin_user_' + str(userid))
+            command_admin_user(message, 1)
+            return
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'return')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(exit_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_users_search')
+    text4 = database.get_message_text(message, 'command_admin_users_search_mess_wrong')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
+                        parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
 
 # handle admin_users_id_check messages
 @bot.message_handler(func=lambda message: "admin_users_id_check" in database.get_current_state(message))
