@@ -37,11 +37,14 @@ command_admin_shutdown_device: Are you sure you want to shut down the device run
 command_admin_shutdown_bot_yes: The Bot is shutting down...
 command_admin_shutdown_bot: Are you sure you want to shut down the Bot?
 command_admin_user: 🙋‍♀️ User
-command_admin_user_mess: User details
+command_admin_user_mess: User's details
 command_admin_user_role_change: 🎖️ Change the rank
-command_admin_user_delete: 🗑️ Usuń dane użytkownika
+command_admin_user_role_change_mess: Choose a new rank
+command_admin_user_delete: 🗑️ Delete User's data
+command_admin_user_delete_mess: Are you sure you want to delete all User's data?
+command_admin_user_delete_mess_yes: The User's data has been deleted
 command_admin_users_list: 📃 Choose the User from a list
-command_admin_users_list_mess: Manage User details
+command_admin_users_list_mess: Manage User's details
 command_admin_users_search: 🔎 Search for the User using their ID
 command_admin_users_search_mess: Enter the User ID
 command_admin_users_search_mess_wrong: The User with entered ID has not been found in the database 😞
