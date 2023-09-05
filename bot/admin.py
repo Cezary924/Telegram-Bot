@@ -227,7 +227,7 @@ def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.Te
     mess = bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
-# show & edit user details
+# handle showing user details
 def command_admin_user(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     userid = int(database.get_current_state(message).split('_')[-1])
@@ -265,6 +265,31 @@ def command_admin_user(message: telebot.types.Message, bot: telebot.TeleBot) -> 
     text4 = text4 + "\n" + database.get_message_text(message, 'role') + ": _" + role + "_"
     text4 = text4 + "\n" + "Telegram ID" + ": _" + str(userid) + "_"
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
+# handle editing user role
+def command_admin_user_role_change(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    userid = database.get_current_state(message).split('_')[-1]
+    user = database.get_user_data(userid)
+    for i in range(-1, 3):
+        if i != user[3]:
+            if i == -1:
+                markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'role_banned'), callback_data = "command_admin_user_role_changed_9" + str(userid)))
+            elif i == 0:
+                markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'role_guest'), callback_data = "command_admin_user_role_changed_0" + str(userid)))
+            elif i == 1:
+                markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'role_user'), callback_data = "command_admin_user_role_changed_1" + str(userid)))
+            elif i == 2:
+                markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'role_admin'), callback_data = "command_admin_user_role_changed_2" + str(userid)))
+    markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'return'), callback_data = "command_admin_return_" + str(userid)))
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_user')
+    text4 = database.get_message_text(message, 'command_admin_user_role_change')
+    text5 = database.get_message_text(message, 'command_admin_user_role_change_mess')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + ":",
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 

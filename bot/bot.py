@@ -342,8 +342,41 @@ def command_admin_user(message: telebot.types.Message, delete_previous_message: 
         return
     if "admin" in database.get_current_state(message) and delete_previous_message == 0:
         basic_commands.delete_previous_bot_message(message, bot)
-    #database.set_current_state(message, "admin_users_list")
-    admin.command_admin_user(message, bot)
+def command_admin_user_role_change(message: telebot.types.Message) -> None:
+    func.print_log("/admin_user_role_change: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    if database.admin_check(message):
+        admin.command_admin_user_role_change(message, bot)
+    else:
+        permission_denied(message)
+def command_admin_user_role_changed(message: telebot.types.Message) -> None:
+    func.print_log("User role editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if 'command_admin_user_role_changed_' not in database.get_current_state(message):
+        bot.send_message(message.chat.id, database.get_message_text(message, 'error'))
+        return
+    if database.admin_check(message):
+        userid = database.get_current_state(message).split('_')[-1]
+        if userid[0] == '9':
+            role = -1
+        else:
+            role = userid[0]
+        userid = userid[1:]
+        database.edit_user_role(userid, role)
+        database.set_current_state(message, database.get_current_state(message).replace(database.get_current_state(message).split('_')[-1], userid))
+        command_admin_user(message)
+    else:
+        permission_denied(message)
 def command_admin_users_list(message: telebot.types.Message) -> None:
     func.print_log("/command_admin_users_list: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
