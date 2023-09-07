@@ -71,7 +71,7 @@ def banned_info(message: telebot.types.Message) -> None:
 
 # send banned info message
 def banned_info(message: telebot.types.Message) -> None:
-    func.print_log("Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     text = database.get_message_text(message, 'banned_info')
     mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)
@@ -194,7 +194,7 @@ def command_dataprocessing_en_no(message: telebot.types.Message) -> None:
 # handle /admin command
 @bot.message_handler(commands=['admin'])
 def command_admin(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -206,7 +206,7 @@ def command_admin(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_users(message: telebot.types.Message) -> None:
-    func.print_log("/admin_users: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Users Management: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -220,7 +220,7 @@ def command_admin_users(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_bot(message: telebot.types.Message) -> None:
-    func.print_log("/admin_bot: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -237,7 +237,7 @@ def command_admin_bot(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_device(message: telebot.types.Message) -> None:
-    func.print_log("/admin_device: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Device Management: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -391,7 +391,7 @@ def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_user(message: telebot.types.Message, delete_previous_message: int = 0) -> None:
-    func.print_log("/admin_user: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> User Management: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -404,7 +404,7 @@ def command_admin_user(message: telebot.types.Message, delete_previous_message: 
     else:
         permission_denied(message)
 def command_admin_user_role_change(message: telebot.types.Message) -> None:
-    func.print_log("/admin_user_role_change: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> User Management -> Role Change: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -417,7 +417,7 @@ def command_admin_user_role_change(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_user_role_changed(message: telebot.types.Message) -> None:
-    func.print_log("User role editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "User role changing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -449,7 +449,7 @@ def command_admin_user_role_changed(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_users_list(message: telebot.types.Message) -> None:
-    func.print_log("/admin_users_list: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Users Management -> List: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -463,7 +463,7 @@ def command_admin_users_list(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_users_search(message: telebot.types.Message) -> None:
-    func.print_log("/admin_users_search: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Users Management -> Search: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -477,7 +477,7 @@ def command_admin_users_search(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_users_id_check(message: telebot.types.Message) -> None:
-    func.print_log("/admin_users_id_check: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Users Management -> ID Checking: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1182,7 +1182,7 @@ def echo_reminder_set(message: telebot.types.Message) -> None:
 # handle admin_users_search messages
 @bot.message_handler(func=lambda message: "admin_users_search" in database.get_current_state(message))
 def echo_admin_users_search(message: telebot.types.Message) -> None:
-    func.print_log("Searching for user with their ID: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Searching for user with their ID: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1215,7 +1215,7 @@ def echo_admin_users_search(message: telebot.types.Message) -> None:
 # handle admin_users_id_check messages
 @bot.message_handler(func=lambda message: "admin_users_id_check" in database.get_current_state(message))
 def echo_admin_users_id_check(message: telebot.types.Message) -> None:
-    func.print_log("User ID checking: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "User ID checking: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
