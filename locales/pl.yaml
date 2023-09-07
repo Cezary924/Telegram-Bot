@@ -60,6 +60,7 @@ role_banned: Zbanowany
 role_guest: Gość
 role_user: Użytkownik
 role_admin: Admin
+role_change_mess: 'Zmieniono Twoją rangę na: _'
 admin: 🛠️ Admin
 admin_menu: 'Wybierz zadanie z podanych:'
 exit: ❌ Wyjście
