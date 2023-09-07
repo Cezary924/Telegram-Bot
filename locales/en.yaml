@@ -40,9 +40,9 @@ command_admin_user: 🙋‍♀️ User
 command_admin_user_mess: User's details
 command_admin_user_role_change: 🎖️ Change the rank
 command_admin_user_role_change_mess: Choose a new rank
-command_admin_user_delete: 🗑️ Delete User's data
-command_admin_user_delete_mess: Are you sure you want to delete all User's data?
-command_admin_user_delete_mess_yes: The User's data has been deleted
+command_admin_user_deletedata: 🗑️ Delete User's data
+command_admin_user_deletedata_mess: Are you sure you want to delete all User's data?
+command_admin_user_deletedata_yes_mess: The User's data has been deleted
 command_admin_users_list: 📃 Choose the User from a list
 command_admin_users_list_mess: Manage User's details
 command_admin_users_search: 🔎 Search for the User using their ID
