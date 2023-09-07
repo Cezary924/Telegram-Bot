@@ -11,34 +11,62 @@ command_dataprocessing_lang_switch: 🇵🇱 Polski
 not_working_buttons: Sorry, this button does not work anymore... 😥
 permission_denied: Sorry, you cannot use this command... 😭\n\nPlease, contact the Administrator for a higher permission level 🧑‍🔬
 permission_denied_contact_button: 🧑‍🔬 Contact the Admin
-send_start_info: 🤖 *The Bot has been started successfully!*
-send_stop_info: 🤖 *The Bot has been stopped!*
-send_error_info: 🤖 *The Bot has encountered an error!*
-send_new_user_info: 🤖 *The Bot has inserted new user details to the database!*
+banned_info: Sorry, you are not allowed to communicate with me 😐
+send_start_info: The Bot has been started successfully!
+send_stop_info: The Bot has been stopped!
+send_error_info: The Bot has encountered an error!
+send_new_user_info: The Bot has inserted new user details to the database!
 forward_message_to_admin: Your report-message has been sent successfully 😁
 no_admin: Sorry, your report-message could not be sent... Please, try again later 😞
 message_forwarded_to_admin: would like to send you this report-message
 hi: Hi
-command_admin_update_bot_yes_finish: 🤖 *The Bot has been updated!*
-command_admin_update_bot_yes: 🤖 *The Bot is updating...*
-command_admin_update_bot: 🤖 *The Bot Update:*\n\nAre you sure you want to update the Bot? The update will be successful if you restart the Bot after the update completion.
+admin_users: 🙋‍♂️ Users Management
+admin_bot: 🤖 Bot Management
+admin_device: 🖥️ Device Management
+command_admin_update_bot_yes_finish: The Bot has been updated!
+command_admin_update_bot_yes: The Bot is updating...
+command_admin_update_bot: Are you sure you want to update the Bot? The update will be successful if you restart the Bot after the update completion.
 'no': ❌ No
 'yes': ✅ Yes
-command_admin_restart_device_yes: 🖥️ *The device is restarting...*
-command_admin_restart_device: 🖥️ *The Device Restart:*\n\nAre you sure you want to restart the device running the Bot?
-command_admin_restart_bot_yes: 🤖 *The Bot is restarting...*
-command_admin_restart_bot: 🤖 *The Bot Restart:*\n\nAre you sure you want to restart the Bot?
-command_admin_shutdown_device_yes: 🖥️ *The device is shutting down...*
-command_admin_shutdown_device: 🖥️ *The Device Shutdown:*\n\nAre you sure you want to shut down the device running the Bot?
-command_admin_shutdown_bot_yes: 🤖 *The Bot is shutting down...*
-command_admin_shutdown_bot: 🤖 *The Bot Shutdown:*\n\nAre you sure you want to shut down the Bot?
-admin_menu: 🛠️ *Admin:*\n\nSelect the task of the following
+command_admin_restart_device_yes: The device is restarting...
+command_admin_restart_device: Are you sure you want to restart the device running the Bot?
+command_admin_restart_bot_yes: The Bot is restarting...
+command_admin_restart_bot: Are you sure you want to restart the Bot?
+command_admin_shutdown_device_yes: The device is shutting down...
+command_admin_shutdown_device: Are you sure you want to shut down the device running the Bot?
+command_admin_shutdown_bot_yes: The Bot is shutting down...
+command_admin_shutdown_bot: Are you sure you want to shut down the Bot?
+command_admin_user: 🙋‍♀️ User
+command_admin_user_mess: User's details
+command_admin_user_role_change: 🎖️ Change the rank
+command_admin_user_role_change_mess: Choose a new rank
+command_admin_user_deletedata: 🗑️ Delete User's data
+command_admin_user_deletedata_mess: Are you sure you want to delete all User's data?
+command_admin_user_deletedata_yes_mess: The User's data has been deleted
+command_admin_users_list: 📃 Choose the User from a list
+command_admin_users_list_mess: Manage User's details
+command_admin_users_search: 🔎 Search for the User using their ID
+command_admin_users_search_mess: Enter the User ID
+command_admin_users_search_mess_wrong: The User with entered ID has not been found in the database 😞
+command_admin_users_id_check: 🆔 Find the User ID
+command_admin_users_id_check_mess: Forward a message created by the User whose ID you want to find 😁
+command_admin_users_id_check_received_message: I have received a message which is created by 
+command_admin_users_id_check_received_message_wrong: I have not received the forwarded message 😐
+first_name: First name
+last_name: Last name
+username: Username
+role: Rank
+role_banned: Banned
+role_guest: Guest
+role_user: User
+role_admin: Admin
+role_change_mess: 'Your rank has been changed to: _'
+admin: 🛠️ Admin
+admin_menu: 'Select the task of the following:'
 exit: ❌ Exit
-restart_device: 🔁 The Device Restart 🖥️
-restart_bot: 🔁 The Bot Restart 🤖
-shutdown_device: 📴 The Device Shutdown 🖥️
-shutdown_bot: 📴 The Bot Shutdown 🤖
-update_bot: ⬇️ The Bot Update 🤖
+restart: 🔁 Restart
+shutdown: 📴 Shutdown
+update: ⬇️ Update
 downloader_start: Processing the URL... ⏳
 downloader_processing: Please be patient - this operation may take a while ⌚
 downloader_error: Sorry, downloading videos from this website is not currently possible... Please, try again later 😞

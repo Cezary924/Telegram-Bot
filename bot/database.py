@@ -117,6 +117,42 @@ def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dat
         bot.send_message(message.chat.id, text, parse_mode = 'Markdown', reply_markup = markup)
         return False
 
+# check if person is banned
+def banned_check(message: telebot.types.Message) -> bool:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    database_lock.release()
+    if present == 1:
+        database_lock.acquire(True)
+        cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
+        (role,)=cursor.fetchone()
+        database_lock.release()
+        if role >= 0:
+            return False
+        else:
+            return True
+    else:
+        return False
+
+# check if person is banned
+def banned_check(message: telebot.types.Message) -> bool:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    database_lock.release()
+    if present == 1:
+        database_lock.acquire(True)
+        cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
+        (role,)=cursor.fetchone()
+        database_lock.release()
+        if role >= 0:
+            return False
+        else:
+            return True
+    else:
+        return False
+
 # check if person is user
 def user_check(message: telebot.types.Message) -> bool:
     database_lock.acquire(True)
@@ -138,14 +174,6 @@ def admin_check(message: telebot.types.Message) -> bool:
         return True
     else:
         return False
-
-# get tuple with user details
-def get_user_details(id: int) -> tuple[str, str, str, str, int]:
-    database_lock.acquire(True)
-    cursor.execute("SELECT first_name, last_name, username, language_code, role FROM People WHERE id = ?;", (id, ))
-    user = cursor.fetchone()
-    database_lock.release()
-    return user
 
 # save last command used by person
 def set_current_state(message: telebot.types.Message, state: str = "0") -> None:
@@ -255,6 +283,41 @@ def get_last_message(message: telebot.types.Message) -> int:
         database_lock.release()
         return message.id
 
+# get list of users
+def get_users() -> list[tuple[int, str]]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT id, first_name FROM People;")
+    users = cursor.fetchall()
+    database_lock.release()
+    return users
+
+# get user data
+def get_user_data(userid: int) -> tuple[str, str, str, int]:
+    database_lock.acquire(True)
+    cursor.execute("SELECT first_name, last_name, username, role FROM People WHERE id = ?;", (userid, ))
+    data = cursor.fetchone()
+    database_lock.release()
+    return data
+
+# edit user role
+def edit_user_role(userid: int, role: int):
+    database_lock.acquire(True)
+    cursor.execute("UPDATE People SET role = ? WHERE id = ?;", 
+                       (role, userid))
+    db_conn.commit()
+    database_lock.release()
+
+# send info about role change
+def send_role_change_info(userid: int, bot: telebot.TeleBot, text: str) -> None:
+    send_message_to_user(userid, bot, text + "_", get_msg_text = 'role_change_mess')
+
+# send message to user
+def send_message_to_user(userid: int, bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
+    if get_msg_text != None:
+        text = get_message_text(create_empty_message(userid), get_msg_text) + text
+    bot.send_message(userid, "*" + get_message_text(create_empty_message(userid), 'command_admin_user') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
+    func.print_log("", "The message has been sent to: " + get_user_data(userid)[0] + " (" + str(userid) + ").")
+
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
     send_message_to_admins(bot, "", True, 'send_start_info')
@@ -265,11 +328,11 @@ def send_stop_info(bot: telebot.TeleBot) -> None:
 
 # send info about error
 def send_error_info(bot: telebot.TeleBot, err: str) -> None:
-    send_message_to_admins(bot, "\n\nError: \n_" + err + "_", False, 'send_error_info')
+    send_message_to_admins(bot, "\nError: _" + err + "_", False, 'send_error_info')
 
 # send new user info
 def send_new_user_info(bot: telebot.TeleBot, user_id: int, user_first_name: str) -> None:
-    send_message_to_admins(bot, "\n\nNick: _" + user_first_name + "_\nID: _" + str(user_id) + "_", False, 'send_new_user_info')
+    send_message_to_admins(bot, "\nNick: _" + user_first_name + "_\nID: _" + str(user_id) + "_", False, 'send_new_user_info')
 
 # send message to Admins
 def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
@@ -283,7 +346,7 @@ def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification
         for i in range(len(ids)):
             if get_msg_text != None:
                 text = get_message_text(create_empty_message(ids[i]), get_msg_text) + text
-            bot.send_message(ids[i], text, disable_notification=disable_notification, parse_mode = 'Markdown')
+            bot.send_message(ids[i], "*" + get_message_text(create_empty_message(ids[i]), 'admin_bot') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
             func.print_log("", "The message has been sent to: " + names[i] + " (" + str(ids[i]) + ").")
     else:
         func.print_log("", "ERROR: Database error - The messages could not be sent because there are no Admins in the database.")
