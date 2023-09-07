@@ -448,6 +448,32 @@ def command_admin_user_role_changed(message: telebot.types.Message) -> None:
         command_admin_user(message)
     else:
         permission_denied(message)
+def command_admin_user_deletedata(message: telebot.types.Message) -> None:
+    func.print_log("", "Admin Menu -> User Management -> Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    if database.admin_check(message):
+        admin.command_admin_user_deletedata(message, bot)
+    else:
+        permission_denied(message)
+def command_admin_user_deletedata_yes(message: telebot.types.Message) -> None:
+    func.print_log("", "Admin Menu -> User Management -> Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "admin" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    if database.admin_check(message):
+        admin.command_admin_user_deletedata_yes(message, bot)
+    else:
+        permission_denied(message)
 def command_admin_users_list(message: telebot.types.Message) -> None:
     func.print_log("", "Admin Menu -> Users Management -> List: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -524,6 +550,8 @@ def command_admin_return(message: telebot.types.Message) -> None:
     elif '_device' in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
         command_admin_device(message)
+    elif 'admin_return' in database.get_current_state(message):
+        command_admin_user(message)
     else:
         not_working_buttons(message)
 

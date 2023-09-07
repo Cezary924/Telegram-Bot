@@ -232,7 +232,7 @@ def command_admin_user(message: telebot.types.Message, bot: telebot.TeleBot) -> 
     markup = telebot.types.InlineKeyboardMarkup()
     userid = int(database.get_current_state(message).split('_')[-1])
     markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'command_admin_user_role_change'), callback_data = "command_admin_user_role_change_" + str(userid)))
-    markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'command_admin_user_delete'), callback_data = "command_admin_user_delete_" + str(userid)))
+    markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'command_admin_user_deletedata'), callback_data = "command_admin_user_deletedata_" + str(userid)))
     markup.add(telebot.types.InlineKeyboardButton(text = database.get_message_text(message, 'return'), callback_data = "command_admin_return"))
     user = database.get_user_data(userid)
     text1 = database.get_message_text(message, 'admin')
@@ -290,6 +290,40 @@ def command_admin_user_role_change(message: telebot.types.Message, bot: telebot.
     text4 = database.get_message_text(message, 'command_admin_user_role_change')
     text5 = database.get_message_text(message, 'command_admin_user_role_change_mess')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5 + ":",
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+
+# handle user data deletion
+def command_admin_user_deletedata(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    userid = database.get_current_state(message).split('_')[-1]
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'yes')
+    yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_user_deletedata_yes_" + userid)
+    markup.add(yes_button)
+    text = database.get_message_text(message, 'no')
+    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return_" + userid)
+    markup.add(no_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_user')
+    text4 = database.get_message_text(message, 'command_admin_user_deletedata')
+    text5 = database.get_message_text(message, 'command_admin_user_deletedata_mess')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5,
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_admin_user_deletedata_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    userid = database.get_current_state(message).split('_')[-1]
+    database.deletedata(database.create_empty_message(int(userid)))
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'return')
+    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_return")
+    markup.add(no_button)
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'admin_users')
+    text3 = database.get_message_text(message, 'command_admin_user')
+    text4 = database.get_message_text(message, 'command_admin_user_deletedata')
+    text5 = database.get_message_text(message, 'command_admin_user_deletedata_yes_mess')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + " > " + text4 + ":*\n\n" + text5,
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 
