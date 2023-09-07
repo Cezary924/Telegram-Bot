@@ -402,11 +402,21 @@ def command_admin_user_role_changed(message: telebot.types.Message) -> None:
         userid = database.get_current_state(message).split('_')[-1]
         if userid[0] == '9':
             role = -1
+            userid = userid[1:]
+            role_str = database.get_message_text(database.create_empty_message(userid), 'role_banned')
         else:
             role = userid[0]
-        userid = userid[1:]
+            role = int(role)
+            userid = userid[1:]
+            if role == 2:
+                role_str = database.get_message_text(database.create_empty_message(userid), 'role_admin')
+            elif role == 1:
+                role_str = database.get_message_text(database.create_empty_message(userid), 'role_user')
+            else:
+                role_str = database.get_message_text(database.create_empty_message(userid), 'role_guest')
         database.edit_user_role(userid, role)
         database.set_current_state(message, database.get_current_state(message).replace(database.get_current_state(message).split('_')[-1], userid))
+        database.send_role_change_info(userid, bot, role_str)
         command_admin_user(message)
     else:
         permission_denied(message)
