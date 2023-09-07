@@ -13,12 +13,12 @@ def start_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> Non
     try:
         post = instaloader.Post.from_shortcode(loader.context, url.split("/")[-2])
     except Exception as err:
-        func.print_log("ERROR: Module error - Instagram.")
+        func.print_log(message.text, "ERROR: Module error - Instagram.")
         downloader.send_error_message(bot, message, 'instagram')
         return
     folder_name = str(message.chat.id) + str(message.message_id)
     if loader.download_post(post, folder_name) != True:
-        func.print_log("ERROR: Module error - Instagram.")
+        func.print_log(message.text, "ERROR: Module error - Instagram.")
         downloader.send_error_message(bot, message, 'instagram')
     downloaded_files = os.listdir("./" + folder_name)
     downloaded_files = [val for val in downloaded_files if not val.endswith(".txt") and not val.endswith(".json.xz")]
@@ -33,7 +33,7 @@ def start_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> Non
                     with open(folder_name + "\\" + media_name, 'rb') as f:
                         bot.send_video(message.chat.id, f, timeout=10000)
                 except Exception as err:
-                    func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+                    func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
                     downloader.send_error_message(bot, message, 'instagram')
                 finally:
                     downloaded_files.remove(media_name)
@@ -44,7 +44,7 @@ def start_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> Non
             with open(folder_name + "\\" + media_name, 'rb') as f:
                 bot.send_photo(message.chat.id, f)
         except Exception as err:
-            func.print_log("ERROR: Open error - Could not open the \'.jpg\' file.")
+            func.print_log(message.text, "ERROR: Open error - Could not open the \'.jpg\' file.")
             downloader.send_error_message(bot, message, 'instagram')
         finally:
             downloaded_files.remove(media_name)

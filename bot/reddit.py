@@ -18,25 +18,25 @@ def start_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     # downloading vid
     response = requests.request("GET", url, headers = {'User-agent': 'Reddit-Downloader'})
     if response.status_code != 200:
-        func.print_log("ERROR: Module error - Reddit.")
+        func.print_log(message.text, "ERROR: Module error - Reddit.")
         downloader.send_error_message(bot, message, 'reddit')
         return
     try:
         response = response.json()
     except Exception as err:
-        func.print_log("ERROR: Module error - Reddit.")
+        func.print_log(message.text, "ERROR: Module error - Reddit.")
         downloader.send_error_message(bot, message, 'reddit')
         return
     try:
         vid_url = response[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"]
         audio_url = response[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"].split("DASH_")[0] + "DASH_audio.mp4" + response[0]["data"]["children"][0]["data"]["secure_media"]["reddit_video"]["fallback_url"].split(".mp4")[1]
     except Exception as err:
-        func.print_log("ERROR: Module error - Reddit.")
+        func.print_log(message.text, "ERROR: Module error - Reddit.")
         downloader.send_error_message(bot, message, 'reddit')
         return
     response = requests.request("GET", vid_url, headers = {'User-agent': 'Reddit-Downloader'})
     if response.status_code != 200:
-        func.print_log("ERROR: Module error - Reddit.")
+        func.print_log(message.text, "ERROR: Module error - Reddit.")
         downloader.send_error_message(bot, message, 'reddit')
         return
     vid_name = str(message.chat.id) + str(message.message_id) + "_vid.mp4"
@@ -44,7 +44,7 @@ def start_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         with open(vid_name, "wb") as f:
             f.write(response.content)
     except OSError:
-        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
         downloader.send_error_message(bot, message, 'reddit')
         return
     response = requests.request("GET", audio_url, headers = {'User-agent': 'Reddit-Downloader'})
@@ -59,7 +59,7 @@ def start_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
             with open(vid_name, "rb") as f:
                 bot.send_video(message.chat.id, f)
         except OSError:
-            func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+            func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
             downloader.send_error_message(bot, message, 'reddit')
         finally:
             os.remove(vid_name)
@@ -71,7 +71,7 @@ def start_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         with open(audio_name, "wb") as f:
             f.write(response.content)
     except OSError:
-        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
         downloader.send_error_message(bot, message, 'reddit')
         return
 
@@ -86,7 +86,7 @@ def start_reddit(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         with open(vid_name, "rb") as f:
             bot.send_video(message.chat.id, f)
     except OSError:
-        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
         downloader.send_error_message(bot, message, 'reddit')
     finally:
         os.remove(vid_name)

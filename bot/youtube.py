@@ -14,7 +14,7 @@ def start_youtube(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     try:
         YouTube(url).streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first().download(filename=vid_name)
     except Exception as err:
-        func.print_log("ERROR: Module error - YouTube.")
+        func.print_log(message.text, "ERROR: Module error - YouTube.")
         downloader.send_error_message(bot, message, 'youtube')
         return
 
@@ -23,7 +23,7 @@ def start_youtube(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         with open(vid_name, 'rb') as f:
             bot.send_video(message.chat.id, f, timeout=10000)
     except Exception as err:
-        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
         downloader.send_error_message(bot, message, 'youtube')
     finally:
         os.remove(vid_name)

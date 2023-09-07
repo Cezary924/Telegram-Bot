@@ -26,7 +26,7 @@ def start_tumblr(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         with open(vid_name, "wb") as f:
             f.write(response.content)
     except OSError:
-        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
         downloader.send_error_message(bot, message, 'tumblr')
     
     # sending vid
@@ -34,7 +34,7 @@ def start_tumblr(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
         with open(vid_name, "rb") as f:
             bot.send_video(message.chat.id, f)
     except OSError:
-        func.print_log("ERROR: Open error - Could not open the \'.mp4\' file.")
+        func.print_log(message.text, "ERROR: Open error - Could not open the \'.mp4\' file.")
         downloader.send_error_message(bot, message, 'tumblr')
     finally:
         os.remove(vid_name)
