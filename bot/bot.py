@@ -251,7 +251,7 @@ def command_admin_device(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_update_bot(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Bot Update: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management -> Update: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -265,7 +265,7 @@ def command_admin_update_bot(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_update_bot_yes(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Bot Update: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management -> Update: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -279,7 +279,7 @@ def command_admin_update_bot_yes(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_shutdown_bot(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Bot Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management -> Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -293,7 +293,7 @@ def command_admin_shutdown_bot(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_shutdown_bot_yes(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Bot Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management -> Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -307,7 +307,7 @@ def command_admin_shutdown_bot_yes(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_shutdown_device(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Device Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Device Management -> Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -321,7 +321,7 @@ def command_admin_shutdown_device(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_shutdown_device_yes(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Device Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Device Management -> Shutdown: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -335,7 +335,7 @@ def command_admin_shutdown_device_yes(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_restart_bot(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Bot Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management -> Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -349,7 +349,7 @@ def command_admin_restart_bot(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_restart_bot_yes(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Bot Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Bot Management -> Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -363,7 +363,7 @@ def command_admin_restart_bot_yes(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_restart_device(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Device Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Device Management -> Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -377,7 +377,7 @@ def command_admin_restart_device(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 def command_admin_restart_device_yes(message: telebot.types.Message) -> None:
-    func.print_log("", "Admin Menu -> Device Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log("", "Admin Menu -> Device Management -> Restart: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1255,7 +1255,7 @@ def echo_all(message: telebot.types.Message) -> None:
 def ctrl_c(signal, frame) -> None:
     database.send_stop_info(bot)
     time.sleep(1)
-    func.print_log("", basic_commands.bot_name, 0)
+    func.print_log("", "", basic_commands.bot_name, 0)
     bot.stop_polling()
     database.commit_close()
     sys.exit(0)
@@ -1272,7 +1272,7 @@ time.sleep(1)
 sys.stdout = logger.Logger()
 
 # starting log message
-func.print_log("", basic_commands.bot_name, 1)
+func.print_log("", "", basic_commands.bot_name, 1)
 
 # execute func sending info about restart
 database.send_start_info(bot)
