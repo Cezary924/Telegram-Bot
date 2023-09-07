@@ -289,6 +289,17 @@ def edit_user_role(userid: int, role: int):
     db_conn.commit()
     database_lock.release()
 
+# send info about role change
+def send_role_change_info(userid: int, bot: telebot.TeleBot, text: str) -> None:
+    send_message_to_user(userid, bot, text + "_", get_msg_text = 'role_change_mess')
+
+# send message to user
+def send_message_to_user(userid: int, bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
+    if get_msg_text != None:
+        text = get_message_text(create_empty_message(userid), get_msg_text) + text
+    bot.send_message(userid, "*" + get_message_text(create_empty_message(userid), 'command_admin_user') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
+    func.print_log("The message has been sent to: " + get_user_data(userid)[0] + " (" + str(userid) + ").")
+
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
     send_message_to_admins(bot, "", True, 'send_start_info')
