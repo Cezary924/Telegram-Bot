@@ -135,6 +135,24 @@ def banned_check(message: telebot.types.Message) -> bool:
     else:
         return False
 
+# check if person is banned
+def banned_check(message: telebot.types.Message) -> bool:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    database_lock.release()
+    if present == 1:
+        database_lock.acquire(True)
+        cursor.execute("SELECT role FROM People WHERE id = ?;", (message.chat.id, ))
+        (role,)=cursor.fetchone()
+        database_lock.release()
+        if role >= 0:
+            return False
+        else:
+            return True
+    else:
+        return False
+
 # check if person is user
 def user_check(message: telebot.types.Message) -> bool:
     database_lock.acquire(True)
@@ -328,7 +346,7 @@ def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification
         for i in range(len(ids)):
             if get_msg_text != None:
                 text = get_message_text(create_empty_message(ids[i]), get_msg_text) + text
-            bot.send_message(ids[i], text, disable_notification=disable_notification, parse_mode = 'Markdown')
+            bot.send_message(ids[i], "*" + get_message_text(create_empty_message(ids[i]), 'admin_bot') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
             func.print_log("", "The message has been sent to: " + names[i] + " (" + str(ids[i]) + ").")
     else:
         func.print_log("", "ERROR: Database error - The messages could not be sent because there are no Admins in the database.")

@@ -64,6 +64,13 @@ def permission_denied(message: telebot.types.Message) -> None:
 
 # send banned info message
 def banned_info(message: telebot.types.Message) -> None:
+    func.print_log("", "Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    text = database.get_message_text(message, 'banned_info')
+    mess = bot.send_message(message.chat.id, text)
+    database.register_last_message(mess)
+
+# send banned info message
+def banned_info(message: telebot.types.Message) -> None:
     func.print_log("Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     text = database.get_message_text(message, 'banned_info')
     mess = bot.send_message(message.chat.id, text)
@@ -79,6 +86,9 @@ def not_working_buttons(message: telebot.types.Message) -> None:
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call: telebot.types.CallbackQuery) -> None:
     func.print_log(str(call.data), "Callback query: " + call.message.chat.first_name + " (" + str(call.message.chat.id) + ").")
+    if database.banned_check(call.message) == True:
+        banned_info(call.message)
+        return
     if database.banned_check(call.message) == True:
         banned_info(call.message)
         return
@@ -99,6 +109,9 @@ def command_dataprocessing_pl(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'command_dataprocessing_lang_switch', 'pl')
     en_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_dataprocessing_en")
@@ -113,6 +126,9 @@ def command_dataprocessing_pl(message: telebot.types.Message) -> None:
     bot.edit_message_text(text, message.chat.id, message.id, parse_mode = 'Markdown', reply_markup = markup)
 def command_dataprocessing_en(message: telebot.types.Message) -> None:
     func.print_log("", "Data Processing Agreement: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.banned_check(message) == True:
         banned_info(message)
         return
@@ -133,6 +149,9 @@ def command_dataprocessing_pl_yes(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     database.guest_check(message, bot, 1)
     database.register_last_message(message, 1)
     database.set_user_language(message, 'pl')
@@ -143,10 +162,16 @@ def command_dataprocessing_pl_no(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     text = database.get_message_text(message, 'command_dataprocessing_no', 'pl')
     bot.send_message(message.chat.id, text)
 def command_dataprocessing_en_yes(message: telebot.types.Message) -> None:
     func.print_log("", "Data Processing Agreement: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.banned_check(message) == True:
         banned_info(message)
         return
@@ -157,6 +182,9 @@ def command_dataprocessing_en_yes(message: telebot.types.Message) -> None:
     bot.send_message(message.chat.id, text)
 def command_dataprocessing_en_no(message: telebot.types.Message) -> None:
     func.print_log("", "Data Processing Agreement: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.banned_check(message) == True:
         banned_info(message)
         return
@@ -577,12 +605,20 @@ def command_start(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     basic_commands.command_start(message, bot)
 
 # handle /features command
 @bot.message_handler(commands=['features'])
 def command_features(message: telebot.types.Message) -> None:
     func.print_log("", "Features: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -985,6 +1021,11 @@ def topspotifyartist(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if "_topspotifyartist" in database.get_current_state(message):
         top_spotify_artist.topspotifyartist(message, bot)
     else:
@@ -994,6 +1035,11 @@ def topspotifyartist(message: telebot.types.Message) -> None:
 @bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
 def forward_message_to_admin(message: telebot.types.Message) -> None:
     func.print_log(message.text, "Report to Admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1010,12 +1056,22 @@ def echo_topspotifyartist(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     top_spotify_artist.topspotifyartist(message, bot)
 
 # handle reminder_edit_date messages
 @bot.message_handler(func=lambda message: "reminder_manage_menu_edit_date_" in database.get_current_state(message))
 def command_reminder_manage_menu_edit_date(message: telebot.types.Message) -> None:
     func.print_log("", "Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1034,6 +1090,11 @@ def command_reminder_manage_menu_edit_content(message: telebot.types.Message) ->
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if len(database.get_current_state(message).split('_')) <= 7:
         basic_commands.delete_previous_bot_message(message, bot)
     reminder.command_reminder_set(message, bot)
@@ -1047,10 +1108,20 @@ def command_reminder_manage_menu_delete(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     basic_commands.delete_previous_bot_message(message, bot)
     reminder.command_reminder_manage_menu_delete(message, bot)
 def command_reminder_manage_menu_delete_yes(message: telebot.types.Message) -> None:
     func.print_log("", "Reminder deleting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1068,6 +1139,11 @@ def echo_reminder_manage_menu(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     basic_commands.delete_previous_bot_message(message, bot)
     reminder.command_reminder_manage_menu(message, bot)
 
@@ -1080,12 +1156,22 @@ def echo_reminder_set_date(message: telebot.types.Message) -> None:
     if database.banned_check(message) == True:
         banned_info(message)
         return
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     reminder.command_reminder_set_date(message, bot)
 
 # handle reminder_set messages
 @bot.message_handler(func=lambda message: "reminder_set" in database.get_current_state(message))
 def echo_reminder_set(message: telebot.types.Message) -> None:
     func.print_log(message.text, "Reminder setting: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
