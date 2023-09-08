@@ -61,7 +61,7 @@ command_language: 🌐 *Zmiana języka:*\n\nWybierz swój język
 command_deletedata_no: 🗑️ *Usuwanie danych:*\n\nOpuszczono menu _/deletedata_ ❌
 command_deletedata_yes: 🗑️ *Usuwanie danych:*\n\nUsunięto zgromadzone dane ✅
 command_deletedata: 🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.
-command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡 PS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
+command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡 \nPS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
 command_contact: ☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @ lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
 report: 📨 Zgłoszenie do Administratora
 command_help_settings: /language - _🌐 Zmiana języka_\n/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n

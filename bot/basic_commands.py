@@ -94,7 +94,7 @@ def command_help(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup.add(exit_button)
     text1 = database.get_message_text(message, 'help')
     text2 = database.get_message_text(message, 'command_help')
-    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2,
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2 + ":",
                      parse_mode = 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_main(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
