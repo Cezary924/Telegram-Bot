@@ -99,7 +99,7 @@ def print_log(message_text: str, info: str, bot_name: str = None, start: bool = 
     print(" " + "-" * (log_length - 2) + " ")
     print(" " + info + " ")
     if len(message_text) > 0:
-        if message_text.isalnum():
+        if message_text.isascii():
             print(" - '" + message_text + "' ")
     print("|" + "=" * (log_length - 2) + "|")
 
