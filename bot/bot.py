@@ -53,7 +53,7 @@ database.create_table_reminder()
 
 # send permission denied message
 def permission_denied(message: telebot.types.Message) -> None:
-    func.print_log("", "Permission denied: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log(message.text, "Permission denied: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'permission_denied_contact_button')
     contact_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_contact")
@@ -64,14 +64,7 @@ def permission_denied(message: telebot.types.Message) -> None:
 
 # send banned info message
 def banned_info(message: telebot.types.Message) -> None:
-    func.print_log("", "Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    text = database.get_message_text(message, 'banned_info')
-    mess = bot.send_message(message.chat.id, text)
-    database.register_last_message(mess)
-
-# send banned info message
-def banned_info(message: telebot.types.Message) -> None:
-    func.print_log("", "Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log(message.text, "Banned info: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     text = database.get_message_text(message, 'banned_info')
     mess = bot.send_message(message.chat.id, text)
     database.register_last_message(mess)
@@ -1059,7 +1052,7 @@ def topspotifyartist(message: telebot.types.Message) -> None:
     else:
         not_working_buttons(message)
 
-# handle messages to admin
+# handle messages to Admin
 @bot.message_handler(func=lambda message: database.get_current_state(message) == "report")
 def forward_message_to_admin(message: telebot.types.Message) -> None:
     func.print_log(message.text, "Report to Admin: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
@@ -1094,7 +1087,7 @@ def echo_topspotifyartist(message: telebot.types.Message) -> None:
 # handle reminder_edit_date messages
 @bot.message_handler(func=lambda message: "reminder_manage_menu_edit_date_" in database.get_current_state(message))
 def command_reminder_manage_menu_edit_date(message: telebot.types.Message) -> None:
-    func.print_log("", "Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log(message.text, "Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1112,7 +1105,7 @@ def command_reminder_manage_menu_edit_date(message: telebot.types.Message) -> No
 # handle reminder_edit_content messages
 @bot.message_handler(func=lambda message: "reminder_manage_menu_edit_content_" in database.get_current_state(message))
 def command_reminder_manage_menu_edit_content(message: telebot.types.Message) -> None:
-    func.print_log("", "Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log(message.text, "Reminder editing: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1210,7 +1203,7 @@ def echo_reminder_set(message: telebot.types.Message) -> None:
 # handle admin_users_search messages
 @bot.message_handler(func=lambda message: "admin_users_search" in database.get_current_state(message))
 def echo_admin_users_search(message: telebot.types.Message) -> None:
-    func.print_log("", "Searching for user with their ID: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log(message.text, "Searching for User with their ID: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
@@ -1243,7 +1236,7 @@ def echo_admin_users_search(message: telebot.types.Message) -> None:
 # handle admin_users_id_check messages
 @bot.message_handler(func=lambda message: "admin_users_id_check" in database.get_current_state(message))
 def echo_admin_users_id_check(message: telebot.types.Message) -> None:
-    func.print_log("", "User ID checking: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    func.print_log(message.text, "User ID checking: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
