@@ -99,7 +99,8 @@ def print_log(message_text: str, info: str, bot_name: str = None, start: bool = 
     print(" " + "-" * (log_length - 2) + " ")
     print(" " + info + " ")
     if len(message_text) > 0:
-        print(" - '" + message_text + "' ")
+        if message_text.isalnum():
+            print(" - '" + message_text + "' ")
     print("|" + "=" * (log_length - 2) + "|")
 
 # check URL scheme & URL hostname
