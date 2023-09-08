@@ -316,7 +316,7 @@ def send_message_to_user(userid: int, bot: telebot.TeleBot, text: str, disable_n
     if get_msg_text != None:
         text = get_message_text(create_empty_message(userid), get_msg_text) + text
     bot.send_message(userid, "*" + get_message_text(create_empty_message(userid), 'command_admin_user') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
-    func.print_log("", "The message has been sent to: " + get_user_data(userid)[0] + " (" + str(userid) + ").")
+    func.print_log("", "The message has been sent to the User: " + get_user_data(userid)[0] + " (" + str(userid) + ").")
 
 # send info about (re)start
 def send_start_info(bot: telebot.TeleBot) -> None:
@@ -347,7 +347,7 @@ def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification
             if get_msg_text != None:
                 text = get_message_text(create_empty_message(ids[i]), get_msg_text) + text
             bot.send_message(ids[i], "*" + get_message_text(create_empty_message(ids[i]), 'admin_bot') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
-            func.print_log("", "The message has been sent to: " + names[i] + " (" + str(ids[i]) + ").")
+            func.print_log("", "The message has been sent to the Admin: " + names[i] + " (" + str(ids[i]) + ").")
     else:
         func.print_log("", "ERROR: Database error - The messages could not be sent because there are no Admins in the database.")
 
