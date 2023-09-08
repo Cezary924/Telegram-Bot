@@ -4,9 +4,9 @@
 
 | Version | Support status |
 | :-: | :-: |
-| _11.3_ | :white_check_mark: |
-| _10.x - 8.x_ | :heavy_check_mark: |
-| _7.x - 0.x_ | :x: |
+| _12.0_ | :white_check_mark: |
+| _11.x - 9.x_ | :heavy_check_mark: |
+| _8.x - 0.x_ | :x: |
 
 :white_check_mark: - _Fully supported_ - You can expect to get update on every reported vulnerability/problem.
 
