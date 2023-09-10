@@ -58,7 +58,9 @@ python bot/bot.py beta
 - ```/features``` - Sprawdzenie listy wszystkich funkcji Bota.
 - ```/help``` - Wyświetlenie menu pomocy z listą dostępnych komend.
 - ```/about``` - Informacje o Bocie.
+- ```/settings``` - Wyświetlenie menu ustawień z listą dostępnych opcji.
 - ```/admin``` - _(ukryta komenda)_ Wyświetlenie menu Administratora.
+- ```/reminder``` - Przypominanie o danych zdarzeniach.
 - ```/tiktok``` - Pobieranie wideo z serwisu TikTok.
 - ```/twitter``` - Pobieranie wideo z serwisu Twitter.
 - ```/tumblr``` - Pobieranie wideo z serwisu Tumblr.
@@ -67,8 +69,5 @@ python bot/bot.py beta
 - ```/instagram``` - Pobieranie wideo z serwisu Instagram.
 - ```/crystalball``` - Odpowiedź na Twoje pytanie.
 - ```/topspotifyartist``` - Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify.
-- ```/reminder``` - Przypominanie o danych zdarzeniach.
 - ```/contact``` - Informacje o drogach kontaktu z Administratorem.
 - ```/report``` - Wysłanie zgłoszenia do Administratora.
-- ```/language``` - Zmiana języka.
-- ```/deletedata``` - Usunięcie wszystkich zgromadzonych danych.
