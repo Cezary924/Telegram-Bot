@@ -592,17 +592,6 @@ def command_help_contact(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
     database.set_current_state(message, "help_contact")
     basic_commands.command_help_contact(message, bot)
-def command_help_settings(message: telebot.types.Message) -> None:
-    func.print_log("", "Help Menu -> Settings: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    if database.guest_check(message, bot) != True:
-        return
-    if database.banned_check(message) == True:
-        banned_info(message)
-        return
-    if "help" in database.get_current_state(message):
-        basic_commands.delete_previous_bot_message(message, bot)
-    database.set_current_state(message, "help_settings")
-    basic_commands.command_help_settings(message, bot)
 def command_help_return(message: telebot.types.Message) -> None:
     func.print_log("", "Help Menu Return Button: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -671,91 +660,76 @@ def command_report(message: telebot.types.Message) -> None:
     database.set_current_state(message, "report")
     basic_commands.command_report(message, bot)
 
-# handle /deletedata command
-@bot.message_handler(commands=['deletedata'])
-def command_deletedata(message: telebot.types.Message) -> None:
-    func.print_log("", "Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+# handle /settings command
+@bot.message_handler(commands=['settings'])
+def command_settings(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
         banned_info(message)
         return
-    database.set_current_state(message, "deletedata")
-    basic_commands.command_deletedata(message, bot)
-def command_deletedata_yes(message: telebot.types.Message) -> None:
-    func.print_log("", "Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    database.set_current_state(message, "settings")
+    basic_commands.command_settings(message, bot)
+def command_settings_language(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu -> Language: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
         banned_info(message)
         return
-    if database.get_current_state(message) == "deletedata":
+    if "settings" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        basic_commands.command_deletedata_yes(message, bot)
+    database.set_current_state(message, "settings_language")
+    basic_commands.command_settings_language(message, bot)
+def command_settings_language_changed(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu -> Language: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "language" in database.get_current_state(message) :
+        basic_commands.delete_previous_bot_message(message, bot)
+        basic_commands.command_settings_language_changed(message, bot)
     else:
         not_working_buttons(message)
-def command_deletedata_no(message: telebot.types.Message) -> None:
-    func.print_log("", "Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+def command_settings_deletedata(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu -> Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
         banned_info(message)
         return
-    if database.get_current_state(message) == "deletedata":
+    if "settings" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        database.set_current_state(message, "0")
-        basic_commands.command_deletedata_no(message, bot)
+    database.set_current_state(message, "settings_deletedata")
+    basic_commands.command_settings_deletedata(message, bot)
+def command_settings_deletedata_yes(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu -> Data Deletion: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if database.get_current_state(message) == "settings_deletedata":
+        basic_commands.delete_previous_bot_message(message, bot)
+        basic_commands.command_settings_deletedata_yes(message, bot)
     else:
         not_working_buttons(message)
-
-# handle /language command
-@bot.message_handler(commands=['language'])
-def command_language(message: telebot.types.Message) -> None:
-    func.print_log("", "Language Menu: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+def command_settings_return(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu Return Button: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
         return
     if database.banned_check(message) == True:
         banned_info(message)
         return
-    database.set_current_state(message, "language")
-    basic_commands.command_language(message, bot)
-def command_language_pl(message: telebot.types.Message) -> None:
-    func.print_log("", "Language Menu -> Polish: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    if database.guest_check(message, bot) != True:
-        return
-    if database.banned_check(message) == True:
-        banned_info(message)
-        return
-    if database.get_current_state(message) == "language":
+    if "settings_" in database.get_current_state(message):
         basic_commands.delete_previous_bot_message(message, bot)
-        basic_commands.command_language_pl(message, bot)
-        database.set_current_state(message, "0")
-    else:
-        not_working_buttons(message)
-def command_language_en(message: telebot.types.Message) -> None:
-    func.print_log("", "Language Menu -> English: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    if database.guest_check(message, bot) != True:
-        return
-    if database.banned_check(message) == True:
-        banned_info(message)
-        return
-    if database.get_current_state(message) == "language":
+        command_settings(message)
+    elif database.get_current_state(message) == "settings":
         basic_commands.delete_previous_bot_message(message, bot)
-        basic_commands.command_language_en(message, bot)
-        database.set_current_state(message, "0")
-    else:
-        not_working_buttons(message)
-def command_language_cancel(message: telebot.types.Message) -> None:
-    func.print_log("", "Language Menu Return Button: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
-    if database.guest_check(message, bot) != True:
-        return
-    if database.banned_check(message) == True:
-        banned_info(message)
-        return
-    if database.get_current_state(message) == "language":
-        basic_commands.delete_previous_bot_message(message, bot)
-        basic_commands.command_language_cancel(message, bot)
-        database.set_current_state(message, "0")
+        basic_commands.command_settings_return(message, bot)
     else:
         not_working_buttons(message)
 
