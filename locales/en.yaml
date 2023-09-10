@@ -101,7 +101,7 @@ command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 
 contact: ☎️ Contact Us
 command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/youtube - _📺 To download video from YouTube_\n/instagram - _📸 To download video from Instagram_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_\n/reminder - _🔔 To be reminded of specific events_
 features: ✨ Bot Features
-command_help_main: /start - _🤖 To start conversation with the Bot_\n/features - _✨ To check all Bot features list_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
+command_help_main: /start - _🤖 To start conversation with the Bot_\n/features - _✨ To check all Bot features list_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_\n/settings - _⚙️ To get info about available settings_
 main: 🤖 General
 command_help: Select the command category of the following
 command_start: This is 
