@@ -85,6 +85,10 @@ description: Description
 command_about_description: Multifunctional Telegram Bot
 command_about: About The Bot
 command_settings: 'Select the setting of the following:'
+notifications: 🛎️ Notifications
+command_settings_notifications_yes: Notifications have been enabled ✅
+command_settings_notifications_no: Notifications have been disabled ❌
+command_settings_notifications: Do you want notifications to be turned on?
 language: 🌐 Language
 command_settings_language_changed: The displayed language has been changed ✅
 command_settings_language: 'Select a language:'

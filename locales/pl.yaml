@@ -85,6 +85,10 @@ description: Opis
 command_about_description: Wielofunkcyjny bot na platformie Telegram
 command_about: Informacje o Bocie
 command_settings: 'Wybierz opcję z podanych:'
+notifications: 🛎️ Powiadomienia
+command_settings_notifications_yes: Powiadomienia zostały włączone ✅
+command_settings_notifications_no: Powiadomienia zostały wyłączone ❌
+command_settings_notifications: Czy powiadomienia o aktualizacji Bota mają być włączone?
 language: 🌐 Język
 command_settings_language_changed: Zmieniono język ✅
 command_settings_language: 'Wybierz swój język:'
