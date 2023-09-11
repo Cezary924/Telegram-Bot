@@ -28,7 +28,6 @@ def create_table_people() -> None:
             first_name text,
             last_name text,
             username text,
-            language_code text,
             role integer
             ); """)
     database_lock.release()
@@ -54,13 +53,14 @@ def create_table_last_bot_message() -> None:
             ); """)
     database_lock.release()
 
-# create Language table if it does not exist
-def create_table_language() -> None:
+# create Settings table if it does not exist
+def create_table_settings() -> None:
     database_lock.acquire(True)
     cursor.execute("""
-        create table if not exists Language (
+        create table if not exists Settings (
             id integer primary key,
-            lang_code text
+            lang_code text,
+            notifications int
             ); """)
     database_lock.release()
 
@@ -94,10 +94,9 @@ def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dat
     else:
         if dataprocessing:
             database_lock.acquire(True)
-            cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?, ?); ",
+            cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?); ",
                            (message.chat.id, message.chat.first_name, 
-                            message.chat.last_name, message.chat.username, 
-                            message.from_user.language_code, 0))
+                            message.chat.last_name, message.chat.username, 0))
             db_conn.commit()
             database_lock.release()
             send_new_user_info(bot, message.chat.id, message.chat.first_name)
@@ -222,7 +221,7 @@ def deletedata(message: telebot.types.Message) -> None:
     cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Last_Bot_Message WHERE id = ?; ", (message.chat.id, ))
-    cursor.execute("DELETE FROM Language WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM Settings WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Reminder WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()
     database_lock.release()
@@ -304,6 +303,12 @@ def edit_user_role(userid: int, role: int):
     database_lock.acquire(True)
     cursor.execute("UPDATE People SET role = ? WHERE id = ?;", 
                        (role, userid))
+    if role > 0:
+        cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", 
+                       (1, userid))
+    else:
+        cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", 
+                       (0, userid))
     db_conn.commit()
     database_lock.release()
 
@@ -366,17 +371,17 @@ def set_admins_state(bot: telebot.TeleBot, state: str) -> None:
 # get code of language that users use
 def get_user_language(message: telebot.types.Message) -> str:
     database_lock.acquire(True)
-    cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
     if present == 1:
-        cursor.execute("SELECT lang_code FROM Language WHERE id = ?;", 
+        cursor.execute("SELECT lang_code FROM Settings WHERE id = ?;", 
                        (message.chat.id, ))
         (lang_code,)=cursor.fetchone()
         database_lock.release()
         return lang_code
     else:
-        cursor.execute("INSERT INTO Language VALUES (?, ?); ",
-                       (message.chat.id, 'en'))
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, 'en', 0))
         db_conn.commit()
         database_lock.release()
         return 'en'
@@ -384,14 +389,14 @@ def get_user_language(message: telebot.types.Message) -> str:
 # set code of language that users use
 def set_user_language(message: telebot.types.Message, lang_code: str) -> None:
     database_lock.acquire(True)
-    cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
     if present == 1:
-        cursor.execute("UPDATE Language SET lang_code = ? WHERE id = ?;", 
+        cursor.execute("UPDATE Settings SET lang_code = ? WHERE id = ?;", 
                        (lang_code, message.chat.id))
     else:
-        cursor.execute("INSERT INTO Language VALUES (?, ?); ",
-                       (message.chat.id, lang_code))
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, lang_code, 0))
     db_conn.commit()
     database_lock.release()
 

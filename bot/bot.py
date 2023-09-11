@@ -45,8 +45,8 @@ database.create_table_state()
 # create Last_Bot_Message table if it does not exist
 database.create_table_last_bot_message()
 
-# create Language table if it does not exist
-database.create_table_language()
+# create Settings table if it does not exist
+database.create_table_settings()
 
 # create Reminder table if it does not exist
 database.create_table_reminder()
