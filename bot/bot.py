@@ -671,6 +671,29 @@ def command_settings(message: telebot.types.Message) -> None:
         return
     database.set_current_state(message, "settings")
     basic_commands.command_settings(message, bot)
+def command_settings_notifications(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu -> Notifications: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "settings" in database.get_current_state(message):
+        basic_commands.delete_previous_bot_message(message, bot)
+    database.set_current_state(message, "settings_notifications")
+    basic_commands.command_settings_notifications(message, bot)
+def command_settings_notifications_changed(message: telebot.types.Message) -> None:
+    func.print_log("", "Settings Menu -> Notifications: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    if "notifications" in database.get_current_state(message) :
+        basic_commands.delete_previous_bot_message(message, bot)
+        basic_commands.command_settings_notifications_changed(message, bot)
+    else:
+        not_working_buttons(message)
 def command_settings_language(message: telebot.types.Message) -> None:
     func.print_log("", "Settings Menu -> Language: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
@@ -728,6 +751,7 @@ def command_settings_return(message: telebot.types.Message) -> None:
         basic_commands.delete_previous_bot_message(message, bot)
         command_settings(message)
     elif database.get_current_state(message) == "settings":
+        database.set_current_state(message)
         basic_commands.delete_previous_bot_message(message, bot)
         basic_commands.command_settings_return(message, bot)
     else:

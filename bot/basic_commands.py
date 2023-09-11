@@ -151,6 +151,10 @@ def command_report(message: telebot.types.Message, bot: telebot.TeleBot) -> None
 # handle /settings command
 def command_settings(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
+    if database.get_user_data(message.chat.id)[3] > 0:
+        text = database.get_message_text(message, 'notifications')
+        notifications_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_notifications")
+        markup.add(notifications_button)
     text = database.get_message_text(message, 'language')
     language_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_language")
     markup.add(language_button)
@@ -164,6 +168,34 @@ def command_settings(message: telebot.types.Message, bot: telebot.TeleBot) -> No
     text2 = database.get_message_text(message, 'command_settings')
     mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2, 
                      parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_settings_notifications(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'yes')
+    yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_notifications_changed_1")
+    markup.add(yes_button)
+    text = database.get_message_text(message, 'no')
+    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_notifications_changed_0")
+    markup.add(no_button)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'notifications')
+    text3 = database.get_message_text(message, 'command_settings_notifications')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_settings_notifications_changed(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'return')
+    return_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_return")
+    markup.add(return_button)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'notifications')
+    if database.get_current_state(message).split('_')[-1] == '1':
+        text3 = database.get_message_text(message, 'command_settings_notifications_yes')
+        database.set_user_notifications(message, 1)
+    else:
+        text3 = database.get_message_text(message, 'command_settings_notifications_no')
+        database.set_user_notifications(message, 0)
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup=markup)
     database.register_last_message(mess)
 def command_settings_language(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
