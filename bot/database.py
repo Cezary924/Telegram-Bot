@@ -415,6 +415,38 @@ def get_message_text(message: telebot.types.Message, key: str, lang: str = None)
                     return locales.en[key].replace(r'\n', '\n')
         return locales.pl[key].replace(r'\n', '\n')
 
+# get users notifications settings
+def get_user_notifications(message: telebot.types.Message) -> int:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("SELECT notifications FROM Settings WHERE id = ?;", 
+                       (message.chat.id, ))
+        (notifications,)=cursor.fetchone()
+        database_lock.release()
+        return notifications
+    else:
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, 'en', 0))
+        db_conn.commit()
+        database_lock.release()
+        return 0
+
+# set users notifications settings
+def set_user_notifications(message: telebot.types.Message, notifications: int) -> None:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", 
+                       (notifications, message.chat.id))
+    else:
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, 'en', notifications))
+    db_conn.commit()
+    database_lock.release()
+
 # create empty message
 def create_empty_message(id: int) -> telebot.types.Message:
     from_user = telebot.types.User(id=id, is_bot=False, first_name="0")
