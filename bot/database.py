@@ -1,4 +1,4 @@
-import sqlite3, threading, telebot
+import sqlite3, threading, requests, telebot
 from datetime import datetime
 import func, locales
 
@@ -312,6 +312,19 @@ def edit_user_role(userid: int, role: int):
     db_conn.commit()
     database_lock.release()
 
+# send info about update to users
+def send_update_info_to_users(bot: telebot.TeleBot) -> None:
+    response = requests.get('https://api.github.com/repos/' + func.config['github_username'] + '/' + func.config['github_repo'] + '/releases/latest')
+    if response.status_code != 200:
+        func.print_log("", "ERROR: Wrong response from GitHub.")
+    response = response.json()
+    database_lock.acquire(True)
+    cursor.execute("SELECT id FROM Settings WHERE notifications = ?;", (1, ))
+    ids=cursor.fetchall()
+    database_lock.release()
+    for (userid,) in ids:
+        send_message_to_user(userid, bot, '\n\n' + response['html_url'], get_msg_text = 'update_info', disable_notification=True)
+
 # send info about role change
 def send_role_change_info(userid: int, bot: telebot.TeleBot, text: str) -> None:
     send_message_to_user(userid, bot, text + "_", get_msg_text = 'role_change_mess')
@@ -320,7 +333,7 @@ def send_role_change_info(userid: int, bot: telebot.TeleBot, text: str) -> None:
 def send_message_to_user(userid: int, bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
     if get_msg_text != None:
         text = get_message_text(create_empty_message(userid), get_msg_text) + text
-    bot.send_message(userid, "*" + get_message_text(create_empty_message(userid), 'command_admin_user') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
+    bot.send_message(userid, "*🤖 Bot:*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
     func.print_log("", "The message has been sent to the User: " + get_user_data(userid)[0] + " (" + str(userid) + ").")
 
 # send info about (re)start

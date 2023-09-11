@@ -213,6 +213,7 @@ def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.Te
                      parse_mode = 'Markdown')
     subprocess.Popen([os.path.join(sys.path[0], __file__)[: (0 - len('bot/admin.py'))] + 'update.vbs'], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
     time.sleep(15)
+    database.send_update_info_to_users(bot)
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'restart_bot')
     restart_bot_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_admin_restart_bot")
