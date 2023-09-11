@@ -67,6 +67,7 @@ exit: ❌ Wyjście
 restart: 🔁 Restart
 shutdown: 📴 Shutdown
 update: ⬇️ Update
+update_info: Bot został zaktualizowany do najnowszej wersji. Mogą wystąpić chwilowe utrudnienia w jego działaniu. Prosimy o cierpliwość i wyrozumiałość🙏
 downloader_start: Przetwarzanie linku... ⏳
 downloader_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
 downloader_error: Niestety, pobranie filmiku z tego serwisu nie jest teraz możliwe... Spróbuj poźniej 😞
