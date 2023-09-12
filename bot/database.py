@@ -1,4 +1,4 @@
-import sqlite3, threading, telebot
+import sqlite3, threading, requests, telebot
 from datetime import datetime
 import func, locales
 
@@ -28,7 +28,6 @@ def create_table_people() -> None:
             first_name text,
             last_name text,
             username text,
-            language_code text,
             role integer
             ); """)
     database_lock.release()
@@ -54,13 +53,14 @@ def create_table_last_bot_message() -> None:
             ); """)
     database_lock.release()
 
-# create Language table if it does not exist
-def create_table_language() -> None:
+# create Settings table if it does not exist
+def create_table_settings() -> None:
     database_lock.acquire(True)
     cursor.execute("""
-        create table if not exists Language (
+        create table if not exists Settings (
             id integer primary key,
-            lang_code text
+            lang_code text,
+            notifications int
             ); """)
     database_lock.release()
 
@@ -94,10 +94,9 @@ def guest_check(message: telebot.types.Message, bot: telebot.TeleBot = None, dat
     else:
         if dataprocessing:
             database_lock.acquire(True)
-            cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?, ?); ",
+            cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?); ",
                            (message.chat.id, message.chat.first_name, 
-                            message.chat.last_name, message.chat.username, 
-                            message.from_user.language_code, 0))
+                            message.chat.last_name, message.chat.username, 0))
             db_conn.commit()
             database_lock.release()
             send_new_user_info(bot, message.chat.id, message.chat.first_name)
@@ -222,7 +221,7 @@ def deletedata(message: telebot.types.Message) -> None:
     cursor.execute("DELETE FROM State WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM People WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Last_Bot_Message WHERE id = ?; ", (message.chat.id, ))
-    cursor.execute("DELETE FROM Language WHERE id = ?; ", (message.chat.id, ))
+    cursor.execute("DELETE FROM Settings WHERE id = ?; ", (message.chat.id, ))
     cursor.execute("DELETE FROM Reminder WHERE id = ?; ", (message.chat.id, ))
     db_conn.commit()
     database_lock.release()
@@ -304,8 +303,27 @@ def edit_user_role(userid: int, role: int):
     database_lock.acquire(True)
     cursor.execute("UPDATE People SET role = ? WHERE id = ?;", 
                        (role, userid))
+    if role > 0:
+        cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", 
+                       (1, userid))
+    else:
+        cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", 
+                       (0, userid))
     db_conn.commit()
     database_lock.release()
+
+# send info about update to users
+def send_update_info_to_users(bot: telebot.TeleBot) -> None:
+    response = requests.get('https://api.github.com/repos/' + func.config['github_username'] + '/' + func.config['github_repo'] + '/releases/latest')
+    if response.status_code != 200:
+        func.print_log("", "ERROR: Wrong response from GitHub.")
+    response = response.json()
+    database_lock.acquire(True)
+    cursor.execute("SELECT id FROM Settings WHERE notifications = ?;", (1, ))
+    ids=cursor.fetchall()
+    database_lock.release()
+    for (userid,) in ids:
+        send_message_to_user(userid, bot, '\n\n' + response['html_url'], get_msg_text = 'update_info', disable_notification=True)
 
 # send info about role change
 def send_role_change_info(userid: int, bot: telebot.TeleBot, text: str) -> None:
@@ -315,7 +333,7 @@ def send_role_change_info(userid: int, bot: telebot.TeleBot, text: str) -> None:
 def send_message_to_user(userid: int, bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
     if get_msg_text != None:
         text = get_message_text(create_empty_message(userid), get_msg_text) + text
-    bot.send_message(userid, "*" + get_message_text(create_empty_message(userid), 'command_admin_user') + ":*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
+    bot.send_message(userid, "*🤖 Bot:*\n\n" + text, disable_notification=disable_notification, parse_mode = 'Markdown')
     func.print_log("", "The message has been sent to the User: " + get_user_data(userid)[0] + " (" + str(userid) + ").")
 
 # send info about (re)start
@@ -366,17 +384,17 @@ def set_admins_state(bot: telebot.TeleBot, state: str) -> None:
 # get code of language that users use
 def get_user_language(message: telebot.types.Message) -> str:
     database_lock.acquire(True)
-    cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
     if present == 1:
-        cursor.execute("SELECT lang_code FROM Language WHERE id = ?;", 
+        cursor.execute("SELECT lang_code FROM Settings WHERE id = ?;", 
                        (message.chat.id, ))
         (lang_code,)=cursor.fetchone()
         database_lock.release()
         return lang_code
     else:
-        cursor.execute("INSERT INTO Language VALUES (?, ?); ",
-                       (message.chat.id, 'en'))
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, 'en', 0))
         db_conn.commit()
         database_lock.release()
         return 'en'
@@ -384,14 +402,14 @@ def get_user_language(message: telebot.types.Message) -> str:
 # set code of language that users use
 def set_user_language(message: telebot.types.Message, lang_code: str) -> None:
     database_lock.acquire(True)
-    cursor.execute("SELECT COUNT(1) FROM Language WHERE id = ?;", (message.chat.id, ))
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
     (present,)=cursor.fetchone()
     if present == 1:
-        cursor.execute("UPDATE Language SET lang_code = ? WHERE id = ?;", 
+        cursor.execute("UPDATE Settings SET lang_code = ? WHERE id = ?;", 
                        (lang_code, message.chat.id))
     else:
-        cursor.execute("INSERT INTO Language VALUES (?, ?); ",
-                       (message.chat.id, lang_code))
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, lang_code, 0))
     db_conn.commit()
     database_lock.release()
 
@@ -409,6 +427,38 @@ def get_message_text(message: telebot.types.Message, key: str, lang: str = None)
                 if locales.en[key] != None:
                     return locales.en[key].replace(r'\n', '\n')
         return locales.pl[key].replace(r'\n', '\n')
+
+# get users notifications settings
+def get_user_notifications(message: telebot.types.Message) -> int:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("SELECT notifications FROM Settings WHERE id = ?;", 
+                       (message.chat.id, ))
+        (notifications,)=cursor.fetchone()
+        database_lock.release()
+        return notifications
+    else:
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, 'en', 0))
+        db_conn.commit()
+        database_lock.release()
+        return 0
+
+# set users notifications settings
+def set_user_notifications(message: telebot.types.Message, notifications: int) -> None:
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (message.chat.id, ))
+    (present,)=cursor.fetchone()
+    if present == 1:
+        cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", 
+                       (notifications, message.chat.id))
+    else:
+        cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ",
+                       (message.chat.id, 'en', notifications))
+    db_conn.commit()
+    database_lock.release()
 
 # create empty message
 def create_empty_message(id: int) -> telebot.types.Message:

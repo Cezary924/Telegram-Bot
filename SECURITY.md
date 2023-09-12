@@ -4,7 +4,7 @@
 
 | Version | Support status |
 | :-: | :-: |
-| _12.1_ | :white_check_mark: |
+| _13.0_ | :white_check_mark: |
 | _12.x - 10.x_ | :heavy_check_mark: |
 | _9.x - 0.x_ | :x: |
 

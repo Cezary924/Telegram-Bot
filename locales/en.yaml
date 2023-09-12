@@ -67,6 +67,7 @@ exit: ❌ Exit
 restart: 🔁 Restart
 shutdown: 📴 Shutdown
 update: ⬇️ Update
+update_info: The Bot has been updated to the latest version. There may be temporary difficulties in the stable operation of the Bot. We ask for little patience and understanding 🙏
 downloader_start: Processing the URL... ⏳
 downloader_processing: Please be patient - this operation may take a while ⌚
 downloader_error: Sorry, downloading videos from this website is not currently possible... Please, try again later 😞
@@ -84,22 +85,28 @@ command_about_github_username: Creator
 description: Description
 command_about_description: Multifunctional Telegram Bot
 command_about: About The Bot
-command_language_cancel: 🌐 *Language:*\n\nThe _/language_ menu has been closed ❌
-command_language: 🌐 *Language:*\n\nSelect a language
-command_deletedata_no: 🗑️ *Data Deletion:*\n\nThe _/deletedata_ menu has been closed ❌
-command_deletedata_yes: 🗑️ *Data Deletion:*\n\nYour data has been deleted ✅
-command_deletedata: 🗑️ *Data Deletion:*\n\nAre you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.
+command_settings: 'Select the setting of the following:'
+notifications: 🛎️ Notifications
+command_settings_notifications_yes: Notifications have been enabled ✅
+command_settings_notifications_no: Notifications have been disabled ❌
+command_settings_notifications: Do you want notifications to be turned on?
+language: 🌐 Language
+command_settings_language_changed: The displayed language has been changed ✅
+command_settings_language: 'Select a language:'
+deletedata: 🗑️ Data Deletion
+command_settings_deletedata_yes: Your data has been deleted ✅
+command_settings_deletedata: Are you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.
+command_settings_return: The _/settings_ menu has been closed ❌
 command_report: 📨 *Report:*\n\nSend me report-message to the Admin and I will forward it 🫡 \nPS This is a good way to provide the Administrator with suggestions for functionality and information about found errors 🚀🪱
 command_contact: ☎️ *Contact Us:*\n\nTo contact the Admin, write to them directly at @ or send a non-returnable report-message 📨
 report: 📨 Report to the Admin
-command_help_settings: /language - _🌐 To change your display language_\n/deletedata - _🗑️ To delete all your data collected by the Bot_\n
 settings: ⚙️ Settings
 return: 🔙 Back
 command_help_contact: /contact - _☎️ To contact the Admin_\n/report - _📨 To report an issue to the Admin._\n
 contact: ☎️ Contact Us
 command_help_features: /tiktok - _🎵 To download video from TikTok_\n/twitter - _🐦 To download video from Twitter_\n/tumblr - _📄 To download video from Tumblr_\n/reddit - _🤖 To download video from Reddit_\n/youtube - _📺 To download video from YouTube_\n/instagram - _📸 To download video from Instagram_\n/crystalball - _🔮 To answer your question_\n/topspotifyartist - _ᯤ To guess one of the top Spotify artists_\n/reminder - _🔔 To be reminded of specific events_
 features: ✨ Bot Features
-command_help_main: /start - _🤖 To start conversation with the Bot_\n/features - _✨ To check all Bot features list_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_
+command_help_main: /start - _🤖 To start conversation with the Bot_\n/features - _✨ To check all Bot features list_\n/help - _📃 To get info about available commands_\n/about - _ℹ️ To get info about the Bot and its Creator_\n/settings - _⚙️ To get info about available settings_
 main: 🤖 General
 command_help: Select the command category of the following
 command_start: This is 

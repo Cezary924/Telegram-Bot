@@ -67,6 +67,7 @@ exit: ❌ Wyjście
 restart: 🔁 Restart
 shutdown: 📴 Shutdown
 update: ⬇️ Update
+update_info: Bot został zaktualizowany do najnowszej wersji. Mogą wystąpić chwilowe utrudnienia w jego działaniu. Prosimy o cierpliwość i wyrozumiałość🙏
 downloader_start: Przetwarzanie linku... ⏳
 downloader_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
 downloader_error: Niestety, pobranie filmiku z tego serwisu nie jest teraz możliwe... Spróbuj poźniej 😞
@@ -84,22 +85,28 @@ command_about_github_username: Autor
 description: Opis
 command_about_description: Wielofunkcyjny bot na platformie Telegram
 command_about: Informacje o Bocie
-command_language_cancel: 🌐 *Zmiana języka:*\n\nOpuszczono menu _/language_ ❌
-command_language: 🌐 *Zmiana języka:*\n\nWybierz swój język
-command_deletedata_no: 🗑️ *Usuwanie danych:*\n\nOpuszczono menu _/deletedata_ ❌
-command_deletedata_yes: 🗑️ *Usuwanie danych:*\n\nUsunięto zgromadzone dane ✅
-command_deletedata: 🗑️ *Usuwanie danych:*\n\nCzy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.
+command_settings: 'Wybierz opcję z podanych:'
+notifications: 🛎️ Powiadomienia
+command_settings_notifications_yes: Powiadomienia zostały włączone ✅
+command_settings_notifications_no: Powiadomienia zostały wyłączone ❌
+command_settings_notifications: Czy powiadomienia o aktualizacji Bota mają być włączone?
+language: 🌐 Język
+command_settings_language_changed: Zmieniono język ✅
+command_settings_language: 'Wybierz swój język:'
+deletedata: 🗑️ Usuwanie danych
+command_settings_deletedata_yes: Usunięto zgromadzone dane ✅
+command_settings_deletedata: Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.
+command_settings_return: Opuszczono menu _/settings_ ❌
 command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡 \nPS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
 command_contact: ☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @ lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
 report: 📨 Zgłoszenie do Administratora
-command_help_settings: /language - _🌐 Zmiana języka_\n/deletedata - _🗑️ Usunięcie wszystkich zgromadzonych danych_\n
 settings: ⚙️ Ustawienia
 return: 🔙 Powrót
 command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
 contact: ☎️ Kontakt
 command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/youtube - _📺 Pobieranie wideo z serwisu YouTube_\n/instagram - _📸 Pobieranie wideo z serwisu Instagram_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_\n/reminder - _🔔 Przypominanie o danych zdarzeniach_
 features: ✨ Funkcje Bota
-command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/features - _✨ Sprawdzenie listy wszystkich funkcji Bota_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_
+command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/features - _✨ Sprawdzenie listy wszystkich funkcji Bota_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_\n/settings - _⚙️ Wyświetlenie menu ustawień z listą dostępnych opcji_
 main: 🤖 Ogólne
 command_help: Wybierz interesującą Cię kategorię komend
 command_start: Z tej strony 

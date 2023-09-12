@@ -86,9 +86,6 @@ def command_help(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'contact')
     contact_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_contact")
     markup.add(contact_button)
-    text = database.get_message_text(message, 'settings')
-    settings_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_settings")
-    markup.add(settings_button)
     text = database.get_message_text(message, 'exit')
     exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
     markup.add(exit_button)
@@ -127,16 +124,6 @@ def command_help_contact(message: telebot.types.Message, bot: telebot.TeleBot) -
     text3 = database.get_message_text(message, 'command_help_contact')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_help_settings(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    markup = telebot.types.InlineKeyboardMarkup()
-    text = database.get_message_text(message, 'return')
-    help_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_help_return")
-    markup.add(help_button)
-    text1 = database.get_message_text(message, 'help')
-    text2 = database.get_message_text(message, 'settings')
-    text3 = database.get_message_text(message, 'command_help_settings')
-    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
-    database.register_last_message(mess)
 def command_help_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text = database.get_message_text(message, 'command_help_return')
     mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
@@ -161,54 +148,108 @@ def command_report(message: telebot.types.Message, bot: telebot.TeleBot) -> None
     mess = bot.send_message(message.chat.id, text, parse_mode= 'Markdown')
     database.register_last_message(mess)
 
-# handle /deletedata command
-def command_deletedata(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+# handle /settings command
+def command_settings(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    if database.get_user_data(message.chat.id)[3] > 0:
+        text = database.get_message_text(message, 'notifications')
+        notifications_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_notifications")
+        markup.add(notifications_button)
+    text = database.get_message_text(message, 'language')
+    language_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_language")
+    markup.add(language_button)
+    text = database.get_message_text(message, 'deletedata')
+    deletedata_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_deletedata")
+    markup.add(deletedata_button)
+    text = database.get_message_text(message, 'exit')
+    exit_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_return")
+    markup.add(exit_button)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'command_settings')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2, 
+                     parse_mode = 'Markdown', reply_markup = markup)
+    database.register_last_message(mess)
+def command_settings_notifications(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
     text = database.get_message_text(message, 'yes')
-    yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_deletedata_yes")
+    yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_notifications_changed_1")
     markup.add(yes_button)
     text = database.get_message_text(message, 'no')
-    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_deletedata_no")
+    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_notifications_changed_0")
     markup.add(no_button)
-    text = database.get_message_text(message, 'command_deletedata')
-    mess = bot.send_message(message.chat.id, text, 
-                     parse_mode = 'Markdown', reply_markup = markup)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'notifications')
+    text3 = database.get_message_text(message, 'command_settings_notifications')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_deletedata_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    database.deletedata(message)
-    text = database.get_message_text(message, 'command_deletedata_yes')
-    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
-    database.register_last_message(mess)
-def command_deletedata_no(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_deletedata_no')
-    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
-    database.register_last_message(mess)
-
-# handle /language command
-def command_language(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+def command_settings_notifications_changed(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     markup = telebot.types.InlineKeyboardMarkup()
-    pl_button = telebot.types.InlineKeyboardButton(text = "🇵🇱 Polski", callback_data = "command_language_pl")
+    text = database.get_message_text(message, 'return')
+    return_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_return")
+    markup.add(return_button)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'notifications')
+    if database.get_current_state(message).split('_')[-1] == '1':
+        text3 = database.get_message_text(message, 'command_settings_notifications_yes')
+        database.set_user_notifications(message, 1)
+    else:
+        text3 = database.get_message_text(message, 'command_settings_notifications_no')
+        database.set_user_notifications(message, 0)
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup=markup)
+    database.register_last_message(mess)
+def command_settings_language(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    pl_button = telebot.types.InlineKeyboardButton(text = "🇵🇱 Polski", callback_data = "command_settings_language_changed_1")
     markup.add(pl_button)
-    en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_language_en")
+    en_button = telebot.types.InlineKeyboardButton(text = "🇬🇧 English", callback_data = "command_settings_language_changed_0")
     markup.add(en_button)
-    text = database.get_message_text(message, 'exit')
-    cancel_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_language_cancel")
+    text = database.get_message_text(message, 'return')
+    cancel_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_return")
     markup.add(cancel_button)
-    text = database.get_message_text(message, 'command_language')
-    mess = bot.send_message(message.chat.id, text, 
-                     parse_mode = 'Markdown', reply_markup = markup)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'language')
+    text3 = database.get_message_text(message, 'command_settings_language')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_language_pl(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    database.set_user_language(message, 'pl')
-    mess = bot.send_message(message.chat.id, "🌐 *Zmiana języka:*\n\nGotowe 🇵🇱", parse_mode='Markdown')
+def command_settings_language_changed(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    lang_id = int(database.get_current_state(message).split('_')[-1])
+    if lang_id == 1:
+        database.set_user_language(message, 'pl')
+    else:
+        database.set_user_language(message, 'en')
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'return')
+    cancel_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_return")
+    markup.add(cancel_button)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'language')
+    text3 = database.get_message_text(message, 'command_settings_language_changed')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_language_en(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    database.set_user_language(message, 'en')
-    mess = bot.send_message(message.chat.id, "🌐 *Language:*\n\nDone 🇬🇧", parse_mode='Markdown')
+def command_settings_deletedata(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    markup = telebot.types.InlineKeyboardMarkup()
+    text = database.get_message_text(message, 'yes')
+    yes_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_deletedata_yes")
+    markup.add(yes_button)
+    text = database.get_message_text(message, 'no')
+    no_button = telebot.types.InlineKeyboardButton(text = text, callback_data = "command_settings_return")
+    markup.add(no_button)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'deletedata')
+    text3 = database.get_message_text(message, 'command_settings_deletedata')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown', reply_markup = markup)
     database.register_last_message(mess)
-def command_language_cancel(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_language_cancel')
-    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
+def command_settings_deletedata_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    database.deletedata(message)
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'deletedata')
+    text3 = database.get_message_text(message, 'command_settings_deletedata_yes')
+    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode='Markdown')
+    database.register_last_message(mess)
+def command_settings_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    text1 = database.get_message_text(message, 'settings')
+    text2 = database.get_message_text(message, 'command_settings_return')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2, parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /about command

@@ -58,7 +58,9 @@ python bot/bot.py beta
 - ```/features``` - to check all Bot features list.
 - ```/help``` - to get info about available commands.
 - ```/about``` - to get info about the Bot and its Creator.
+- ```/settings``` - to get info about available settings.
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
+- ```/reminder``` - to be reminded of specific events.
 - ```/tiktok``` - to download video from TikTok.
 - ```/twitter``` - to download video from Twitter.
 - ```/tumblr``` - to download video from Tumblr.
@@ -67,8 +69,5 @@ python bot/bot.py beta
 - ```/instagram``` - to download video from Instagram.
 - ```/crystalball``` - to answer your question.
 - ```/topspotifyartist``` - to guess one of the top Spotify artists.
-- ```/reminder``` - to be reminded of specific events.
 - ```/contact``` - to contact the Admin/Creator.
 - ```/report``` - to report an issue to the Admin.
-- ```/language``` - to change your display language.
-- ```/deletedata``` - to delete all your data collected by the Bot.
