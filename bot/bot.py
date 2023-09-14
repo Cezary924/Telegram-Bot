@@ -9,6 +9,15 @@ os.chdir(dir)
 
 import func
 
+# remove files & directories created during previous Bot session
+dir_items = os.listdir()
+for item in dir_items:
+    if item.endswith('.py') == 0 and item != '__pycache__':
+        if os.path.isdir(os.curdir + "\\" + item) == 0:
+            func.remove_file(item, os.curdir + "\\" + item)
+        else:
+            func.remove_directory(item, os.curdir + "\\" + item)
+
 # create LoadingString object & run its 'run' function in new thread
 loading = func.LoadingString()
 thread = Thread(target = loading.run, daemon = True)
@@ -1303,7 +1312,7 @@ thread.start()
 # infinite loop
 if func.suffix == 0:
     try:
-        bot.polling(non_stop = True, timeout = 60)
+        bot.polling(non_stop = True, timeout = 100)
     except KeyboardInterrupt as keyint:
         sys.exit()
     except Exception as err:
