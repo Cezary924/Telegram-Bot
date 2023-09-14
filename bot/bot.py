@@ -1312,7 +1312,7 @@ thread.start()
 # infinite loop
 if func.suffix == 0:
     try:
-        bot.polling(non_stop = True, timeout = 60)
+        bot.polling(non_stop = True, timeout = 100)
     except KeyboardInterrupt as keyint:
         sys.exit()
     except Exception as err:
