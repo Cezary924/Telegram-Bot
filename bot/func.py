@@ -117,7 +117,10 @@ def remove_file(name: str, path: str) -> None:
 
 # remove directory 'name' located in 'path'
 def remove_directory(name: str, path: str) -> None:
-    files = os.listdir(path)
-    for file in files:
-        remove_file(file, path + "\\" + file)
+    items = os.listdir(path)
+    for item in items:
+        if os.path.isdir(path + "\\" + item):
+            remove_directory(item, path + "\\" + item)
+        else:
+            remove_file(item, path + "\\" + item)
     os.rmdir(path)
