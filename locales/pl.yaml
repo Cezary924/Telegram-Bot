@@ -64,9 +64,9 @@ role_change_mess: 'Zmieniono Twoją rangę na: _'
 admin: 🛠️ Admin
 admin_menu: 'Wybierz zadanie z podanych:'
 exit: ❌ Wyjście
-restart: 🔁 Restart
-shutdown: 📴 Shutdown
-update: ⬇️ Update
+restart: 🔁 Ponowne uruchamianie
+shutdown: 📴 Wyłączanie
+update: ⬇️ Aktualizowanie
 update_info: Bot został zaktualizowany do najnowszej wersji. Mogą wystąpić chwilowe utrudnienia w jego działaniu. Prosimy o cierpliwość i wyrozumiałość🙏
 downloader_start: Przetwarzanie linku... ⏳
 downloader_processing: Proszę o cierpliwość - ta operacja może chwilę potrwać ⌚
