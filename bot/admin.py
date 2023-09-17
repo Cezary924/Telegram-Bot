@@ -240,18 +240,18 @@ def command_admin_user(message: telebot.types.Message, bot: telebot.TeleBot) -> 
     text2 = database.get_message_text(message, 'admin_users')
     text3 = database.get_message_text(message, 'command_admin_user')
     text4 = database.get_message_text(message, 'command_admin_user_mess')
-    if user[0] == None:
-        text4 = text4 + ":\n" + database.get_message_text(message, 'first_name') + ": _-_"
+    if user[0] == None or user[0].isascii() == 0:
+        text4 = text4 + ":\n" + database.get_message_text(message, 'first_name') + ": <i>-</i>"
     else:
-        text4 = text4 + ":\n" + database.get_message_text(message, 'first_name') + ": _" + user[0] + "_"
-    if user[1] == None:
-        text4 = text4 + "\n" + database.get_message_text(message, 'last_name') + ": _-_"
+        text4 = text4 + ":\n" + database.get_message_text(message, 'first_name') + ": <i>" + telebot.telebot.formatting.escape_html(user[0]) + "</i>"
+    if user[1] == None or user[1].isascii() == 0:
+        text4 = text4 + "\n" + database.get_message_text(message, 'last_name') + ": <i>-</i>"
     else:
-        text4 = text4 + "\n" + database.get_message_text(message, 'last_name') + ": _" + user[1] + "_"
-    if user[2] == None:
-        text4 = text4 + "\n" + database.get_message_text(message, 'username') + ": _-_"
+        text4 = text4 + "\n" + database.get_message_text(message, 'last_name') + ": <i>" + telebot.telebot.formatting.escape_html(user[1]) + "</i>"
+    if user[2] == None or user[2].isascii() == 0:
+        text4 = text4 + "\n" + database.get_message_text(message, 'username') + ": <i>-</i>"
     else:
-        text4 = text4 + "\n" + database.get_message_text(message, 'username') + ": _" + user[2] + "_"
+        text4 = text4 + "\n" + database.get_message_text(message, 'username') + ": <i>@" + telebot.telebot.formatting.escape_html(user[2]) + "</i>"
     if user[3] == None:
         role = "-"
     else:
@@ -263,10 +263,10 @@ def command_admin_user(message: telebot.types.Message, bot: telebot.TeleBot) -> 
             role = database.get_message_text(message, 'role_user')
         else:
             role = database.get_message_text(message, 'role_admin')
-    text4 = text4 + "\n" + database.get_message_text(message, 'role') + ": _" + role + "_"
-    text4 = text4 + "\n" + "Telegram ID" + ": _" + str(userid) + "_"
-    mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
-                     parse_mode = 'Markdown', reply_markup = markup)
+    text4 = text4 + "\n" + database.get_message_text(message, 'role') + ": <i>" + role + "</i>"
+    text4 = text4 + "\n" + "Telegram ID" + ": <i>" + str(userid) + "</i>"
+    mess = bot.send_message(message.chat.id, "<b>" + text1 + " > " + text2 + " > " + text3 + ":</b>\n\n" + text4,
+                     parse_mode = 'html', reply_markup = markup)
     database.register_last_message(mess)
 
 # handle editing user role
