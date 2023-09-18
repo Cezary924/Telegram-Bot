@@ -125,8 +125,9 @@ def command_help_contact(message: telebot.types.Message, bot: telebot.TeleBot) -
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + ":*\n\n" + text3, parse_mode= 'Markdown', reply_markup = markup)
     database.register_last_message(mess)
 def command_help_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_help_return')
-    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
+    text1 = database.get_message_text(message, 'help')
+    text2 = database.get_message_text(message, 'command_return')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2 + " _/help_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /contact command
@@ -248,8 +249,8 @@ def command_settings_deletedata_yes(message: telebot.types.Message, bot: telebot
     database.register_last_message(mess)
 def command_settings_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'settings')
-    text2 = database.get_message_text(message, 'command_settings_return')
-    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2, parse_mode='Markdown')
+    text2 = database.get_message_text(message, 'command_return')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2 + " _/settings_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)
 
 # handle /about command

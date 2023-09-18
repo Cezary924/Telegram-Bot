@@ -250,6 +250,7 @@ def command_reminder_manage_menu_delete_yes(message: telebot.types.Message, bot:
 
 # handle reminder menu exit
 def command_reminder_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_reminder_return')
-    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
+    text1 = database.get_message_text(message, 'reminder')
+    text2 = database.get_message_text(message, 'command_return')
+    mess = bot.send_message(message.chat.id, "🔔 *" + text1 + ":*\n\n" + text2 + " _/reminder_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)

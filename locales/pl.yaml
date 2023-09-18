@@ -1,7 +1,6 @@
 echo_all: Niestety, nie rozumiem Twojej wiadomości... 💔
 echo_unknown_command: Niestety, nie znam takiej komendy... 💔
-command_help_return: 📃 *Pomoc:*\n\nOpuszczono menu _/help_ ❌
-command_admin_return: 🛠️ *Admin:*\n\nOpuszczono panel _/admin_ ❌
+command_return: Opuszczono menu
 command_dataprocessing_no: Dobrze... 😞 \nMiło mi było Cię poznać 😄
 command_dataprocessing_yes: Cieszę się, że to nie koniec naszej wspólnej przygody 💞 \nOd teraz mogę wykonywać Twoje polecenia 🫡
 command_dataprocessing: ✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one wykorzystywane zgodnie z ich przeznaczeniem 💝
@@ -96,7 +95,6 @@ command_settings_language: 'Wybierz swój język:'
 deletedata: 🗑️ Usuwanie danych
 command_settings_deletedata_yes: Usunięto zgromadzone dane ✅
 command_settings_deletedata: Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.
-command_settings_return: Opuszczono menu _/settings_ ❌
 command_report: 📨 *Zgłoszenie:*\n\nNapisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡 \nPS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
 command_contact: ☎️ *Kontakt:*\n\nAby skontaktować się z Administratorem, napisz bezpośrednio do @ lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
 report: 📨 Zgłoszenie do Administratora
@@ -163,6 +161,5 @@ command_reminder_manage_menu_edit_date: ✏️📆 Edytuj datę
 command_reminder_manage_menu_delete: 🗑️ Usuń
 command_reminder_delete: Czy na pewno chcesz usunąć to przypomnienie?
 command_reminder_deleted: Przypomnienie zostało usunięte 🗑️
-command_reminder_return: 🔔 *Przypomnienia:*\n\nOpuszczono panel _/reminder_ 
 content: Treść
 date: Data

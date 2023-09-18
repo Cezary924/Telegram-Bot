@@ -387,6 +387,7 @@ def command_admin_users_id_check_received_message(message: telebot.types.Message
     database.register_last_message(mess)
 
 def command_admin_return(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
-    text = database.get_message_text(message, 'command_admin_return')
-    mess = bot.send_message(message.chat.id, text, parse_mode='Markdown')
+    text1 = database.get_message_text(message, 'admin')
+    text2 = database.get_message_text(message, 'command_return')
+    mess = bot.send_message(message.chat.id, "*" + text1 + ":*\n\n" + text2 + " _/admin_ ❌", parse_mode='Markdown')
     database.register_last_message(mess)

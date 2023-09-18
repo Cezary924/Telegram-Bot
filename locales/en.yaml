@@ -1,7 +1,6 @@
 echo_all: Sorry, I do not understand... 💔
 echo_unknown_command: Sorry, I do not understand this command... 💔
-command_help_return: 📃 *Help:*\n\nThe _/help_ menu has been closed ❌
-command_admin_return: 🛠️ *Admin:*\n\nThe _/admin_ menu has been closed ❌
+command_return: The menu has been closed
 command_dataprocessing_no: Ok... 😞 \nNice to meet you 😄
 command_dataprocessing_yes: I am glad it is not the end of our journey 💞 \nI can follow your instructions from now on 🫡
 command_dataprocessing: ✋ *Data Processing Agreement:*\n\nThis is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose 💝
@@ -96,7 +95,6 @@ command_settings_language: 'Select a language:'
 deletedata: 🗑️ Data Deletion
 command_settings_deletedata_yes: Your data has been deleted ✅
 command_settings_deletedata: Are you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.
-command_settings_return: The _/settings_ menu has been closed ❌
 command_report: 📨 *Report:*\n\nSend me report-message to the Admin and I will forward it 🫡 \nPS This is a good way to provide the Administrator with suggestions for functionality and information about found errors 🚀🪱
 command_contact: ☎️ *Contact Us:*\n\nTo contact the Admin, write to them directly at @ or send a non-returnable report-message 📨
 report: 📨 Report to the Admin
@@ -163,6 +161,5 @@ command_reminder_manage_menu_edit_date: ✏️📆 Edit the date
 command_reminder_manage_menu_delete: 🗑️ Delete
 command_reminder_delete: Are you sure you want to delete this reminder?
 command_reminder_deleted: The reminder has been deleted 🗑️
-command_reminder_return: 🔔 *Reminders:*\n\nThe _/reminder_ menu has been closed ❌
 content: Text
 date: Date
