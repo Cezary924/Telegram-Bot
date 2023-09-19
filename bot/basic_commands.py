@@ -311,3 +311,10 @@ def command_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> N
     text2 = database.get_message_text(message, 'instagram')
     mess = bot.send_message(message.chat.id, text2 + text1, parse_mode= 'Markdown')
     database.register_last_message(mess)
+
+# handle /unitconverter command
+def command_unitconverter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
+    text1 = database.get_message_text(message, 'unitconverter')
+    text2 = database.get_message_text(message, 'command_unitconverter')
+    mess = bot.send_message(message.chat.id, text1 + text2, parse_mode= 'Markdown')
+    database.register_last_message(mess)

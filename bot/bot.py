@@ -958,6 +958,18 @@ def echo_instagram(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 
+# handle /unitconverter command
+@bot.message_handler(commands=['unitconverter'])
+def command_unitconverter(message: telebot.types.Message) -> None:
+    func.print_log("", "Unit converter: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    database.set_current_state(message, "unitconverter")
+    basic_commands.command_unitconverter(message, bot)
+
 # handle /crystalball command
 @bot.message_handler(commands=['crystalball'])
 def command_crystalball(message: telebot.types.Message) -> None:
