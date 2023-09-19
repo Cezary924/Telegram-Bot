@@ -315,5 +315,5 @@ def command_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> N
 def command_unitconverter(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'unitconverter')
     text2 = database.get_message_text(message, 'command_unitconverter')
-    mess = bot.send_message(message.chat.id, text1 + text2, parse_mode= 'Markdown')
+    mess = bot.send_message(message.chat.id, telebot.telebot.formatting.hbold(text1 + ":\n\n") + text2, parse_mode = 'html')
     database.register_last_message(mess)
