@@ -163,3 +163,5 @@ command_reminder_delete: Czy na pewno chcesz usunąć to przypomnienie?
 command_reminder_deleted: Przypomnienie zostało usunięte 🗑️
 content: Treść
 date: Data
+unitconverter: 🧮 Konwerter jednostek
+command_unitconverter: Aby dokonać zamiany jednostek, wystarczy, że wyślesz mi interesującą Cię liczbę z jej obecną jednostką 😊
