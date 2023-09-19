@@ -10,6 +10,7 @@
 ## ✨ Main features
 - Video downloader ⬇️ (TikTok, Twitter (X), Tumblr, Reddit, YouTube & Instagram)
 - Reminders 🔔
+- Unit converter 🧮
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
@@ -61,6 +62,7 @@ python bot/bot.py beta
 - ```/settings``` - to get info about available settings.
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
 - ```/reminder``` - to be reminded of specific events.
+- ```/unitconverter``` - To convert common units of measurement.
 - ```/tiktok``` - to download video from TikTok.
 - ```/twitter``` - to download video from Twitter (X).
 - ```/tumblr``` - to download video from Tumblr.
