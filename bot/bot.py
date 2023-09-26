@@ -899,7 +899,7 @@ def echo_twitter(message: telebot.types.Message) -> None:
         permission_denied(message)
 
 # handle Reddit URLs
-@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['www.reddit.com']))
+@bot.message_handler(func=lambda message: downloader.check_url(message, ['https'], ['www.reddit.com', 'reddit.com']))
 def echo_reddit(message: telebot.types.Message) -> None:
     func.print_log(message.text, "Reddit URL: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
     if database.guest_check(message, bot) != True:
