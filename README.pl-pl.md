@@ -1,5 +1,5 @@
 <div align="center">
-   <h1>Cezary924-Telegram-Bot</h1>
+   <h1>Telegram Bot</h1>
    <h3>🤖</h3>
    <h3>Wielofunkcyjny Bot na platformie Telegram</h3>
    <a href="https://t.me/Cezary924Bot" target="__blank"><img src="https://img.shields.io/badge/Telegram-Bot-blue.svg?logo=telegram"></a><br/><br/>
