@@ -39,3 +39,12 @@ def check_message(message: telebot.types.Message) -> tuple[int, str]:
     #-------------------------------------------------------
     return (0, '')
 
+# handle messages with known units
+def message_handler(message: telebot.types.Message, bot: telebot.TeleBot):
+    x = check_message(message)
+    if x == 1:
+        print(message.text)
+    elif x == 2:
+        print(message.text)
+    else:
+        print(message.text)
