@@ -62,7 +62,7 @@ python bot/bot.py beta
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
 - ```/reminder``` - to be reminded of specific events.
 - ```/tiktok``` - to download video from TikTok.
-- ```/twitter``` - to download video from Twitter.
+- ```/twitter``` - to download video from Twitter (X).
 - ```/tumblr``` - to download video from Tumblr.
 - ```/reddit``` - to download video from Reddit.
 - ```/youtube``` - to download video from YouTube.
