@@ -39,7 +39,7 @@ pip install -r requirements.txt
    spotify_secret: your_spotify_client_secret
    ```
    > RapidApi for TikTok media: you have to subscribe to https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
-   > RapidApi for Twitter media: you have to subscribe to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
+   > RapidApi for Twitter (X) media: you have to subscribe to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Spotify Tokens: you have to create an app in the Spotify Developer Dashboard https://developer.spotify.com/dashboard
 
 ## 🚀 Starting
