@@ -8,7 +8,7 @@
 </div><br/>
 
 ## ✨ Główne funkcje
-- Pobieranie wideo z popularnych serwisów (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
+- Pobieranie wideo z popularnych serwisów (TikTok, Twitter (X), Tumblr, Reddit, YouTube & Instagram)
 - Przypomnienia 🔔
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
@@ -39,7 +39,7 @@ pip install -r requirements.txt
    spotify_secret: spotify_client_secret
    ```
    > RapidApi dla multimediów z serwisu TikTok: należy zasubskrybować https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
-   > RapidApi dla multimediów z serwisu Twitter: należy zasubskrybować https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
+   > RapidApi dla multimediów z serwisu Twitter (X): należy zasubskrybować https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Tokeny Spotify: należy utworzyć aplikację w serwisie Spotify dla deweloperów https://developer.spotify.com/dashboard
 
 ## 🚀 Start
@@ -62,7 +62,7 @@ python bot/bot.py beta
 - ```/admin``` - _(ukryta komenda)_ Wyświetlenie menu Administratora.
 - ```/reminder``` - Przypominanie o danych zdarzeniach.
 - ```/tiktok``` - Pobieranie wideo z serwisu TikTok.
-- ```/twitter``` - Pobieranie wideo z serwisu Twitter.
+- ```/twitter``` - Pobieranie wideo z serwisu Twitter (X).
 - ```/tumblr``` - Pobieranie wideo z serwisu Tumblr.
 - ```/reddit``` - Pobieranie wideo z serwisu Reddit.
 - ```/youtube``` - Pobieranie wideo z serwisu YouTube.

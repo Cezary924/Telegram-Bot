@@ -8,12 +8,12 @@
 </div><br/>
 
 ## ✨ Main features
-- Video downloader ⬇️ (TikTok, Twitter, Tumblr, Reddit, YouTube & Instagram)
+- Video downloader ⬇️ (TikTok, Twitter (X), Tumblr, Reddit, YouTube & Instagram)
 - Reminders 🔔
 - Guess Top Spotify Artist ᯤ
 - Crystal ball 🔮
 - Multilingual responses 🌐 (English & Polish)
-- User management 🙋‍♂️🙋‍♀️ (Changing roles & Deleting data)
+- User management 🙋‍♀️🙋‍♂️ (Changing roles & Deleting data)
 - Device status management ⚙️ (Shutdown & Restart) 
 
 ## ⚙️ Installation & Configuration
@@ -39,7 +39,7 @@ pip install -r requirements.txt
    spotify_secret: your_spotify_client_secret
    ```
    > RapidApi for TikTok media: you have to subscribe to https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
-   > RapidApi for Twitter media: you have to subscribe to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
+   > RapidApi for Twitter (X) media: you have to subscribe to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Spotify Tokens: you have to create an app in the Spotify Developer Dashboard https://developer.spotify.com/dashboard
 
 ## 🚀 Starting
@@ -62,7 +62,7 @@ python bot/bot.py beta
 - ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
 - ```/reminder``` - to be reminded of specific events.
 - ```/tiktok``` - to download video from TikTok.
-- ```/twitter``` - to download video from Twitter.
+- ```/twitter``` - to download video from Twitter (X).
 - ```/tumblr``` - to download video from Tumblr.
 - ```/reddit``` - to download video from Reddit.
 - ```/youtube``` - to download video from YouTube.
