@@ -355,7 +355,7 @@ def send_new_user_info(bot: telebot.TeleBot, user_id: int, user_first_name: str)
 # send message to Admins
 def send_message_to_admins(bot: telebot.TeleBot, text: str, disable_notification: bool = False, get_msg_text: str = None) -> None:
     database_lock.acquire(True)
-    cursor.execute("SELECT id, first_name FROM People WHERE role = 2;")
+    cursor.execute("SELECT p.id, first_name FROM People AS p FULL OUTER JOIN Settings AS s ON p.id = s.id WHERE role = 2 AND notifications = 1;")
     admins = cursor.fetchall()
     database_lock.release()
     if len(admins) > 0:
