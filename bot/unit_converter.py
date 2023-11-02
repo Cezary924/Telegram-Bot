@@ -58,7 +58,7 @@ def change_unit(num: float, x: int) -> None:
     if x == 3:
         for unit in list(units_3.keys()):
             _ = "{:g}".format(num * units_3[unit])
-            print(_ + " " + unit)
+            print(_ + " " + unit) #TODO message to user
 
 # handle messages with known units
 def message_handler(message: telebot.types.Message, bot: telebot.TeleBot):
@@ -66,7 +66,7 @@ def message_handler(message: telebot.types.Message, bot: telebot.TeleBot):
     try:
         num = float(num)
     except:
-        return
+        return #TODO message to user about misunderstood msg
     if x > 0:
         if unit in main_units:
             change_unit(num, x)
