@@ -1,4 +1,5 @@
 import telebot
+import database
 
 main_units = ['m', 'g', 's']
 units_1 = {'mm': 1000, 'cm': 100, 'in': 39.37, 'dm': 10, 'ft': 3.281, 'm': 1, 'km': 0.001,  'mi': 0.000621371}
@@ -72,14 +73,22 @@ def change_unit(num: float, x: int) -> str:
 
 # handle messages with known units
 def message_handler(message: telebot.types.Message, bot: telebot.TeleBot):
+    text1 = database.get_message_text(message, 'unitconverter')
     x, unit, num = check_message(message)
+    _num = num
     try:
         num = float(num)
     except:
-        return #TODO message to user about misunderstood msg
+        text2 = database.get_message_text(message, 'error')
+        mess = bot.send_message(message.chat.id, telebot.telebot.formatting.hbold(text1 + ":\n\n") + text2, parse_mode = 'html')
+        database.register_last_message(mess)
+    msg = database.get_message_text(message, 'error')
     if x > 0:
         if unit in main_units:
-            change_unit(num, x)
+            msg = change_unit(num, x)
         else:
             num = get_to_main_unit(num, unit, x)
-            change_unit(num, x)
+            msg = change_unit(num, x)
+    text2 = _num + " " + unit + " =="
+    mess = bot.send_message(message.chat.id, telebot.telebot.formatting.hbold(text1 + ":\n\n") + text2 + "\n" + msg[:-1], parse_mode = 'html')
+    database.register_last_message(mess)
