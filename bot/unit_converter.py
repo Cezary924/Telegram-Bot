@@ -11,7 +11,7 @@ def check_message(message: telebot.types.Message) -> tuple[int, str, str]:
     text = message.text
     #-------------------------------------------------------
     text_test = text.replace(' ', '')
-    units = list(units_1.keys())
+    units = sorted(list(units_1.keys()), key=len, reverse=True)
     unit = ''
     for element in units:
         if element in text_test:
@@ -22,7 +22,7 @@ def check_message(message: telebot.types.Message) -> tuple[int, str, str]:
         return (1, unit, text_test)
     #-------------------------------------------------------
     text_test = text.replace(' ', '')
-    units = list(units_2.keys())
+    units = sorted(list(units_2.keys()), key=len, reverse=True)
     unit = ''
     for element in units:
         if element in text_test:
@@ -33,7 +33,7 @@ def check_message(message: telebot.types.Message) -> tuple[int, str, str]:
         return (2, unit, text_test)
     #-------------------------------------------------------
     text_test = text.replace(' ', '')
-    units = list(units_3.keys())
+    units = sorted(list(units_3.keys()), key=len, reverse=True)
     unit = ''
     for element in units:
         if element in text_test:
