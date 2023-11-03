@@ -54,11 +54,21 @@ def get_to_main_unit(num: float, unit: str, x: int) -> float:
         return num/units_3[unit]
 
 # change unit and send message to user
-def change_unit(num: float, x: int) -> None:
-    if x == 3:
+def change_unit(num: float, x: int) -> str:
+    msg = ''
+    if x == 1:
+        for unit in list(units_1.keys()):
+            _ = "{:g}".format(num * units_1[unit])
+            msg = msg + "   " + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
+    elif x == 2:
+        for unit in list(units_2.keys()):
+            _ = "{:g}".format(num * units_2[unit])
+            msg = msg + "   " + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
+    elif x == 3:
         for unit in list(units_3.keys()):
             _ = "{:g}".format(num * units_3[unit])
-            print(_ + " " + unit) #TODO message to user
+            msg = msg + "   " + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
+    return msg
 
 # handle messages with known units
 def message_handler(message: telebot.types.Message, bot: telebot.TeleBot):
