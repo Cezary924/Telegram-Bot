@@ -1,9 +1,9 @@
 import telebot
 
 main_units = ['m', 'g', 's']
-units_1 = {'cm': 100, 'dm': 10, 'km': 0.001, 'mm': 1000, 'in': 39.37, 'ft': 3.281, 'mi': 0.000621371, 'm': 1}
-units_2 = {'dag': 10, 'lb': 0.00220462, 'kg': 0.001, 'oz': 0.03527396, 't': 0.000001, 'mg': 1000, 'g': 1}
-units_3 = {'min': 1/60, 'wk': 1/604800, 'yr': 1/31536000, 'mo': 1/2592000, 'ms': 1000, 'd': 1/86400, 'h': 1/3600, 's': 1}
+units_1 = {'mm': 1000, 'cm': 100, 'in': 39.37, 'dm': 10, 'ft': 3.281, 'm': 1, 'km': 0.001,  'mi': 0.000621371}
+units_2 = {'mg': 1000, 'dag': 10, 'g': 1, 'oz': 0.03527396, 'lb': 0.00220462, 'kg': 0.001, 't': 0.000001}
+units_3 = {'ms': 1000, 's': 1, 'min': 1/60, 'h': 1/3600, 'd': 1/86400, 'wk': 1/604800, 'mo': 1/2592000, 'yr': 1/31536000}
 
 # check if the message contains any known unit
 def check_message(message: telebot.types.Message) -> tuple[int, str, str]:
