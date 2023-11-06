@@ -1321,6 +1321,6 @@ if func.suffix == 0:
         database.send_error_info(bot, str(type(err).__name__))
         database.set_admins_state(bot, 'err_' + str(type(err).__name__))
         sys.exit()
-        #admin.command_admin_restart_bot_yes(bot, send_mess = 0)
+        #admin.command_admin_restart_bot_yes(bot, send_mess = 0) # this line makes Bot restart after exception
 else:
     bot.polling(non_stop = True)
