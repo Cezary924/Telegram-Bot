@@ -35,7 +35,7 @@ else:
     token = func.tokens['telegram']
 
 import admin, basic_commands, database, logger
-import crystal_ball, top_spotify_artist, reminder
+import crystal_ball, top_spotify_artist, reminder, unit_converter
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # get commit count & current tag name
@@ -958,6 +958,18 @@ def echo_instagram(message: telebot.types.Message) -> None:
     else:
         permission_denied(message)
 
+# handle /unitconverter command
+@bot.message_handler(commands=['unitconverter'])
+def command_unitconverter(message: telebot.types.Message) -> None:
+    func.print_log("", "Unit converter: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    database.set_current_state(message, "unitconverter")
+    basic_commands.command_unitconverter(message, bot)
+
 # handle /crystalball command
 @bot.message_handler(commands=['crystalball'])
 def command_crystalball(message: telebot.types.Message) -> None:
@@ -1250,6 +1262,17 @@ def echo_admin_users_id_check(message: telebot.types.Message) -> None:
         banned_info(message)
         return
     admin.command_admin_users_id_check_received_message(message, bot)
+
+# handle unit_converter messages
+@bot.message_handler(func=lambda message: unit_converter.check_message(message)[0] > 0)
+def echo_unit_converter_message_check(message: telebot.types.Message) -> None:
+    func.print_log(message.text, "Unit converter message: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
+    if database.guest_check(message, bot) != True:
+        return
+    if database.banned_check(message) == True:
+        banned_info(message)
+        return
+    unit_converter.message_handler(message, bot)
 
 # handle unknown command
 @bot.message_handler(func=lambda message: message.text.startswith("/"))

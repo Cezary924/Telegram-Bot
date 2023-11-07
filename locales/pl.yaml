@@ -102,7 +102,7 @@ settings: ⚙️ Ustawienia
 return: 🔙 Powrót
 command_help_contact: /contact - _☎️ Informacje o drogach kontaktu z Administratorem_\n/report - _📨 Wysłanie zgłoszenia do Administratora_\n
 contact: ☎️ Kontakt
-command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/youtube - _📺 Pobieranie wideo z serwisu YouTube_\n/instagram - _📸 Pobieranie wideo z serwisu Instagram_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_\n/reminder - _🔔 Przypominanie o danych zdarzeniach_
+command_help_features: /tiktok - _🎵 Pobieranie wideo z serwisu TikTok_\n/twitter - _🐦 Pobieranie wideo z serwisu Twitter_\n/tumblr - _📄 Pobieranie wideo z serwisu Tumblr_\n/youtube - _📺 Pobieranie wideo z serwisu YouTube_\n/instagram - _📸 Pobieranie wideo z serwisu Instagram_\n/crystalball - _🔮 Odpowiedź na Twoje pytanie_\n/topspotifyartist - _ᯤ Zgadywanie pseudonimu jednego z najpopularniejszych artystów serwisu Spotify_\n/reminder - _🔔 Przypominanie o zadanych zdarzeniach_\n/unitconverter - _🧮 Zamiana podstawowych jednostek miar_
 features: ✨ Funkcje Bota
 command_help_main: /start - _🤖 Zaczęcie rozmowy z Botem_\n/features - _✨ Sprawdzenie listy wszystkich funkcji Bota_\n/help - _📃 Wyświetlenie menu pomocy z listą dostępnych komend_\n/about - _ℹ️ Informacje o Bocie_\n/settings - _⚙️ Wyświetlenie menu ustawień z listą dostępnych opcji_
 main: 🤖 Ogólne
@@ -163,3 +163,5 @@ command_reminder_delete: Czy na pewno chcesz usunąć to przypomnienie?
 command_reminder_deleted: Przypomnienie zostało usunięte 🗑️
 content: Treść
 date: Data
+unitconverter: 🧮 Konwerter jednostek
+command_unitconverter: Aby dokonać zamiany jednostek, wystarczy, że wyślesz mi interesującą Cię liczbę z jej obecną jednostką 😊
