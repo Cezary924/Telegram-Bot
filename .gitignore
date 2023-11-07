@@ -4,3 +4,7 @@
 /bot/__pycache__/
 *.mp4
 *.mp3
+*.jpeg
+*.jpg
+*.png
+*.gif
