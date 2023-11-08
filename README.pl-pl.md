@@ -10,6 +10,7 @@
 ## ✨ Główne funkcje
 - Pobieranie wideo z popularnych serwisów (TikTok, Twitter (X), Tumblr, Reddit, YouTube & Instagram)
 - Przypomnienia 🔔
+- Konwerter jednostek miar 🧮
 - Zgadywanie jednego z topowych artystów serwisu Spotify ᯤ
 - Magiczna kryształowa kula 🔮
 - Wielojęzyczne odpowiedzi 🌐 (Polski & Angielski)
@@ -60,7 +61,8 @@ python bot/bot.py beta
 - ```/about``` - Informacje o Bocie.
 - ```/settings``` - Wyświetlenie menu ustawień z listą dostępnych opcji.
 - ```/admin``` - _(ukryta komenda)_ Wyświetlenie menu Administratora.
-- ```/reminder``` - Przypominanie o danych zdarzeniach.
+- ```/reminder``` - Przypominanie o zadanych zdarzeniach.
+- ```/unitconverter``` - Zamiana podstawowych jednostek miar.
 - ```/tiktok``` - Pobieranie wideo z serwisu TikTok.
 - ```/twitter``` - Pobieranie wideo z serwisu Twitter (X).
 - ```/tumblr``` - Pobieranie wideo z serwisu Tumblr.
