@@ -199,7 +199,7 @@ def command_admin_update_bot(message: telebot.types.Message, bot: telebot.TeleBo
     markup.add(no_button)
     text1 = database.get_message_text(message, 'admin')
     text2 = database.get_message_text(message, 'admin_device')
-    text3 = database.get_message_text(message, 'shutdown')
+    text3 = database.get_message_text(message, 'update')
     text4 = database.get_message_text(message, 'command_admin_update_bot')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown', reply_markup = markup)
@@ -207,7 +207,7 @@ def command_admin_update_bot(message: telebot.types.Message, bot: telebot.TeleBo
 def command_admin_update_bot_yes(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
     text1 = database.get_message_text(message, 'admin')
     text2 = database.get_message_text(message, 'admin_device')
-    text3 = database.get_message_text(message, 'shutdown')
+    text3 = database.get_message_text(message, 'update')
     text4 = database.get_message_text(message, 'command_admin_update_bot_yes')
     mess = bot.send_message(message.chat.id, "*" + text1 + " > " + text2 + " > " + text3 + ":*\n\n" + text4,
                      parse_mode = 'Markdown')
