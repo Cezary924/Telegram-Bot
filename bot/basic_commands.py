@@ -267,6 +267,7 @@ def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int
                     + text3 + ": _@" + github_username + "_\n"
                     + text2 + ": _" + tag + " (" + str(ver) + ")_\n"
                     + text1 + ": _" + info_about_version(ver, message)[1] + "_\n"
+                    + "GitHub Repo: _" + "https://github.com/"+ func.config['github_username'] + "/" + func.config['github_repo'] + "/" + "_\n"
                     + "© _2023_", parse_mode= 'Markdown')
     database.register_last_message(mess)
 
