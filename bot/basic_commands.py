@@ -261,14 +261,14 @@ def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int
     text4 = database.get_message_text(message, 'description')
     text5 = database.get_message_text(message, 'command_about_description')
     text6 = database.get_message_text(message, 'command_about')
-    mess = bot.send_message(message.chat.id, "*ℹ️ " + text6 + ":*\n\n"
-                    + "*" + bot_name + "*\n"
-                    + text4 + ": _" + text5 + "_\n"
-                    + text3 + ": _@" + github_username + "_\n"
-                    + text2 + ": _" + tag + " (" + str(ver) + ")_\n"
-                    + text1 + ": _" + info_about_version(ver, message)[1] + "_\n"
-                    + "GitHub Repo: _" + "https://github.com/"+ func.config['github_username'] + "/" + func.config['github_repo'] + "/" + "_\n"
-                    + "© _2023_", parse_mode= 'Markdown')
+    mess = bot.send_message(message.chat.id, telebot.telebot.formatting.hbold("ℹ️ " + text6 + ":") + "\n\n"
+                    + telebot.telebot.formatting.hbold(bot_name) + "\n"
+                    + text4 + ": " + telebot.telebot.formatting.hitalic(text5) + "\n"
+                    + text3 + ": " + telebot.telebot.formatting.hitalic("@" + github_username) + "\n"
+                    + text2 + ": " + telebot.telebot.formatting.hitalic(tag + " (" + str(ver) + ")") + "\n"
+                    + text1 + ": " + telebot.telebot.formatting.hitalic(info_about_version(ver, message)[1]) + "\n"
+                    + "GitHub Repo: " + telebot.telebot.formatting.hitalic("https://github.com/"+ func.config['github_username'] + "/" + func.config['github_repo'] + "/") + "\n"
+                    + "© " + telebot.telebot.formatting.hitalic("2023"), parse_mode='html')
     database.register_last_message(mess)
 
 # handle /tiktok command
