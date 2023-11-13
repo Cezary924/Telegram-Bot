@@ -60,15 +60,15 @@ def change_unit(num: float, x: int) -> str:
     if x == 1:
         for unit in list(units_1.keys()):
             _ = "{:g}".format(num * units_1[unit])
-            msg = msg + "   " + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
+            msg = msg + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
     elif x == 2:
         for unit in list(units_2.keys()):
             _ = "{:g}".format(num * units_2[unit])
-            msg = msg + "   " + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
+            msg = msg + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
     elif x == 3:
         for unit in list(units_3.keys()):
             _ = "{:g}".format(num * units_3[unit])
-            msg = msg + "   " + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
+            msg = msg + telebot.telebot.formatting.hitalic(unit + ": ") + _ + "\n"
     return msg
 
 # handle messages with known units
@@ -89,6 +89,6 @@ def message_handler(message: telebot.types.Message, bot: telebot.TeleBot):
         else:
             num = get_to_main_unit(num, unit, x)
             msg = change_unit(num, x)
-    text2 = _num + " " + unit + " =="
+    text2 = telebot.telebot.formatting.hbold(unit + ": " + _num)
     mess = bot.send_message(message.chat.id, telebot.telebot.formatting.hbold(text1 + ":\n\n") + text2 + "\n" + msg[:-1], parse_mode = 'html')
     database.register_last_message(mess)
