@@ -49,7 +49,7 @@ pip install -r requirements.txt
 python bot/bot.py
 ```
 > Możesz również dodać argument wywołania ```beta``` na końcu powyższej komendy, aby skorzystać z drugiego Telegram tokenu.
-2. Gotowe! 😁
+2. Gotowe!
 
 ## 🧑‍💻 Podstawowe komendy
 - ```/start``` - Zaczęcie rozmowy z Botem.
