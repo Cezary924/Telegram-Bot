@@ -1,5 +1,5 @@
 pyTelegramBotAPI==4.18.1
-requests==2.31.0
+requests==2.32.1
 moviepy==1.0.3
 PyYAML==6.0.1
 bs4==0.0.2
