@@ -24,14 +24,14 @@
 pip install -r requirements.txt
 ```
 3. Create:
-   - ```config.yaml``` file in *files* folder and write following code to it:
+   - ```config.yaml``` file in *config* folder and write following code to it:
    ```
    bot_name: your_bot_name
    github_repo: your_github_repo_name
    github_username: your_github_username
    telegram_username: your_telegram_username
    ```
-   - ```tokens.yaml``` file in *files* folder and write following code to it:
+   - ```tokens.yaml``` file in *config* folder and write following code to it:
    ```
    telegram: your_telegram_token
    telegram_beta: your_another_telegram_token
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 ## 🚀 Starting
 1. To start, execute this command in the main directory:
 ```
-python bot/bot.py
+python src/bot.py
 ```
 > You can also add ```beta``` argument at the end of the command shown above to use secondary Telegram token.
 2. Enjoy!

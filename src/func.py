@@ -26,8 +26,8 @@ def load_config_file(name: str, path: str) -> dict[str, str]:
         print_log("", "ERROR: Open error - Could not open the " + name + " file.")
     return x
 
-config = load_config_file("config.yaml", "../files/config.yaml")
-tokens = load_config_file("tokens.yaml", "../files/tokens.yaml")
+config = load_config_file("config.yaml", "../config/config.yaml")
+tokens = load_config_file("tokens.yaml", "../config/tokens.yaml")
 
 # read and open file 'name' located in 'path'
 def read_file(name: str, path: str) -> list[str]:

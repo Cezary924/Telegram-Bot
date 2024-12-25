@@ -1,7 +1,8 @@
 # Ignore secret files containing tokens, keys, etc.
-/files/
-/log/
-/bot/__pycache__/
+/config/*.yaml
+/db/*.db
+/log/*.log
+/src/__pycache__/
 *.mp4
 *.mp3
 *.jpeg
