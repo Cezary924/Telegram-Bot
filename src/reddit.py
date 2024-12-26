@@ -1,5 +1,5 @@
 import telebot, requests, os
-import moviepy.editor as mpe
+import moviepy as mpe
 
 import func, downloader
 
