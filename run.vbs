@@ -1,7 +1,7 @@
 Set objFSO = CreateObject("Scripting.FileSystemObject")
 Set objShell = CreateObject("Wscript.Shell")
 
-path = objFSO.GetParentFolderName(WScript.ScriptFullName) & "\bot\bot.py"
+path = objFSO.GetParentFolderName(WScript.ScriptFullName) & "\src\bot.py"
 exec = "python3 " & path
 
 WScript.Sleep(5000)
