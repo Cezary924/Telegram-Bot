@@ -39,8 +39,8 @@ import crystal_ball, top_spotify_artist, reminder, unit_converter
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # get commit count & current tag name
-commit_count = int(subprocess.check_output('git rev-list --count master').decode("utf-8").replace('\n', ''))
-version_tag = subprocess.check_output('git describe --abbrev=0 --tags').decode("utf-8").replace('\n', '')
+commit_count = int(subprocess.check_output('git rev-list --count master', shell=True).decode("utf-8").replace('\n', ''))
+version_tag = subprocess.check_output('git describe --abbrev=0 --tags', shell=True).decode("utf-8").replace('\n', '')
 
 # create bot instance
 bot = telebot.TeleBot(token)
