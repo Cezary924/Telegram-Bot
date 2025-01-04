@@ -77,5 +77,5 @@ def start_tiktok(message: telebot.types.Message, bot: telebot.TeleBot) -> None:
             except OSError:
                 func.print_log(message.text, "ERROR: Open error - Could not open the \'.jpg\' file.")
                 downloader.send_error_message(bot, message, 'tiktok')
-    func.remove_directory(folder_name, os.curdir + "\\" + folder_name)
+    func.remove_directory(folder_name, os.curdir + "/" + folder_name)
     
