@@ -49,4 +49,4 @@ def start_instagram(message: telebot.types.Message, bot: telebot.TeleBot) -> Non
         finally:
             downloaded_files.remove(media_name)
         
-    func.remove_directory(folder_name, ".\\" + folder_name)
+    func.remove_directory(folder_name, os.curdir + "/" + folder_name)
