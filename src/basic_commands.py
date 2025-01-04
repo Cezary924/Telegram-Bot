@@ -268,7 +268,7 @@ def command_about(message: telebot.types.Message, bot: telebot.TeleBot, ver: int
                     + text2 + ": " + telebot.telebot.formatting.hitalic(tag + " (" + str(ver) + ")") + "\n"
                     + text1 + ": " + telebot.telebot.formatting.hitalic(info_about_version(ver, message)[1]) + "\n"
                     + "GitHub Repo: " + telebot.telebot.formatting.hitalic("https://github.com/"+ func.config['github_username'] + "/" + func.config['github_repo'] + "/") + "\n"
-                    + "© " + telebot.telebot.formatting.hitalic("2023"), parse_mode='html')
+                    + "© " + telebot.telebot.formatting.hitalic("2023 - 2025"), parse_mode='html')
     database.register_last_message(mess)
 
 # handle /tiktok command
