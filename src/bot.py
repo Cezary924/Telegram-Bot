@@ -13,10 +13,10 @@ import func
 dir_items = os.listdir()
 for item in dir_items:
     if item.endswith('.py') == 0 and item != '__pycache__':
-        if os.path.isdir(os.curdir + "\\" + item) == 0:
-            func.remove_file(item, os.curdir + "\\" + item)
+        if os.path.isdir(os.curdir + "/" + item) == 0:
+            func.remove_file(item, os.curdir + "/" + item)
         else:
-            func.remove_directory(item, os.curdir + "\\" + item)
+            func.remove_directory(item, os.curdir + "/" + item)
 
 # create LoadingString object & run its 'run' function in new thread
 loading = func.LoadingString()
