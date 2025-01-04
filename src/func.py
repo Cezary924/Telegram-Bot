@@ -111,6 +111,10 @@ def check_url(message:telebot.types.Message, scheme: str, hostname: str) -> bool
             return True
     return False
 
+# create directory 'name' located in 'path' with '/' at the end
+def create_directory(name: str, path: str = "./") -> None:
+    os.mkdir(path + name)
+
 # remove file 'name' located in 'path'
 def remove_file(name: str, path: str) -> None:
     os.remove(path)
