@@ -39,7 +39,7 @@ pip install -r requirements.txt
    spotify_id: spotify_client_id
    spotify_secret: spotify_client_secret
    ```
-   > RapidApi dla multimediów z serwisu TikTok: należy zasubskrybować https://rapidapi.com/maatootz/api/tiktok-full-info-without-watermark
+   > RapidApi dla multimediów z serwisu TikTok: należy zasubskrybować https://rapidapi.com/tikwm-tikwm-default/api/tiktok-scraper7
    > RapidApi dla multimediów z serwisu Twitter (X): należy zasubskrybować https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Tokeny Spotify: należy utworzyć aplikację w serwisie Spotify dla deweloperów https://developer.spotify.com/dashboard
 
