@@ -1,6 +1,6 @@
 pyTelegramBotAPI==4.26.0
 requests==2.32.3
-moviepy==2.1.1
+moviepy==2.1.2
 PyYAML==6.0.2
 bs4==0.0.2
 pytube==15.0.0
