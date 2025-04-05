@@ -16,15 +16,19 @@ def fill_artists() -> int:
     if response.status_code != 200:
         return -1
     soup = BeautifulSoup(response.content, "html.parser")
-    soup = soup.find(class_ = 'addpos sortable')
+    soup = soup.find(class_ = 'sortable')
     i = 1
     for row in soup.select('tbody tr'):
-        artist_name = row.find(class_ = "text").select('a')[0].get_text()
-        artist_kworb_link = 'https://kworb.net/spotify/' + row.find(class_ = "text").select('a')[0].get('href')
-        artist_song_name = None
-        artist_song_link = None
-        artist_genre = None
-        artists.append([artist_name, artist_kworb_link, artist_song_name, artist_song_link, artist_genre])
+        try:
+            artist_name = row.find(class_ = "text").select('a')[0].get_text()
+            artist_kworb_link = 'https://kworb.net/spotify/' + row.find(class_ = "text").select('a')[0].get('href')
+        except:
+            pass
+        else:
+            artist_song_name = None
+            artist_song_link = None
+            artist_genre = None
+            artists.append([artist_name, artist_kworb_link, artist_song_name, artist_song_link, artist_genre])
         i += 1
         if i > 200:
             break
@@ -53,8 +57,11 @@ def add_info_about_artist(listeners: int) -> int:
         return -1
     soup = BeautifulSoup(response.content, "html.parser")
     soup = soup.select('tbody tr td div')[0]
-    artists[listeners][2] = soup.get_text()
-    artists[listeners][3] = soup.find('a', href=True)['href']
+    try:
+        artists[listeners][2] = soup.get_text()
+        artists[listeners][3] = soup.find('a', href=True)['href']
+    except:
+        pass
     headers = {
         "Authorization": "Bearer " + spotify_token,
         "Content-Type": "application/json"
@@ -71,7 +78,10 @@ def add_info_about_artist(listeners: int) -> int:
         if response.status_code != 200:
             return -1
     response = response.json()
-    artists[listeners][4] = response['genres'][0].capitalize()
+    try:
+        artists[listeners][4] = response['genres'][0].capitalize()
+    except:
+        pass
     return 0
 
 # get index of artist named 'text'
@@ -105,7 +115,7 @@ def artist_text(message: telebot.types.Message, number: int, final_number: int =
             text3 = " 🆗"
         else:
             text3 = " 🆖"
-        return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_" + text2 + "\n" + database.get_message_text(message, 'genre') + ": _" + str(artists[number][4]) + "_" + text3 + "\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_" + text1
+        return database.get_message_text(message, 'nickname') + ": _" + artists[number][0] + "_" + text2 + "\n" + database.get_message_text(message, 'genre') + ": _" + str(artists[number][4] if artists[number][4] else '???') + "_" + text3 + "\n" + database.get_message_text(message, 'monthly_listeners') + ": _#" + str(number + 1) + "_" + text1
     
 # get string with artist's most streamed song
 def song_text(message: telebot.types.Message, number: int) -> str:
