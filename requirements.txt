@@ -4,4 +4,4 @@ moviepy==2.2.1
 PyYAML==6.0.2
 bs4==0.0.2
 pytube==15.0.0
-instaloader==4.14.1
+instaloader==4.14.2
