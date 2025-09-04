@@ -1,4 +1,4 @@
-pyTelegramBotAPI==4.29.0
+pyTelegramBotAPI==4.29.1
 requests==2.32.5
 moviepy==2.2.1
 PyYAML==6.0.2
