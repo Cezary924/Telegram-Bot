@@ -1,0 +1,19 @@
+services:
+  telegram-bot:
+    image: python:3.12-slim
+    container_name: telegram-bot
+    restart: always
+    working_dir: /app/src
+    volumes:
+      - ./:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: >
+      bash -c "apt-get update && apt-get install -y git && 
+      pip install --no-cache-dir -r /app/requirements.txt && 
+      python /app/src/bot.py"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
