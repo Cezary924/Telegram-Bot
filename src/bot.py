@@ -60,6 +60,9 @@ database.create_table_settings()
 # create Reminder table if it does not exist
 database.create_table_reminder()
 
+# create admin user from config if no admin exists yet
+database.create_admin_from_config(bot)
+
 # send permission denied message
 def permission_denied(message: telebot.types.Message) -> None:
     func.print_log(message.text, "Permission denied: " + message.chat.first_name + " (" + str(message.chat.id) + ").")
