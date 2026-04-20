@@ -39,8 +39,13 @@ import crystal_ball, top_spotify_artist, reminder, unit_converter
 import downloader, tiktok, twitter, tumblr, reddit, youtube, instagram
 
 # get commit count & current tag name
-commit_count = int(subprocess.check_output('git rev-list --count master', shell=True).decode("utf-8").replace('\n', ''))
-version_tag = subprocess.check_output('git describe --abbrev=0 --tags', shell=True).decode("utf-8").replace('\n', '')
+try:
+    current_branch = subprocess.check_output('git rev-parse --abbrev-ref HEAD', shell=True).decode("utf-8").strip()
+    commit_count = int(subprocess.check_output(f'git rev-list --count {current_branch}', shell=True).decode("utf-8").replace('\n', ''))
+    version_tag = subprocess.check_output('git describe --abbrev=0 --tags', shell=True).decode("utf-8").replace('\n', '')
+except subprocess.CalledProcessError:
+    commit_count = 0
+    version_tag = 'unknown'
 
 # create bot instance
 bot = telebot.TeleBot(token)
@@ -59,6 +64,9 @@ database.create_table_settings()
 
 # create Reminder table if it does not exist
 database.create_table_reminder()
+
+# create admin user from config if no admin exists yet
+database.create_admin_from_config(bot)
 
 # send permission denied message
 def permission_denied(message: telebot.types.Message) -> None:

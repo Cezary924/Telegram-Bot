@@ -76,6 +76,59 @@ def create_table_reminder() -> None:
             ); """)
     database_lock.release()
 
+# create admin user from config if there is no admin yet
+def create_admin_from_config(bot: telebot.TeleBot) -> None:
+    admin_username = func.config['telegram_username']
+
+    if admin_username is not None:
+        admin_username = str(admin_username).strip()
+        if admin_username.startswith('@'):
+            admin_username = admin_username[1:]
+        if admin_username == '':
+            admin_username = None
+
+    if admin_username is None:
+        return
+
+    database_lock.acquire(True)
+    cursor.execute("SELECT COUNT(1) FROM People WHERE role = 2;")
+    (admins_count,)=cursor.fetchone()
+    database_lock.release()
+    if admins_count > 0:
+        return
+
+    def _insert_admin(user_id: int, first_name: str, last_name: str, username: str) -> None:
+        database_lock.acquire(True)
+        cursor.execute("SELECT COUNT(1) FROM People WHERE id = ?;", (user_id,))
+        (present,)=cursor.fetchone()
+        if present == 1:
+            cursor.execute("UPDATE People SET first_name = ?, last_name = ?, username = ?, role = 2 WHERE id = ?;",
+                           (first_name, last_name, username, user_id))
+        else:
+            cursor.execute("INSERT INTO People VALUES (?, ?, ?, ?, ?); ",
+                           (user_id, first_name, last_name, username, 2))
+        cursor.execute("SELECT COUNT(1) FROM Settings WHERE id = ?;", (user_id,))
+        (settings_present,)=cursor.fetchone()
+        if settings_present == 1:
+            cursor.execute("UPDATE Settings SET notifications = ? WHERE id = ?;", (1, user_id))
+        else:
+            cursor.execute("INSERT INTO Settings VALUES (?, ?, ?); ", (user_id, 'en', 1))
+        db_conn.commit()
+        database_lock.release()
+
+    try:
+        chat = bot.get_chat('@' + admin_username)
+    except Exception as err:
+        func.print_log("", "Admin init: could not resolve @" + admin_username + " - " + str(err))
+        return
+
+    user_id = chat.id
+    first_name = getattr(chat, 'first_name', '') or ''
+    last_name = getattr(chat, 'last_name', '') or ''
+    username = getattr(chat, 'username', '') or admin_username
+    _insert_admin(user_id, first_name, last_name, username)
+    func.print_log("", "Admin init: created admin @" + admin_username + " (" + str(user_id) + ").")
+
 # commit changes and close connection with database
 def commit_close() -> None:
     database_lock.acquire(True)
