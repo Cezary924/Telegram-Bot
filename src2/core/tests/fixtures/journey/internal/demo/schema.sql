@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS module_demo_notes (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    note TEXT
+);

@@ -1,0 +1,11 @@
+name: Demo
+description: Moduł demonstracyjny
+commands.demo: Otwórz demo
+menu:
+  title: Demo
+  text: Wybierz coś
+  open: Otwórz szczegóły
+details:
+  title: Szczegóły
+  text: Wyślij mi notatkę
+  saved: 'Zapisano: {note}'

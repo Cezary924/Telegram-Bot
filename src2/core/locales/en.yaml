@@ -1,0 +1,28 @@
+error: Error. Please, try again later.
+yes_button: ✅ Yes
+no_button: ❌ No
+return_button: 🔙 Back
+
+role_banned: Banned
+role_guest: Guest
+role_user: User
+role_admin: Admin
+
+banned_info: Sorry, you are not allowed to communicate with me 😐
+permission_denied: Sorry, you cannot use this command... 😭\n\nPlease, contact the Administrator for a higher permission level 🧑‍🔬
+menu_closed: The menu has been closed
+not_working_buttons: Sorry, this button does not work anymore... 😥
+unknown_command: Sorry, I do not understand this command... 💔
+unknown_message: Sorry, I do not understand... 💔
+
+bot_started: The Bot has been started successfully!
+bot_stopped: The Bot has been stopped!
+bot_failed: The Bot has encountered an error!
+
+consent:
+  question: ✋ *Data Processing Agreement:*\n\nThis is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose 💝
+  yes_button: ✅ Yes, I agree
+  no_button: ❌ No, I do not agree
+  accepted: I am glad it is not the end of our journey 💞 \nI can follow your instructions from now on 🫡
+  declined: Ok... 😞 \nNice to meet you 😄
+  language_switch: 🇵🇱 Polski

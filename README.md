@@ -7,31 +7,24 @@
    <a href="https://github.com/Cezary924/Telegram-Bot/blob/master/README.pl-pl.md" target="__blank"><img alt="A badge with a label 'Lang 🇵🇱' - a link takes to README file in Polish" src="https://img.shields.io/badge/Lang-🇵🇱-dc143c?style=for-the-badge"></a>
 </div><br/>
 
-## ✨ Main features
-- Video downloader ⬇️ (TikTok, Twitter (X), Tumblr, Reddit, YouTube & Instagram)
-- Reminders 🔔
-- Unit converter 🧮
-- Guess Top Spotify Artist ᯤ
-- Crystal ball 🔮
-- Multilingual responses 🌐 (English & Polish)
-- User management 🙋‍♀️🙋‍♂️ (Changing roles & Deleting data)
-- Device status management ⚙️ (Shutdown & Restart) 
-
 ## ⚙️ Installation & Configuration
+
 1. Clone this repo.
-2. Install required libraries with this code:
+2. Install required libraries with this command:
+
 ```
 pip install -r requirements.txt
 ```
+
 3. Create:
-   - ```config.yaml``` file in *config* folder and write following code to it:
+    - the ```config.yaml``` file in the *config* folder and write the following code to it:
    ```
    bot_name: your_bot_name
    github_repo: your_github_repo_name
    github_username: your_github_username
    telegram_username: your_telegram_username
    ```
-   - ```tokens.yaml``` file in *config* folder and write following code to it:
+    - the ```tokens.yaml``` file in the *config* folder and write the following code to it:
    ```
    telegram: your_telegram_token
    telegram_beta: your_another_telegram_token
@@ -39,34 +32,46 @@ pip install -r requirements.txt
    spotify_id: your_spotify_client_id
    spotify_secret: your_spotify_client_secret
    ```
-   > RapidApi for TikTok media: you have to subscribe to https://rapidapi.com/tikwm-tikwm-default/api/tiktok-scraper7
-   > RapidApi for Twitter (X) media: you have to subscribe to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
-   > Spotify Tokens: you have to create an app in the Spotify Developer Dashboard https://developer.spotify.com/dashboard
+   > RapidApi for TikTok media: you have to subscribe
+   to https://rapidapi.com/tikwm-tikwm-default/api/tiktok-scraper7
+   > RapidApi for Twitter (X) media: you have to subscribe
+   to https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
+   > Spotify Tokens: you have to create an app in the Spotify Developer
+   Dashboard https://developer.spotify.com/dashboard
+
 
 ## 🚀 Starting
-1. To start, execute this command in the main directory:
+
+1. To start the Bot, execute this command in the main directory:
+
 ```
 python src/bot.py
 ```
-> You can also add ```beta``` argument at the end of the command shown above to use secondary Telegram token.
+
+> You can also add the ```beta``` argument at the end of the command shown above to use the secondary Telegram
+> token.
+
 2. Enjoy!
 
-## 🧑‍💻 Basic commands
-- ```/start``` - to start conversation with the Bot.
-- ```/features``` - to check all Bot features list.
-- ```/help``` - to get info about available commands.
-- ```/about``` - to get info about the Bot and its Creator.
-- ```/settings``` - to get info about available settings.
-- ```/admin``` - _(hidden command)_ to get access to the Admin Menu.
-- ```/reminder``` - to be reminded of specific events.
-- ```/unitconverter``` - To convert common units of measurement.
-- ```/tiktok``` - to download video from TikTok.
-- ```/twitter``` - to download video from Twitter (X).
-- ```/tumblr``` - to download video from Tumblr.
-- ```/reddit``` - to download video from Reddit.
-- ```/youtube``` - to download video from YouTube.
-- ```/instagram``` - to download video from Instagram.
-- ```/crystalball``` - to answer your question.
-- ```/topspotifyartist``` - to guess one of the top Spotify artists.
-- ```/contact``` - to contact the Admin/Creator.
-- ```/report``` - to report an issue to the Admin.
+## 🧩 Modules
+
+Every feature is a module - a directory the Bot loads on start. Feature modules can be turned off in
+```config/modules.yaml```, core modules are always there.
+> Writing your own module is described in [MODULES.md](MODULES.md).
+
+## 🧱 Core modules
+
+- Welcome and feature list 👋 (```/start```, ```/features```)
+- Help and about 💬 (```/help```, ```/about```)
+- Settings, language and notifications ⚙️ (```/settings```)
+- Contact and reports 📨 (```/contact```, ```/report```)
+- User management and Bot control 🛠️ (```/admin```)
+> ```/admin``` is a hidden command, available to the Administrator only.
+
+## ✨ Feature modules
+
+- Video downloader ⬇️ (```/tiktok```, ```/twitter```, ```/tumblr```, ```/reddit```, ```/youtube```, ```/instagram```)
+- Reminders 🔔 (```/reminder```)
+- Unit converter 🧮 (```/unitconverter```)
+- Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
+- Crystal ball 🔮 (```/crystalball```)
