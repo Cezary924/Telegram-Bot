@@ -26,6 +26,16 @@ class UserSettings:
         row = self.get(user_id)
         return bool(row['has_notifications']) if row else True
 
+    def has_admin_alerts(self, user_id: int) -> bool:
+        row = self.get(user_id)
+        return bool(row['has_admin_alerts']) if row else True
+
+    def set_admin_alerts(self, user_id: int, has_admin_alerts: bool) -> None:
+        self._db.execute("""
+            INSERT INTO user_settings (user_id, has_admin_alerts) VALUES (?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET has_admin_alerts = excluded.has_admin_alerts; """,
+                         (user_id, int(has_admin_alerts)))
+
     def set_notifications(self, user_id: int, has_notifications: bool) -> None:
         self._db.execute("""
             INSERT INTO user_settings (user_id, has_notifications) VALUES (?, ?)

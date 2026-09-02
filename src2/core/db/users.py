@@ -14,7 +14,8 @@ class Users:
     def get(self, user_id: int) -> sqlite3.Row | None:
         return self._db.query_one("SELECT * FROM users WHERE id = ?;", (user_id, ))
 
-    def save(self, user_id: int, first_name: str = "", last_name: str = "", username: str = "") -> None:
+    def save(self, user_id: int, first_name: str = "", last_name: str = "", username: str = "") -> bool:
+        is_new = not self.exists(user_id)
         now = now_text()
         self._db.execute("""
             INSERT INTO users (id, first_name, last_name, username, created_at, seen_at)
@@ -25,6 +26,7 @@ class Users:
                 username = excluded.username,
                 seen_at = excluded.seen_at; """,
                          (user_id, first_name, last_name, username, now, now))
+        return is_new
 
     def get_role(self, user_id: int) -> Role:
         row = self._db.query_one("SELECT role FROM users WHERE id = ?;", (user_id, ))
@@ -49,6 +51,10 @@ class Users:
     def count_by_role(self) -> dict[Role, int]:
         rows = self._db.query_all("SELECT role, COUNT(1) AS total FROM users GROUP BY role;")
         return {Role.from_value(row['role']): row['total'] for row in rows}
+
+    def count_with_consent(self) -> int:
+        row = self._db.query_one("SELECT COUNT(1) AS total FROM users WHERE has_consent = 1;")
+        return row['total'] if row else 0
 
     def delete(self, user_id: int) -> None:
         self._db.execute("DELETE FROM users WHERE id = ?;", (user_id, ))

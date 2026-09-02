@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS bot_state (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     first_name TEXT NOT NULL DEFAULT '',
@@ -12,7 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS user_settings (
     user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     language TEXT NOT NULL DEFAULT 'en',
-    has_notifications INTEGER NOT NULL DEFAULT 1
+    has_notifications INTEGER NOT NULL DEFAULT 1,
+    has_admin_alerts INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS user_navigation_stacks (

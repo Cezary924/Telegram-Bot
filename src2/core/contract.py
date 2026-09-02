@@ -2,9 +2,11 @@ import ast
 import importlib
 import os
 
+import yaml
+
 from core import callbacks, paths
 from core.db.module_db import created_object_pattern
-from core.i18n import default_language, load_locale_file
+from core.i18n import default_language, load_locale_file, supported_languages
 from core.loader import discover, external_package, internal_package, locales_name, manifest_name, schema_name
 from core.module import Module
 
@@ -50,6 +52,11 @@ def check_locales(module: Module) -> list[str]:
     if default_language + ".yaml" not in files:
         return ["there is no '" + default_language + ".yaml' translation"]
     problems = []
+    wanted = {language + ".yaml" for language in supported_languages()}
+    for name in sorted(wanted - set(files)):
+        problems.append("there is no '" + name + "' translation")
+    for name in sorted(set(files) - wanted):
+        problems.append("'" + name + "' is not a language the Bot supports")
     keys = {name: set(load_locale_file(os.path.join(directory, name))) for name in files}
     expected = keys[default_language + ".yaml"]
     for name, found in keys.items():
@@ -65,6 +72,33 @@ def check_locales(module: Module) -> list[str]:
             problems.append("command '" + command.name + "' has no description key '" +
                             command.description + "'")
     return problems
+
+
+def check_yaml_traps(module: Module) -> list[str]:
+    directory = os.path.join(module.path, locales_name)
+    if not os.path.isdir(directory):
+        return []
+    problems = []
+    for name in sorted(os.listdir(directory)):
+        if not name.endswith(".yaml"):
+            continue
+        with open(os.path.join(directory, name), encoding='utf8') as f:
+            data = yaml.load(f, Loader=yaml.Loader) or {}
+        for key, value in flat_pairs(data):
+            if isinstance(key, bool):
+                problems.append("'" + name + "' has a key YAML read as a boolean - quote it")
+            if isinstance(value, bool):
+                problems.append("'" + name + "' has the value of '" + str(key) +
+                                "' read as a boolean - quote it")
+    return problems
+
+
+def flat_pairs(data: dict):
+    for key, value in data.items():
+        if isinstance(value, dict):
+            yield from flat_pairs(value)
+        else:
+            yield key, value
 
 
 def check_callbacks(module: Module) -> list[str]:
@@ -123,7 +157,7 @@ def check_tests(module: Module) -> list[str]:
     return ["there is no '" + tests_name + "' directory"]
 
 
-checks = [check_manifest, check_locales, check_callbacks, check_schema,
+checks = [check_manifest, check_locales, check_yaml_traps, check_callbacks, check_schema,
           check_imports, check_tests]
 
 

@@ -1,3 +1,4 @@
+language_label: 🇬🇧 English
 error: Error. Please, try again later.
 yes_button: ✅ Yes
 no_button: ❌ No
@@ -18,6 +19,9 @@ unknown_message: Sorry, I do not understand... 💔
 bot_started: The Bot has been started successfully!
 bot_stopped: The Bot has been stopped!
 bot_failed: The Bot has encountered an error!
+
+new_user: 'A new user has met the Bot:\nName: _{name}_\nID: _{id}_'
+bot_updated: The Bot has been updated to the latest version. There may be temporary difficulties in the stable operation of the Bot. We ask for little patience and understanding 🙏
 
 consent:
   question: ✋ *Data Processing Agreement:*\n\nThis is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose 💝

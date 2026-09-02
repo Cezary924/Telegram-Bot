@@ -1,0 +1,17 @@
+name: ℹ️ Informacje
+description: Informacje o Bocie i jego Autorze
+
+commands.about: Informacje o Bocie
+
+title: ℹ️ Informacje o Bocie
+tagline: Wielofunkcyjny Bot na platformie Telegram
+
+labels:
+  description: Opis
+  creator: Autor
+  version: Wersja
+  status: Status wersji
+
+up_to_date: Aktualna 😊
+behind: Przestarzała (Aktualna {version})
+ahead: Beta (Stabilna {version})

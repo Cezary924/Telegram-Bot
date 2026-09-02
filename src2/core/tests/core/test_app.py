@@ -7,6 +7,7 @@ from core import loader, paths
 from core.app import App
 from core.roles import Role
 from core.testing import FakeBot, make_message
+from core.version import Version
 from core.tests.conftest import fixtures_dir, fixtures_package
 
 
@@ -18,7 +19,8 @@ def app(tmp_path, monkeypatch):
     monkeypatch.setattr(paths, "external_modules_dir", os.path.join(fixtures_dir, "external"))
     monkeypatch.setattr(loader, "internal_package", fixtures_package + ".internal")
     monkeypatch.setattr(loader, "external_package", fixtures_package + ".external")
-    (tmp_path / "config.yaml").write_text("bot_name: Bot\n", encoding='utf8')
+    (tmp_path / "config.yaml").write_text(
+        "bot_name: Bot\ngithub_username: someone\ngithub_repo: repo\n", encoding='utf8')
     (tmp_path / "tokens.yaml").write_text("telegram: 0:aaa\ntelegram_beta: 0:bbb\ntoken1: value1\n",
                                           encoding='utf8')
     app = App()
@@ -150,3 +152,67 @@ def test_stopping_closes_everything(app):
         app.stop()
     assert exit_code.value.code == 0
     assert not app.services.bot.is_polling
+
+
+def test_the_first_run_only_remembers_the_version(app, bot):
+    app.services.version = Version("v1.2", 100)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert app.storage.state.get("version") == "v1.2 (100)"
+    assert bot.sent == []
+
+
+def test_a_changed_version_is_announced_to_the_users(app, bot):
+    app.storage.state.set("version", "v1.1 (80)")
+    app.services.version = Version("v1.2", 100)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.storage.settings.set_language(2, "pl")
+    app.announce_update()
+    assert app.storage.state.get("version") == "v1.2 (100)"
+    assert [message.chat_id for message in bot.sent] == [2]
+    assert bot.last.text.startswith("Bot został zaktualizowany")
+
+
+def test_an_unchanged_version_says_nothing(app, bot):
+    app.services.version = Version("v1.2", 100)
+    app.storage.state.set("version", "v1.2 (100)")
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert bot.sent == []
+
+
+def test_a_user_with_notifications_off_is_not_told(app, bot):
+    app.storage.state.set("version", "v1.1 (80)")
+    app.services.version = Version("v1.2", 100)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.storage.settings.set_notifications(2, False)
+    app.announce_update()
+    assert [message.chat_id for message in bot.sent] == []
+
+
+def test_the_update_message_links_to_the_release(app, bot):
+    app.storage.state.set("version", "v1.1 (80)")
+    app.services.version = Version("v1.2", 100)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert bot.last.text.endswith("\n\nhttps://github.com/someone/repo/releases/tag/v1.2")
+
+
+def test_an_unknown_version_carries_no_link(app, bot):
+    app.storage.state.set("version", "v1.1 (80)")
+    app.services.version = Version()
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert "https://" not in bot.last.text
+
+
+def test_a_missing_github_config_carries_no_link(app, bot, tmp_path):
+    (tmp_path / "config.yaml").write_text("bot_name: DemoBot\n", encoding='utf8')
+    fresh = App()
+    fresh.services.bot = bot
+    fresh.services.version = Version("v1.2", 100)
+    fresh.storage.state.set("version", "v1.1 (80)")
+    fresh.storage.users.save(2, "Other", "Person", "other")
+    fresh.announce_update()
+    assert "https://" not in bot.last.text
+    fresh.storage.close()

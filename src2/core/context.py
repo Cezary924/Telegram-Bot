@@ -4,13 +4,20 @@ import telebot
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
+from datetime import datetime, timedelta
 
 from core import paths
+from core.config import Config
 from core.db.module_db import ModuleDatabase
+from core.db.user_settings import UserSettings
+from core.db.users import Users
+from core.i18n import supported_languages
 from core.log import print_error, print_log
 from core.module import Module
+from core.registry import Registry
 from core.roles import Role
 from core.services import Services
+from core.version import Version
 from core.ui.keyboard import delete_message
 from core.utils import not_none
 
@@ -91,6 +98,19 @@ class UserNavigation:
         self._navigation.clear(self._user_id)
 
 
+def send_to(services: Services, module_name: str, user_id: int, view) -> None:
+    from core.ui.view import View, render
+    if isinstance(view, str):
+        view = View(view, parse_mode=None)
+    language = services.storage.settings.get_language(user_id)
+    return_text = services.catalog.text("core", "return_button", language)
+    text, markup = render(view, module_name, return_text)
+    is_silent = not services.storage.settings.has_notifications(user_id)
+    bot = not_none(services.bot, "the bot is not built yet")
+    bot.send_message(user_id, text, parse_mode=view.parse_mode,
+                     reply_markup=markup, disable_notification=is_silent)
+
+
 class Ctx:
     def __init__(self, services: Services, module: Module, user: User,
                  message: telebot.types.Message | None = None,
@@ -108,13 +128,16 @@ class Ctx:
     def text(self) -> str:
         return (self.message.text or "") if self.message is not None else ""
 
-    def t(self, key: str, **values) -> str:
+    def t(self, key: str, /, **values) -> str:
         return self._services.catalog.text(self.module.name, key, self.user.language, **values)
 
     def token(self, name: str) -> str:
         if name not in self.module.tokens:
             raise PermissionError("Module '" + self.module.name + "' did not declare token '" + name + "'")
         return self._services.config.token(name)
+
+    def reply(self, view) -> None:
+        send_to(self._services, self.module.name, self.user.id, view)
 
     def close_screen(self) -> None:
         top = self.nav.pop()
@@ -136,29 +159,25 @@ class Ctx:
             paths.remove_dir(path)
 
 
-def send_to(services: Services, module_name: str, user_id: int, view) -> None:
-    from core.ui.view import View, render
-    if isinstance(view, str):
-        view = View(view, parse_mode=None)
-    language = services.storage.settings.get_language(user_id)
-    return_text = services.catalog.text("core", "return_button", language)
-    text, markup = render(view, module_name, return_text)
-    is_silent = not services.storage.settings.has_notifications(user_id)
-    bot = not_none(services.bot, "the bot is not built yet")
-    bot.send_message(user_id, text, parse_mode=view.parse_mode,
-                     reply_markup=markup, disable_notification=is_silent)
-
-
 class JobCtx:
     def __init__(self, services: Services, module: Module) -> None:
         self._services = services
         self.module = module
         self.db = ModuleDatabase(services.storage.database, module.name)
 
+    @property
+    def uptime(self) -> timedelta:
+        return datetime.now() - self._services.started_at
+
+    @property
+    def languages(self) -> list[tuple[str, str]]:
+        catalog = self._services.catalog
+        return [(language, catalog.label(language)) for language in supported_languages()]
+
     def language_of(self, user_id: int) -> str:
         return self._services.storage.settings.get_language(user_id)
 
-    def t(self, key: str, language: str, **values) -> str:
+    def t(self, key: str, language: str, /, **values) -> str:
         return self._services.catalog.text(self.module.name, key, language, **values)
 
     def send(self, user_id: int, view) -> None:
@@ -173,29 +192,38 @@ class JobCtx:
 
 class AdvancedCtx(Ctx):
     @property
-    def users(self):
+    def users(self) -> Users:
         return self._services.storage.users
 
     @property
-    def settings(self):
+    def settings(self) -> UserSettings:
         return self._services.storage.settings
 
     @property
-    def registry(self):
+    def registry(self) -> Registry:
         return self._services.registry
 
     @property
-    def config(self):
+    def config(self) -> Config:
         return self._services.config
 
     @property
-    def version(self):
+    def version(self) -> Version:
         return self._services.version
+
+    @property
+    def uptime(self) -> timedelta:
+        return datetime.now() - self._services.started_at
+
+    @property
+    def languages(self) -> list[tuple[str, str]]:
+        catalog = self._services.catalog
+        return [(language, catalog.label(language)) for language in supported_languages()]
 
     def language_of(self, user_id: int) -> str:
         return self._services.storage.settings.get_language(user_id)
 
-    def text_for(self, user_id: int, key: str, **values) -> str:
+    def text_for(self, user_id: int, key: str, /, **values) -> str:
         return self._services.catalog.text(self.module.name, key, self.language_of(user_id), **values)
 
     def notify(self, user_id: int, view) -> None:

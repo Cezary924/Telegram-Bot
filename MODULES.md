@@ -142,6 +142,7 @@ Internal modules get more:
 ```python
 ctx.users, ctx.settings, ctx.registry, ctx.config  # the core repositories and the configuration
 ctx.version  # the Bot version, read from git on start
+ctx.languages  # every language the Bot supports, as (code, label) pairs
 ctx.use_language("pl")  # changes the user's language, this context included
 ctx.language_of(user_id)  # another user's language
 ctx.text_for(user_id, "key")  # a text in another user's language
@@ -166,6 +167,10 @@ menu:
 Every module needs a ```name``` and a ```description``` key - ```/help``` and ```/features``` list modules as
 ```/command - Name - Description```.
 
+The languages the Bot supports are the files in ```core/locales```. A module ships one file per language, no more and
+no less, and ```en.yaml``` is the fallback for every other language. Each language names itself in its own file under
+```language_label```, so a new language is added in one place.
+
 > A missing key is not an error. The user sees ```reminder:menu.title```.
 
 ## 🗄️ Tables
@@ -188,27 +193,22 @@ There is no schema versioning. Changing a table that already exists somewhere is
 
 ## 🧪 Tests
 
+A module needs no test setup of its own. Two fixtures are handed to every test:
+
 ```python
-# tests/conftest.py
-import pytest
-
-from core.testing import FakeBot, make_storage
+from core.testing import make_message
 
 
-@pytest.fixture
-def bot():
-    return FakeBot()
-
-
-@pytest.fixture
-def storage():
-    storage = make_storage()
-    yield storage
-    storage.close()
+def test_the_menu_opens(app, bot):
+    app.router.handle_message(make_message("/reminder"))
+    assert bot.last.text.startswith("*🔔 Reminders:*")
 ```
 
-> ```core.testing``` provides ```FakeBot``` (records what the Bot sent, edited and deleted), ```make_storage```,
-> ```make_message```, ```make_callback``` and ```not_none```. Tests need no network and no database file.
+- ```app``` - a Bot with every internal module loaded, an empty database and a fake Telegram,
+- ```bot``` - what the Bot sent, edited and deleted during the test.
+
+> ```core.testing``` also provides ```make_message```, ```make_callback```, ```make_storage```, ```FakeBot``` and
+> ```not_none``` for tests that need to build their own pieces. Tests need no network and no database file.
 
 ## 🔌 Turning modules off
 
@@ -227,8 +227,8 @@ youtube: false
 ```core/contract.py``` checks every module with the following set of tests:
 
 - the manifest name matches the directory and nothing requires itself,
-- every language file has the same keys as ```en.yaml```, including ```name```, ```description``` and a description key
-  for every command,
+- there is one language file per language the Bot supports, each with the same keys as ```en.yaml```, including
+  ```name```, ```description``` and a description key for every command,
 - callback names leave room for arguments within Telegram's 64 byte limit,
 - ```schema.sql``` creates objects carrying the module prefix only,
 - an external module imports only ```core.api``` and ```core.testing``` from the core, and from other modules only those

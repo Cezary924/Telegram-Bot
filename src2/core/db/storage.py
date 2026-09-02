@@ -1,5 +1,6 @@
 import os
 
+from core.db.bot_state import BotState
 from core.db.connection import Database
 from core.db.module_db import ModuleDatabase
 from core.db.module_state import ModuleState
@@ -19,6 +20,7 @@ class Storage:
         self.settings = UserSettings(self.database)
         self.navigation = Navigation(self.database)
         self.module_state = ModuleState(self.database)
+        self.state = BotState(self.database)
 
     def for_module(self, module_name: str) -> ModuleDatabase:
         return ModuleDatabase(self.database, module_name)

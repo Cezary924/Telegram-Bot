@@ -1,5 +1,6 @@
 import telebot
 from dataclasses import dataclass, field
+from datetime import datetime
 
 from core.config import Config
 from core.db.storage import Storage
@@ -16,3 +17,4 @@ class Services:
     registry: Registry
     bot: telebot.TeleBot | None = None
     version: Version = field(default_factory=Version)
+    started_at: datetime = field(default_factory=datetime.now)

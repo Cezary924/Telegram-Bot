@@ -467,3 +467,41 @@ def test_a_command_button_also_starts_fresh(router, bot, services, settled):
     router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
     router.handle_callback(make_callback("core:command:menu", message_id=bot.last.message_id))
     assert services.storage.navigation.depth(1) == 1
+
+
+def test_a_new_user_is_announced_to_the_admins(router, bot, services, settled):
+    services.storage.users.save(2, "Admin", "Person", "admin")
+    services.storage.users.set_role(2, Role.ADMIN)
+    bot.clear()
+    router.handle_message(make_message("value1", user_id=3))
+    announced = [message for message in bot.sent if message.chat_id == 2]
+    assert len(announced) == 1
+    assert "ID: _3_" in announced[0].text
+
+
+def test_a_returning_user_is_not_announced(router, bot, services, settled):
+    services.storage.users.save(2, "Admin", "Person", "admin")
+    services.storage.users.set_role(2, Role.ADMIN)
+    router.handle_message(make_message("value1", user_id=3))
+    bot.clear()
+    router.handle_message(make_message("value2", user_id=3))
+    assert [message for message in bot.sent if message.chat_id == 2] == []
+
+
+def test_an_admin_who_turned_alerts_off_is_left_alone(router, bot, services, settled):
+    services.storage.users.save(2, "Admin", "Person", "admin")
+    services.storage.users.set_role(2, Role.ADMIN)
+    services.storage.settings.set_admin_alerts(2, False)
+    bot.clear()
+    router.handle_message(make_message("value1", user_id=3))
+    assert [message for message in bot.sent if message.chat_id == 2] == []
+
+
+def test_the_announcement_speaks_the_admin_language(router, bot, services, settled):
+    services.storage.users.save(2, "Admin", "Person", "admin")
+    services.storage.users.set_role(2, Role.ADMIN)
+    services.storage.settings.set_language(2, "pl")
+    bot.clear()
+    router.handle_message(make_message("value1", user_id=3))
+    announced = [message for message in bot.sent if message.chat_id == 2]
+    assert announced[0].text.startswith("Bot poznał nowego użytkownika")

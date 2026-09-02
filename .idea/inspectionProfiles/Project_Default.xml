@@ -130,8 +130,8 @@
     <inspection_tool class="CssOverwrittenProperties" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Markdown" level="WARNING" enabled="false" />
     </inspection_tool>
-    <inspection_tool class="CustomRegExpInspection" enabled="true" level="NON_SWITCHABLE_WARNING" enabled_by_default="true">
-      <scope name="Markdown" level="NON_SWITCHABLE_WARNING" enabled="false" />
+    <inspection_tool class="CustomRegExpInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <scope name="Markdown" level="WARNING" enabled="false" />
     </inspection_tool>
     <inspection_tool class="CyclicJobDependency" enabled="true" level="ERROR" enabled_by_default="true">
       <scope name="Markdown" level="ERROR" enabled="false" />
@@ -463,8 +463,8 @@
     <inspection_tool class="GrazieInspection" enabled="true" level="GRAMMAR_ERROR" enabled_by_default="true">
       <scope name="Markdown" level="GRAMMAR_ERROR" enabled="false" />
     </inspection_tool>
-    <inspection_tool class="GrazieInspectionRunner" enabled="true" level="NON_SWITCHABLE_WARNING" enabled_by_default="true">
-      <scope name="Markdown" level="NON_SWITCHABLE_WARNING" enabled="false" />
+    <inspection_tool class="GrazieInspectionRunner" enabled="true" level="WARNING" enabled_by_default="true">
+      <scope name="Markdown" level="WARNING" enabled="false" />
     </inspection_tool>
     <inspection_tool class="GrazieStyle" enabled="true" level="STYLE_SUGGESTION" enabled_by_default="true">
       <scope name="Markdown" level="STYLE_SUGGESTION" enabled="false" />
@@ -515,7 +515,34 @@
       <scope name="Markdown" level="WARNING" enabled="false" />
     </inspection_tool>
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
-      <scope name="Markdown" level="WARNING" enabled="false" />
+      <scope name="Markdown" level="WARNING" enabled="false">
+        <option name="myValues">
+          <value>
+            <list size="6">
+              <item index="0" class="java.lang.String" itemvalue="nobr" />
+              <item index="1" class="java.lang.String" itemvalue="noembed" />
+              <item index="2" class="java.lang.String" itemvalue="comment" />
+              <item index="3" class="java.lang.String" itemvalue="noscript" />
+              <item index="4" class="java.lang.String" itemvalue="embed" />
+              <item index="5" class="java.lang.String" itemvalue="script" />
+            </list>
+          </value>
+        </option>
+        <option name="myCustomValuesEnabled" value="true" />
+      </scope>
+      <option name="myValues">
+        <value>
+          <list size="6">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
     </inspection_tool>
     <inspection_tool class="HtmlUnknownTarget" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Markdown" level="WARNING" enabled="false" />
@@ -1365,6 +1392,7 @@
     </inspection_tool>
     <inspection_tool class="RequiredAttributes" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Markdown" level="WARNING" enabled="false" />
+      <option name="myAdditionalRequiredHtmlAttributes" value="" />
     </inspection_tool>
     <inspection_tool class="ReservedWordUsedAsNameJS" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Markdown" level="WARNING" enabled="false" />
@@ -1378,8 +1406,8 @@
     <inspection_tool class="ReuseOfLocalVariableJS" enabled="false" level="WARNING" enabled_by_default="false">
       <scope name="Markdown" level="WARNING" enabled="false" />
     </inspection_tool>
-    <inspection_tool class="SSBasedInspection" enabled="true" level="NON_SWITCHABLE_WARNING" enabled_by_default="true">
-      <scope name="Markdown" level="NON_SWITCHABLE_WARNING" enabled="false" />
+    <inspection_tool class="SSBasedInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <scope name="Markdown" level="WARNING" enabled="false" />
     </inspection_tool>
     <inspection_tool class="ShellCheck" enabled="true" level="ERROR" enabled_by_default="true">
       <scope name="Markdown" level="ERROR" enabled="false" />
@@ -1392,6 +1420,9 @@
     </inspection_tool>
     <inspection_tool class="SpellCheckingInspection" enabled="true" level="TYPO" enabled_by_default="true">
       <scope name="Markdown" level="TYPO" enabled="false" />
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
     </inspection_tool>
     <inspection_tool class="SqlAddNotNullColumnInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Markdown" level="WARNING" enabled="false" />

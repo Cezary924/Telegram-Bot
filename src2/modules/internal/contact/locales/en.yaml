@@ -1,0 +1,15 @@
+name: ☎️ Contact
+description: Reaching the Administrator
+
+commands.contact: Ways to contact the Administrator
+commands.report: Send a report to the Administrator
+
+title: ☎️ Contact Us
+contact: To contact the Admin, write to them directly at {username} or send a non-returnable report-message 📨
+report: 📨 Report to the Admin
+
+report_title: 📨 Report
+report_question: Send me report-message to the Admin and I will forward it 🫡 \nPS This is a good way to provide the Administrator with suggestions for functionality and information about found errors 🚀🪱
+report_sent: Your report-message has been sent successfully 😁
+no_admin: Sorry, your report-message could not be sent... Please, try again later 😞
+forwarded_to_admin: 'Hi, {name} ({id}) would like to send you this report-message:\n\n{text}'

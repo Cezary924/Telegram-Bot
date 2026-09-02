@@ -19,13 +19,22 @@ reachable_date = 1681470948
 
 
 def make_message(text: str, user_id: int = 1, message_id: int = 100,
-                 language_code: str = "en") -> telebot.types.Message:
-    return telebot.types.Message.de_json({
+                 language_code: str = "en", forward_from: int | None = None,
+                 is_forwarded: bool = False) -> telebot.types.Message:
+    payload: dict = {
         'message_id': message_id,
         'from': {'id': user_id, 'is_bot': False, 'first_name': "First", 'last_name': "Last",
                  'username': "username", 'language_code': language_code},
         'chat': {'id': user_id, 'type': "private", 'first_name': "First"},
-        'date': reachable_date, 'text': text})
+        'date': reachable_date, 'text': text}
+    if forward_from is not None:
+        payload['forward_origin'] = {
+            'type': "user", 'date': reachable_date,
+            'sender_user': {'id': forward_from, 'is_bot': False, 'first_name': "Someone"}}
+    if forward_from is None and is_forwarded:
+        payload['forward_origin'] = {'type': "hidden_user", 'date': reachable_date,
+                                     'sender_user_name': "Someone"}
+    return telebot.types.Message.de_json(payload)
 
 
 def make_callback(data: str, user_id: int = 1, message_id: int = 100,

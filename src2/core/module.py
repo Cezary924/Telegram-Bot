@@ -135,8 +135,8 @@ class Module:
             raise ValueError("Module '" + self.name + "' declares view '" + name + "' twice")
 
         def decorator(handler: Callable) -> Callable:
-            def stamped(ctx) -> View:
-                result = handler(ctx)
+            def stamped(*arguments, **values) -> View:
+                result = handler(*arguments, **values)
                 return replace(result, name=name) if isinstance(result, View) else result
             self.views.append(ViewHandler(name, stamped))
             return stamped

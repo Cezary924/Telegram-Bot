@@ -1,0 +1,20 @@
+name: ⚙️ Ustawienia
+description: Język, powiadomienia i usuwanie danych
+
+commands.settings: Wyświetl menu ustawień
+
+title: ⚙️ Ustawienia
+menu: 'Wybierz opcję z podanych:'
+
+notifications: 🛎️ Powiadomienia
+notifications_question: Czy powiadomienia o aktualizacji Bota mają być włączone?
+notifications_on: Powiadomienia zostały włączone ✅
+notifications_off: Powiadomienia zostały wyłączone ❌
+
+language: 🌐 Język
+language_question: 'Wybierz swój język:'
+language_changed: Zmieniono język ✅
+
+deletedata: 🗑️ Usuwanie danych
+deletedata_question: Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.
+deletedata_done: Usunięto zgromadzone dane ✅

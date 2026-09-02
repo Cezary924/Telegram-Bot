@@ -142,6 +142,7 @@ Moduły wewnętrzne dostają więcej:
 ```python
 ctx.users, ctx.settings, ctx.registry, ctx.config  # repozytoria rdzenia i konfiguracja
 ctx.version  # wersja Bota, odczytana z gita przy starcie
+ctx.languages  # wszystkie języki Bota, jako pary (kod, etykieta)
 ctx.use_language("pl")  # zmienia język użytkownika, razem z tym kontekstem
 ctx.language_of(user_id)  # język innego użytkownika
 ctx.text_for(user_id, "klucz")  # tekst w języku innego użytkownika
@@ -167,6 +168,10 @@ menu:
 Każdy moduł potrzebuje klucza ```name``` i ```description``` - ```/help``` i ```/features``` wypisują moduły jako
 ```/komenda - Name - Description```.
 
+Języki Bota to pliki w ```core/locales```. Moduł dostarcza jeden plik na język, ani mniej ani więcej, a ```en.yaml```
+jest awaryjnym źródłem dla każdego innego języka. Każdy język nazywa sam siebie we własnym pliku, pod kluczem
+```language_label```, więc nowy język dodaje się w jednym miejscu.
+
 > Brakujący klucz nie jest błędem. Użytkownik zobaczy ```reminder:menu.title```.
 
 ## 🗄️ Tabele
@@ -189,27 +194,22 @@ Nie ma wersjonowania schematu. Zmiana tabeli, która już gdzieś istnieje, to r
 
 ## 🧪 Testy
 
+Moduł nie potrzebuje własnej konfiguracji testów. Każdy test dostaje dwa fixture'y:
+
 ```python
-# tests/conftest.py
-import pytest
-
-from core.testing import FakeBot, make_storage
+from core.testing import make_message
 
 
-@pytest.fixture
-def bot():
-    return FakeBot()
-
-
-@pytest.fixture
-def storage():
-    storage = make_storage()
-    yield storage
-    storage.close()
+def test_the_menu_opens(app, bot):
+    app.router.handle_message(make_message("/reminder"))
+    assert bot.last.text.startswith("*🔔 Przypomnienia:*")
 ```
 
-> ```core.testing``` udostępnia ```FakeBot``` (zapisuje, co Bot wysłał, zedytował i skasował), ```make_storage```,
-> ```make_message```, ```make_callback``` i ```not_none```. Testy nie potrzebują sieci ani pliku bazy.
+- ```app``` - Bot z załadowanymi wszystkimi modułami wewnętrznymi, pustą bazą i atrapą Telegrama,
+- ```bot``` - to, co Bot wysłał, zedytował i skasował w trakcie testu.
+
+> ```core.testing``` udostępnia też ```make_message```, ```make_callback```, ```make_storage```, ```FakeBot``` i
+> ```not_none``` dla testów, które budują własne części. Testy nie potrzebują sieci ani pliku bazy.
 
 ## 🔌 Wyłączanie modułów
 
@@ -228,8 +228,8 @@ youtube: false
 ```core/contract.py``` sprawdza każdy moduł za pomocą poniższego zestawu testów:
 
 - nazwa w manifeście zgadza się z katalogiem, nic nie wymaga samego siebie,
-- każdy plik językowy ma te same klucze co ```en.yaml```, w tym ```name```, ```description``` oraz klucz opisu każdej
-  komendy,
+- jest jeden plik językowy na każdy język Bota, każdy z tymi samymi kluczami co ```en.yaml```, w tym ```name```,
+  ```description``` oraz klucz opisu każdej komendy,
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
 - moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w

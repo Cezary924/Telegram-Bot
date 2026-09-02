@@ -80,3 +80,8 @@ def test_delete_cascades_to_every_user_table(storage, user):
     assert storage.settings.get(user) is None
     assert storage.navigation.top(user) is None
     assert storage.module_state.get(user, "module1", "key1") is None
+
+
+def test_save_says_whether_the_user_is_new(storage):
+    assert storage.users.save(1, "First", "Last", "username")
+    assert not storage.users.save(1, "First", "Last", "username")

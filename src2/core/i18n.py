@@ -8,6 +8,7 @@ core_namespace = "core"
 core_locales_dir: str = os.path.join(paths.core_dir, "locales")
 default_language = "en"
 namespace_separator = ":"
+language_label_key = "language_label"
 
 
 def flatten(data: dict, prefix: str = "") -> dict[str, str]:
@@ -19,6 +20,13 @@ def flatten(data: dict, prefix: str = "") -> dict[str, str]:
         elif value is not None:
             texts[text_key] = str(value).replace(r'\n', '\n')
     return texts
+
+
+def supported_languages() -> list[str]:
+    if not os.path.isdir(core_locales_dir):
+        return [default_language]
+    return sorted(name[:-len(".yaml")] for name in os.listdir(core_locales_dir)
+                  if name.endswith(".yaml"))
 
 
 def full_key(namespace: str, key: str) -> str:
@@ -61,7 +69,7 @@ class Catalog:
     def has(self, namespace: str, key: str, language: str) -> bool:
         return full_key(namespace, key) in self._texts.get(language, {})
 
-    def text(self, namespace: str, key: str, language: str, **values) -> str:
+    def text(self, namespace: str, key: str, language: str, /, **values) -> str:
         wanted = full_key(namespace, key)
         for candidate in [language, default_language]:
             text = self._texts.get(candidate, {}).get(wanted)
@@ -71,6 +79,9 @@ class Catalog:
             self._reported.add(wanted)
             print_error("Missing translation - " + wanted + " (" + language + ").")
         return wanted
+
+    def label(self, language: str) -> str:
+        return self.text(core_namespace, language_label_key, language)
 
     def languages(self) -> list[str]:
         return sorted(self._texts.keys())

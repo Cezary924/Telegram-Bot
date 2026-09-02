@@ -1,0 +1,61 @@
+name: 🛠️ Admin
+description: Users, statistics and Bot control
+
+commands.admin: Show the Administrator menu
+
+title: 🛠️ Admin
+menu: 'Select the task of the following:'
+
+has_consent: 'yes'
+no_consent: 'no'
+turned_on: 'on'
+turned_off: 'off'
+previous: ⬅️ Previous
+next: ➡️ Next
+
+users: 🙋 Users
+users_menu: 'Find the User you want to manage:'
+users_list: 📋 List
+users_list_text: 'Page {page} of {pages}, {total} users in total:'
+users_search: 🔍 Search by ID
+users_search_text: Enter the User ID
+users_search_missing: The User with the entered ID has not been found in the database 😞
+users_forward: ↪️ Find by a message
+users_forward_text: Forward a message created by the User whose ID you want to find 😁
+users_forward_missing: That message carries no sender - the User hides their account on forwards 😐
+
+user_text: '*{name}*\nUsername: _{username}_\nRank: _{role}_\nAgreement: _{consent}_\nLanguage: _{language}_\nFirst seen: _{created}_\nLast seen: _{seen}_'
+user_role: 🎖️ Change the rank
+user_wipe: 🗑️ Delete the data
+
+role_text: 'The current rank is _{role}_. Choose a new one:'
+role_confirm: Are you sure you want to lower the rank to _{role}_? The User will lose the permissions they have now.
+role_done: The rank has been changed to _{role}_ ✅
+role_changed: 'Your rank has been changed to: _{role}_'
+
+wipe_text: Are you sure you want to delete all the data the Bot has about this User? This operation cannot be undone.
+wipe_done: The User data has been deleted ✅
+
+statistics: 📊 Statistics
+statistics_text: '{people}\n\nUsers in total: _{total}_\nWith the agreement: _{consent}_\nModules loaded: _{modules}_\nVersion: _{version}_\nRunning for: _{uptime}_'
+
+announcement: 📢 Announcement
+announcement_text: Send me the message you want every User to read. It goes out to everyone who keeps notifications on.
+announcement_done: The announcement has reached _{reached}_ users ✅
+
+alerts: 🔔 New user alerts
+alerts_text: 'Alerts about new Users are {state}. Do you want them turned on?'
+alerts_done: Alerts about new Users are now {state} ✅
+
+modules: 🧩 Modules
+modules_text: 'Tap a module to turn it on or off. The change applies on the next start:'
+modules_none: There are no external modules to manage.
+modules_done: The module _{module}_ is now {state}. Restart the Bot to apply it ✅
+
+bot: 🤖 Bot
+bot_text: 'Version: _{version}_\nRunning for: _{uptime}_'
+bot_log: 📃 Log
+bot_log_none: There is nothing in the log yet.
+bot_restart: 🔄 Restart
+bot_restart_text: Are you sure you want to restart the Bot?
+bot_restart_done: The Bot is restarting...

@@ -2,7 +2,7 @@ import telebot
 from threading import Thread
 
 from core import callbacks, middleware
-from core.context import User, create_context, user_from_row
+from core.context import User, create_context, send_to, user_from_row
 from core.i18n import core_namespace, default_language
 from core.log import print_error, print_log
 from core.module import Module
@@ -33,10 +33,23 @@ class Router:
 
     def load_user(self, from_user: telebot.types.User) -> User:
         users = self._services.storage.users
-        users.save(from_user.id, from_user.first_name or "", from_user.last_name or "",
-                   from_user.username or "")
+        is_new = users.save(from_user.id, from_user.first_name or "", from_user.last_name or "",
+                            from_user.username or "")
         language = self.language_for(from_user.id, from_user.language_code)
-        return user_from_row(not_none(users.get(from_user.id)), language)
+        user = user_from_row(not_none(users.get(from_user.id)), language)
+        if is_new:
+            self.alert_admins(user)
+        return user
+
+    def alert_admins(self, user: User) -> None:
+        settings = self._services.storage.settings
+        for admin in self._services.storage.users.get_by_role(Role.ADMIN):
+            if not settings.has_admin_alerts(admin['id']):
+                continue
+            text = self._services.catalog.text(core_namespace, "new_user",
+                                               settings.get_language(admin['id']),
+                                               name=user.first_name, id=str(user.id))
+            send_to(self._services, core_namespace, admin['id'], View(text))
 
     def send(self, user: User, module_name: str, view: View) -> telebot.types.Message:
         text, markup = render(view, module_name, self.core_text("return_button", user.language))

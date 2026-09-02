@@ -4,18 +4,23 @@ import telebot
 from threading import Thread
 
 from core.config import Config
-from core.context import JobCtx
+from core.context import JobCtx, send_to
 from core.db.storage import Storage
 from core.i18n import Catalog, core_namespace
 from core.loader import Loader
-from core.log import LoadingString, Logger, print_banner, print_error
+from core.log import LoadingString, Logger, print_banner, print_error, print_log
 from core.registry import Registry
 from core.roles import Role
 from core.router import Router
 from core.scheduler import Scheduler
 from core.services import Services
+from core.ui.view import View
 from core.version import read as read_version
+from core.version import unknown_tag
 from core.utils import not_none
+
+
+version_key = "version"
 
 
 class App:
@@ -65,6 +70,31 @@ class App:
             except Exception as error:
                 print_error("Could not publish the command list - " + type(error).__name__ + ".", str(error))
 
+    def announce_update(self) -> None:
+        current = str(self.services.version)
+        previous = self.storage.state.get(version_key)
+        if previous == current:
+            return
+        self.storage.state.set(version_key, current)
+        if previous is None:
+            return
+        print_log("The version changed from " + previous + " to " + current + ".")
+        link = self.release_url()
+        for row in self.storage.users.get_all():
+            if not self.storage.settings.has_notifications(row['id']):
+                continue
+            text = self.catalog.text(core_namespace, "bot_updated",
+                                     self.storage.settings.get_language(row['id']))
+            send_to(self.services, core_namespace, row['id'], View(text + link))
+
+    def release_url(self) -> str:
+        user = self.config.github_username
+        repository = self.config.github_repo
+        tag = self.services.version.tag
+        if not user or not repository or tag == unknown_tag:
+            return ""
+        return "\n\n" + "https://github.com/" + user + "/" + repository + "/releases/tag/" + tag
+
     def notify_admins(self, key: str) -> None:
         for row in self.storage.users.get_by_role(Role.ADMIN):
             language = self.storage.settings.get_language(row['id'])
@@ -85,6 +115,7 @@ class App:
         print_banner(self.config.bot_name, True)
         self.publish_commands()
         self.notify_admins("bot_started")
+        self.announce_update()
         self.scheduler.start()
 
         signal.signal(signal.SIGINT, lambda number, frame: self.stop())

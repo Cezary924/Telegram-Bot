@@ -1,0 +1,15 @@
+name: ☎️ Kontakt
+description: Kontakt z Administratorem
+
+commands.contact: Sposoby kontaktu z Administratorem
+commands.report: Wyślij zgłoszenie do Administratora
+
+title: ☎️ Kontakt
+contact: Aby skontaktować się z Administratorem, napisz bezpośrednio do {username} lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
+report: 📨 Zgłoszenie do Administratora
+
+report_title: 📨 Zgłoszenie
+report_question: Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡 \nPS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
+report_sent: Twoje zgłoszenie zostało wysłane 😁
+no_admin: Niestety, Twoje zgłoszenie nie mogło zostać wysłane... Spróbuj ponownie później 😞
+forwarded_to_admin: 'Cześć, {name} ({id}) chce przekazać Ci taką wiadomość-zgłoszenie:\n\n{text}'
