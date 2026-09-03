@@ -47,7 +47,7 @@ def state1(ctx) -> str:
     return "state1 got " + ctx.text
 
 
-@module1.match(lambda message: (message.text or "").startswith("http"), priority=10)
+@module1.match(lambda text: text.startswith("http"), priority=10)
 def matcher1(_ctx) -> str:
     return "matcher1"
 
@@ -359,7 +359,7 @@ def parametrised(ctx) -> View:
     return view3(ctx)
 
 
-@module1.match(lambda message: (message.text or "") == "boom-matcher")
+@module1.match(lambda text: text == "boom-matcher")
 def broken_matcher(_ctx) -> str:
     return "never"
 
@@ -386,7 +386,7 @@ def test_a_screen_without_a_state_handler_falls_through_to_matchers(router, bot,
 
 
 def test_a_failing_matcher_is_skipped(router, bot, services, settled, capsys):
-    def explode(_message):
+    def explode(_text):
         raise RuntimeError("boom")
 
     services.registry.get("module1").matchers.insert(
@@ -505,3 +505,12 @@ def test_the_announcement_speaks_the_admin_language(router, bot, services, settl
     router.handle_message(make_message("value1", user_id=3))
     announced = [message for message in bot.sent if message.chat_id == 2]
     assert announced[0].text.startswith("Bot poznał nowego użytkownika")
+
+
+def test_a_matcher_sees_the_text_not_the_message(router, bot, services, settled):
+    seen = []
+    module1.matchers.insert(0, type(module1.matchers[0])(
+        lambda text: seen.append(text) or False, matcher1, Role.GUEST, 99, 0, False))
+    router.handle_message(make_message("value1"))
+    module1.matchers.pop(0)
+    assert seen == ["value1"]

@@ -164,7 +164,7 @@ class Router:
     def handle_matchers(self, user: User, message: telebot.types.Message) -> bool:
         for module, matcher in self._services.registry.matchers():
             try:
-                if not matcher.predicate(message):
+                if not matcher.predicate(message.text or ""):
                     continue
             except Exception as error:
                 print_error("Matcher failed in '" + module.name + "' - " +

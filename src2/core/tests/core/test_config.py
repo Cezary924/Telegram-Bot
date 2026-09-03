@@ -12,7 +12,7 @@ def config_dir(tmp_path, monkeypatch):
         "bot_name: Bot\ntelegram_username: someone\ngithub_username: user\ngithub_repo: repo\n",
         encoding='utf8')
     (tmp_path / "tokens.yaml").write_text(
-        "telegram: 0:aaa\ntelegram_beta: 0:bbb\nrapidapi: ccc\n", encoding='utf8')
+        "telegram: 0:aaa\ntelegram_beta: 0:bbb\ntoken1: value1\n", encoding='utf8')
     return tmp_path
 
 
@@ -54,11 +54,11 @@ def test_missing_setting_raises(config_dir):
 
 def test_tokens(config_dir):
     config = Config()
-    assert config.token('rapidapi') == "ccc"
-    assert config.has_token('rapidapi')
-    assert not config.has_token('spotify_id')
+    assert config.token('token1') == "value1"
+    assert config.has_token('token1')
+    assert not config.has_token('token2')
     with pytest.raises(KeyError):
-        config.token('spotify_id')
+        config.token('token2')
 
 
 def test_worker_threads_have_a_default(config_dir):

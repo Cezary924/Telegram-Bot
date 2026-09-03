@@ -1,12 +1,5 @@
-downloads: true
-tiktok: true
-twitter: true
-tumblr: true
-reddit: true
-instagram: true
-youtube: true
-
+downloader: true
 crystalball: true
-unitconverter: true
 topspotifyartist: true
 reminder: true
+unitconverter: true

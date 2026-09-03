@@ -5,7 +5,7 @@ from core import paths
 from core.context import AdvancedCtx, Ctx, User, create_context, user_from_row
 from core.module import Module
 from core.roles import Role
-from core.testing import FakeBot, not_none
+from core.testing import FakeBot, make_message, not_none
 from core.version import Version
 
 
@@ -139,6 +139,50 @@ def test_workspaces_do_not_collide(ctx, tmp_path, monkeypatch):
         assert first != second
 
 
+def write_file(tmp_path, name: str = "file1.mp4") -> str:
+    full_path = os.path.join(str(tmp_path), name)
+    with open(full_path, "wb") as f:
+        f.write(b"data")
+    return full_path
+
+
+@pytest.fixture
+def sending(ctx, services):
+    services.bot = FakeBot()
+    return ctx
+
+
+def test_a_file_is_sent_as_the_kind_asked_for(sending, services, tmp_path):
+    sending.send_file(write_file(tmp_path), "video")
+    sent = services.bot.files[0]
+    assert (sent.chat_id, sent.kind, sent.name) == (1, "video", "file1.mp4")
+
+
+def test_a_file_is_a_document_by_default(sending, services, tmp_path):
+    sending.send_file(write_file(tmp_path))
+    assert services.bot.files[0].kind == "document"
+
+
+def test_a_file_carries_its_caption(sending, services, tmp_path):
+    sending.send_file(write_file(tmp_path), "video", "caption1")
+    assert services.bot.files[0].caption == "caption1"
+
+
+def test_a_file_of_an_unknown_kind_is_refused(sending, tmp_path):
+    with pytest.raises(ValueError):
+        sending.send_file(write_file(tmp_path), "hologram")
+
+
+def test_a_file_is_silent_when_notifications_are_off(sending, services, storage, user, tmp_path):
+    storage.settings.set_notifications(user, False)
+    sending.send_file(write_file(tmp_path), "video")
+    assert services.bot.files[0].is_silent
+
+
+def test_the_file_limit_is_the_one_telegram_allows(ctx):
+    assert ctx.file_limit == 50 * 1024 * 1024
+
+
 def test_log_names_the_user(ctx, capsys):
     ctx.log("Something happened")
     assert "Something happened: First (1)." in capsys.readouterr().out
@@ -231,3 +275,18 @@ def test_the_version_reaches_an_internal_module(services, module, person):
     module.is_internal = True
     services.version = Version("v1.2", 100)
     assert str(AdvancedCtx(services, module, person).version) == "v1.2 (100)"
+
+
+def test_a_forwarded_message_reveals_its_sender(services, module, person):
+    ctx = Ctx(services, module, person, make_message("hello", forward_from=555))
+    assert ctx.forwarded_from == 555
+
+
+def test_a_hidden_sender_stays_hidden(services, module, person):
+    ctx = Ctx(services, module, person, make_message("hello", is_forwarded=True))
+    assert ctx.forwarded_from is None
+
+
+def test_an_ordinary_message_was_not_forwarded(services, module, person):
+    assert Ctx(services, module, person, make_message("hello")).forwarded_from is None
+    assert Ctx(services, module, person).forwarded_from is None

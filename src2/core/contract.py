@@ -90,15 +90,16 @@ def check_yaml_traps(module: Module) -> list[str]:
             if isinstance(value, bool):
                 problems.append("'" + name + "' has the value of '" + str(key) +
                                 "' read as a boolean - quote it")
+            if isinstance(value, dict):
+                continue
     return problems
 
 
 def flat_pairs(data: dict):
     for key, value in data.items():
+        yield key, value
         if isinstance(value, dict):
             yield from flat_pairs(value)
-        else:
-            yield key, value
 
 
 def check_callbacks(module: Module) -> list[str]:

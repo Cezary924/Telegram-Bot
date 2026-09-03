@@ -1,8 +1,6 @@
 import os
 import signal
 
-import telebot
-
 from core.api import AdvancedCtx, Button, Module, Role, View
 from core import paths
 from core.loader import discover
@@ -105,19 +103,12 @@ def forward(ctx: AdvancedCtx) -> View:
 
 @module.state("forward", role=Role.ADMIN)
 def found_by_forward(ctx: AdvancedCtx) -> View:
-    sender = forwarded_sender(ctx)
+    sender = ctx.forwarded_from
     if sender is None:
         return View(text=ctx.t("users_forward_missing"),
                     path=[ctx.t("title"), ctx.t("users"), ctx.t("users_forward")])
     ctx.close_screen()
     return details(ctx, sender)
-
-
-def forwarded_sender(ctx: AdvancedCtx) -> int | None:
-    origin = ctx.message.forward_origin if ctx.message is not None else None
-    if isinstance(origin, telebot.types.MessageOriginUser):
-        return origin.sender_user.id
-    return None
 
 
 @module.callback("user", role=Role.ADMIN)

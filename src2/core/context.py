@@ -1,10 +1,11 @@
 import os
 import sqlite3
-import telebot
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
+
+import telebot
 
 from core import paths
 from core.config import Config
@@ -17,9 +18,9 @@ from core.module import Module
 from core.registry import Registry
 from core.roles import Role
 from core.services import Services
-from core.version import Version
 from core.ui.keyboard import delete_message
 from core.utils import not_none
+from core.version import Version
 
 
 @dataclass(frozen=True)
@@ -111,6 +112,21 @@ def send_to(services: Services, module_name: str, user_id: int, view) -> None:
                      reply_markup=markup, disable_notification=is_silent)
 
 
+file_senders = {'audio': "send_audio", 'document': "send_document", 'photo': "send_photo",
+                'video': "send_video", 'voice': "send_voice"}
+file_limit = 50 * 1024 * 1024
+
+
+def send_file_to(services: Services, user_id: int, path: str, kind: str, caption: str) -> None:
+    if kind not in file_senders:
+        raise ValueError("Unknown kind of file: " + kind)
+    bot = not_none(services.bot, "the bot is not built yet")
+    is_silent = not services.storage.settings.has_notifications(user_id)
+    with open(path, 'rb') as handle:
+        getattr(bot, file_senders[kind])(user_id, handle, caption=caption or None,
+                                         disable_notification=is_silent)
+
+
 class Ctx:
     def __init__(self, services: Services, module: Module, user: User,
                  message: telebot.types.Message | None = None,
@@ -123,6 +139,13 @@ class Ctx:
         self.state = UserState(services, module.name, user.id)
         self.nav = UserNavigation(services, module.name, user.id)
         self.db = ModuleDatabase(services.storage.database, module.name)
+
+    @property
+    def forwarded_from(self) -> int | None:
+        origin = self.message.forward_origin if self.message is not None else None
+        if isinstance(origin, telebot.types.MessageOriginUser):
+            return origin.sender_user.id
+        return None
 
     @property
     def text(self) -> str:
@@ -138,6 +161,13 @@ class Ctx:
 
     def reply(self, view) -> None:
         send_to(self._services, self.module.name, self.user.id, view)
+
+    def send_file(self, path: str, kind: str = "document", caption: str = "") -> None:
+        send_file_to(self._services, self.user.id, path, kind, caption)
+
+    @property
+    def file_limit(self) -> int:
+        return file_limit
 
     def close_screen(self) -> None:
         top = self.nav.pop()

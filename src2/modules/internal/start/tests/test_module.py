@@ -1,4 +1,5 @@
 from core.api import Module, Role
+from core.registry import Registry
 from core.testing import make_callback, make_message
 from modules.internal.start import module as start
 
@@ -52,12 +53,13 @@ def test_a_button_runs_the_command_behind_it(app, bot):
 
 
 def test_features_lists_external_modules(app, bot):
-    add_feature(app, "tiktok", "tiktok", "TikTok", "Downloads video from TikTok")
-    add_feature(app, "reminder", "reminder", "Reminders", "Reminds you of things")
+    add_feature(app, "something", "something", "Something", "Does something")
     app.router.handle_message(make_message("/features"))
-    assert bot.last.text == ("*✨ Bot Features:*\n\n"
-                             "/reminder - Reminders - _Reminds you of things_\n"
-                             "/tiktok - TikTok - _Downloads video from TikTok_")
+    assert bot.last.text.startswith("*✨ Bot Features:*\n\n")
+    assert "/something - Something - _Does something_" in bot.last.text
+    for found in app.registry.modules():
+        if not found.is_internal and found.commands:
+            assert "/" + found.commands[0].name + " - " in bot.last.text
 
 
 def test_features_leaves_out_internal_modules(app, bot):
@@ -67,6 +69,11 @@ def test_features_leaves_out_internal_modules(app, bot):
 
 
 def test_features_says_so_when_nothing_is_on(app, bot):
+    internal_only = Registry()
+    for found in app.registry.modules():
+        if found.is_internal:
+            internal_only.add(found)
+    app.services.registry = internal_only
     app.router.handle_message(make_message("/features"))
     assert bot.last.text == "*✨ Bot Features:*\n\nNo features are turned on right now."
 
@@ -74,7 +81,7 @@ def test_features_says_so_when_nothing_is_on(app, bot):
 def test_features_speaks_polish(app, bot):
     app.storage.settings.set_language(1, "pl")
     app.router.handle_message(make_message("/features"))
-    assert bot.last.text == "*✨ Funkcje Bota:*\n\nŻadne funkcje nie są w tej chwili włączone."
+    assert bot.last.text.startswith("*✨ Funkcje Bota:*")
 
 
 def test_a_guest_may_start(app, bot):

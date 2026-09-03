@@ -153,9 +153,9 @@ def test_another_module_may_be_imported_only_when_required(tmp_path):
     module = Module(name="module1")
     module.path = str(tmp_path)
     (tmp_path / "module.py").write_text(
-        "from modules.external.downloads import send_start\n", encoding='utf8')
-    assert "imports 'modules.external.downloads.send_start'" in contract.check_imports(module)[0]
-    module.requires = ["downloads"]
+        "from modules.external.module2 import helper1\n", encoding='utf8')
+    assert "imports 'modules.external.module2.helper1'" in contract.check_imports(module)[0]
+    module.requires = ["module2"]
     assert contract.check_imports(module) == []
 
 
@@ -196,4 +196,18 @@ def test_quoted_words_are_fine(tmp_path):
 def test_a_module_without_locales_has_no_yaml_traps(tmp_path):
     module = Module(name="module1")
     module.path = str(tmp_path)
+    assert contract.check_yaml_traps(module) == []
+
+
+def test_a_boolean_key_above_a_group_is_refused(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    write_locales(tmp_path, "yes:\n  1: One\n  2: Two\n")
+    assert "has a key YAML read as a boolean" in contract.check_yaml_traps(module)[0]
+
+
+def test_a_group_of_texts_is_fine(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    write_locales(tmp_path, "group:\n  1: One\n  2: Two\n")
     assert contract.check_yaml_traps(module) == []

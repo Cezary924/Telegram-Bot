@@ -1,10 +1,13 @@
+import os
 from dataclasses import dataclass
+
 import telebot
 
+from core.context import file_senders
 from core.db.storage import Storage
 from core.utils import not_none
 
-__all__ = ["FakeBot", "SentMessage", "make_callback", "make_message", "make_storage",
+__all__ = ["FakeBot", "SentFile", "SentMessage", "make_callback", "make_message", "make_storage",
            "not_none", "reachable_date"]
 
 
@@ -66,9 +69,28 @@ class SentMessage:
                 for row in self.markup.keyboard for button in row]
 
 
+@dataclass
+class SentFile:
+    chat_id: int
+    kind: str
+    name: str
+    caption: str | None = None
+    is_silent: bool = False
+
+
+def file_recorder(kind: str):
+    def send(self, chat_id: int, file, caption: str | None = None,
+             disable_notification: bool = False) -> None:
+        self.files.append(SentFile(chat_id, kind, os.path.basename(getattr(file, 'name', "")),
+                                   caption, disable_notification))
+
+    return send
+
+
 class FakeBot:
     def __init__(self) -> None:
         self.sent: list[SentMessage] = []
+        self.files: list[SentFile] = []
         self.edited: list[SentMessage] = []
         self.deleted: list[tuple[int, int]] = []
         self.answered: list[tuple[str, str | None]] = []
@@ -108,6 +130,11 @@ class FakeBot:
 
     def clear(self) -> None:
         self.sent.clear()
+        self.files.clear()
         self.edited.clear()
         self.deleted.clear()
         self.answered.clear()
+
+
+for file_kind, sender_name in file_senders.items():
+    setattr(FakeBot, sender_name, file_recorder(file_kind))

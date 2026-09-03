@@ -28,16 +28,14 @@ pip install -r requirements.txt
    ```
    telegram: token_telegram
    telegram_beta: inny_token_telegram
-   rapidapi: rapidapi_token
    spotify_id: spotify_client_id
    spotify_secret: spotify_client_secret
    ```
-   > RapidApi dla multimediów z serwisu TikTok: należy
-   zasubskrybować https://rapidapi.com/tikwm-tikwm-default/api/tiktok-scraper7
-   > RapidApi dla multimediów z serwisu Twitter (X): należy
-   zasubskrybować https://rapidapi.com/JustMobi/api/twitter-downloader-download-twitter-videos-gifs-and-images
    > Tokeny Spotify: należy utworzyć aplikację w serwisie Spotify dla
    deweloperów https://developer.spotify.com/dashboard
+
+4. Zainstaluj [ffmpeg](https://ffmpeg.org/download.html). Serwisy, które oddają obraz i dźwięk w osobnych plikach -
+   a takim jest YouTube - bez niego się nie pobiorą.
 
 ## 🚀 Start
 
@@ -70,7 +68,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 
 ## ✨ Moduły funkcjonalności dodatkowych
 
-- Pobieranie wideo ⬇️ (```/tiktok```, ```/twitter```, ```/tumblr```, ```/reddit```, ```/youtube```, ```/instagram```)
+- Pobieranie wideo 📥 (```/downloader```)
 - Przypomnienia 🔔 (```/reminder```)
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)

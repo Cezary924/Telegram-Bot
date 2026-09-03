@@ -1,7 +1,5 @@
 pyTelegramBotAPI==4.36.1
 requests==2.34.2
-moviepy==2.2.1
 PyYAML==6.0.3
-bs4==0.0.2
-pytube==15.0.0
-instaloader==4.15.3
+beautifulsoup4==4.15.0
+yt-dlp==2026.8.19

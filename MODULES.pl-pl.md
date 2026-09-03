@@ -59,7 +59,7 @@ answer: Ask again later
 ```python
 module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
-    requires=["downloads"],  # inne moduły, które muszą się załadować wcześniej
+    requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     tokens=["spotify_id"],  # jedyne sekrety, które ten moduł może odczytać
     features=["reminder"])  # wpisy do ekranów pomocy i listy funkcji
 ```
@@ -75,7 +75,7 @@ module = Module(
 | ```@module.callback("akcja", role=, is_background=)```              | obsługuje przycisk ```moduł:akcja:argumenty```                            |
 | ```@module.view("nazwa")```                                         | buduje ekran, który rdzeń umie odtworzyć przy cofaniu                     |
 | ```@module.state("nazwa", role=, is_background=)```                 | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
-| ```@module.match(predykat, priority=, role=, is_background=)```     | przejmuje wiadomości pasujące do ```predykat(message)```                  |
+| ```@module.match(predykat, priority=, role=, is_background=)```     | przejmuje wiadomości pasujące do ```predykat(text)```                     |
 | ```@module.job(interval=, name=)```                                 | uruchamia się co ```interval``` sekund we własnym wątku                   |
 
 - ```role``` domyślnie wynosi ```Role.GUEST```.
@@ -126,6 +126,7 @@ ctx.t("klucz", name="wartość")  # teksty tego modułu, w języku użytkownika
 ctx.t("core:yes_button")  # inna przestrzeń nazw, wskazana wprost
 ctx.user  # id, imię, ranga, język, zgoda
 ctx.text  # treść przychodzącej wiadomości
+ctx.forwarded_from  # kto napisał przesłaną wiadomość, o ile użytkownik na to pozwolił
 ctx.arguments  # argumenty z danych callbacku
 ctx.state["step"] = "2"  # na użytkownika i moduł, trzymane w bazie
 ctx.nav  # stos nawigacji, ograniczony do tego modułu
@@ -133,6 +134,8 @@ ctx.db  # własne tabele tego modułu
 ctx.token("spotify_id")  # tylko sekrety zadeklarowane w manifeście
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął
+ctx.send_file(path, "video")  # audio, document, photo, video albo voice
+ctx.file_limit  # największy plik, jaki Telegram pozwala wysłać botowi
 with ctx.workspace() as path:  # katalog tymczasowy, kasowany także po błędzie
     ...
 ```

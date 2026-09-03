@@ -1,0 +1,32 @@
+name: 🔔 Reminders
+description: Reminds you about anything at the time you set
+
+commands.reminder: Set and manage your reminders
+
+title: Reminders
+menu: "Reminders you have set: _{count}_"
+set: Set a reminder
+manage: Manage reminders
+
+content: Content
+date: Date
+ask_content: Write what I should remind you about
+ask_date: "Write when I should remind you, for example: _{example}_"
+wrong_content: The content has to be between 1 and {limit} characters long
+wrong_date: "I do not understand this date, write it like this: _{example}_"
+past_date: I cannot remind you about something in the past
+
+done: The reminder has been set ✅
+changed: The reminder has been changed ✅
+deleted: The reminder has been deleted ✅
+gone: This reminder is no longer there 💔
+empty: You have no reminders yet
+pick: Pick the reminder you want to manage
+
+edit_content: Change the content
+edit_date: Change the date
+delete: Delete
+sure: Do you really want to delete this reminder?
+
+due: It is time!
+delayed: It was time, but I could not reach you earlier.

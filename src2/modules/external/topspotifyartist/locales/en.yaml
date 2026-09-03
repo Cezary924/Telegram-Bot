@@ -1,0 +1,17 @@
+name: ᯤ Guess the Spotify artist
+description: Guess one of the top Spotify artists
+
+commands.topspotifyartist: Play a round of guessing a Spotify artist
+
+title: ᯤ Guess the Spotify artist
+how: 'Guess one of the top Spotify artists. The whole name has to match. You have {chances} chances - take a guess 😁'
+unknown: I do not know this artist 😵‍💫 Please, try again!
+wrong: 'Wrong! 👎 Chances left: {left}'
+correct: Correct! 👍
+victory: Well done! 👏 You have guessed the artist! 😁
+defeat: 'Unfortunately, you have not guessed the artist 😞\nHere are the details:'
+
+nickname: Nickname
+genre: Genre
+listeners: Monthly listeners
+song: Most streamed song

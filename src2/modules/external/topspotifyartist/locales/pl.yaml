@@ -1,0 +1,17 @@
+name: ᯤ Zgadnij artystę Spotify
+description: Zgadnij jednego z najpopularniejszych artystów Spotify
+
+commands.topspotifyartist: Zagraj w zgadywanie artysty Spotify
+
+title: ᯤ Zgadnij artystę Spotify
+how: 'Zgadnij jednego z najpopularniejszych artystów Spotify. Nazwa musi zgadzać się w całości. Masz {chances} prób - zgaduj 😁'
+unknown: Nie znam tego artysty 😵‍💫 Spróbuj jeszcze raz!
+wrong: 'Źle! 👎 Pozostało prób: {left}'
+correct: Dobrze! 👍
+victory: Brawo! 👏 Zgadłeś artystę! 😁
+defeat: 'Niestety, nie udało Ci się zgadnąć artysty 😞\nOto szczegóły:'
+
+nickname: Pseudonim
+genre: Gatunek
+listeners: Słuchacze miesięcznie
+song: Najczęściej odtwarzany utwór

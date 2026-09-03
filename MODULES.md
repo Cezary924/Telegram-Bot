@@ -59,7 +59,7 @@ answer: Ask again later
 ```python
 module = Module(
     name="reminder",  # lowercase letters, digits, underscores
-    requires=["downloads"],  # other modules that must be loaded first
+    requires=["downloader"],  # other modules that must be loaded first
     tokens=["spotify_id"],  # the only secrets this module can read
     features=["reminder"])  # entries for the help and features screens
 ```
@@ -69,14 +69,14 @@ module = Module(
 
 ## 🧩 Declarations
 
-| Decorator                                                            | What it does                                                          |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------|
-| ```@module.command("name", role=, description=, is_background=)```   | registers ```/name``` and adds it to the Telegram command menu        |
-| ```@module.callback("action", role=, is_background=)```              | handles the button ```module:action:arguments```                      |
-| ```@module.view("name")```                                           | builds a screen the core can rebuild when going back                  |
-| ```@module.state("name", role=, is_background=)```                   | takes plain messages while the user sits on the screen ```name```     |
-| ```@module.match(predicate, priority=, role=, is_background=)```     | takes messages matching ```predicate(message)```                      |
-| ```@module.job(interval=, name=)```                                  | runs every ```interval``` seconds in its own thread                   |
+| Decorator                                                          | What it does                                                      |
+|--------------------------------------------------------------------|-------------------------------------------------------------------|
+| ```@module.command("name", role=, description=, is_background=)``` | registers ```/name``` and adds it to the Telegram command menu    |
+| ```@module.callback("action", role=, is_background=)```            | handles the button ```module:action:arguments```                  |
+| ```@module.view("name")```                                         | builds a screen the core can rebuild when going back              |
+| ```@module.state("name", role=, is_background=)```                 | takes plain messages while the user sits on the screen ```name``` |
+| ```@module.match(predicate, priority=, role=, is_background=)```   | takes messages matching ```predicate(text)```                     |
+| ```@module.job(interval=, name=)```                                | runs every ```interval``` seconds in its own thread               |
 
 - ```role``` defaults to ```Role.GUEST```.
 - ```is_background=True``` puts the handler on its own thread - use it for anything that takes time, like downloading or
@@ -110,9 +110,9 @@ A handler returns what should appear:
 - ```View``` returned by a ```@module.view``` function - a screen,
 - ```None``` - the handler already did everything it wanted.
 
-A command starts a fresh navigation, a callback goes one level deeper. Running the same command twice therefore
-reopens its screen instead of stacking it. Use ```Button.command(text, "help")``` for a button that runs a command -
-the core routes it, so one module never needs to know another module's actions.
+A command starts a fresh navigation, a callback goes one level deeper. Running the same command twice therefore reopens
+its screen instead of stacking it. Use ```Button.command(text, "help")``` for a button that runs a command - the core
+routes it, so one module never needs to know another module's actions.
 
 > The back button belongs to the core: it deletes the current screen, pops it off the stack and rebuilds the parent.
 > Modules write no navigation code.
@@ -126,6 +126,7 @@ ctx.t("key", name="value")  # this module's texts, in the user's language
 ctx.t("core:yes_button")  # another namespace, named explicitly
 ctx.user  # id, name, role, language, consent
 ctx.text  # the incoming message text
+ctx.forwarded_from  # who wrote a forwarded message, if they let it show
 ctx.arguments  # arguments from the callback data
 ctx.state["step"] = "2"  # per user and module, kept in the database
 ctx.nav  # the navigation stack, scoped to this module
@@ -133,6 +134,8 @@ ctx.db  # this module's own tables
 ctx.token("spotify_id")  # only the secrets declared in the manifest
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.close_screen()  # closes the screen the user acted on
+ctx.send_file(path, "video")  # audio, document, photo, video or voice
+ctx.file_limit  # the largest file Telegram lets a bot upload
 with ctx.workspace() as path:  # a temporary directory, removed even after a failure
     ...
 ```
@@ -167,8 +170,8 @@ menu:
 Every module needs a ```name``` and a ```description``` key - ```/help``` and ```/features``` list modules as
 ```/command - Name - Description```.
 
-The languages the Bot supports are the files in ```core/locales```. A module ships one file per language, no more and
-no less, and ```en.yaml``` is the fallback for every other language. Each language names itself in its own file under
+The languages the Bot supports are the files in ```core/locales```. A module ships one file per language, no more and no
+less, and ```en.yaml``` is the fallback for every other language. Each language names itself in its own file under
 ```language_label```, so a new language is added in one place.
 
 > A missing key is not an error. The user sees ```reminder:menu.title```.

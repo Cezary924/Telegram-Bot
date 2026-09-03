@@ -21,7 +21,7 @@ def module1():
     module.command("command1", role=Role.USER)(handler)
     module.callback("action1")(handler)
     module.state("view1")(handler)
-    module.match(lambda message: True, priority=10)(handler)
+    module.match(lambda text: True, priority=10)(handler)
     module.job(interval=60, name="job1")(handler)
     return module
 
@@ -30,7 +30,7 @@ def module1():
 def module2():
     module = Module(name="module2", features=["feature2"])
     module.command("command2")(handler)
-    module.match(lambda message: True, priority=50)(handler)
+    module.match(lambda text: True, priority=50)(handler)
     return module
 
 
@@ -124,10 +124,10 @@ def test_matcher_order_does_not_depend_on_registration_order(registry, module1, 
 
 def test_matchers_with_equal_priority_are_ordered_by_module_then_declaration(registry):
     first = Module(name="module1")
-    first.match(lambda message: True)(handler)
-    first.match(lambda message: True)(handler)
+    first.match(lambda text: True)(handler)
+    first.match(lambda text: True)(handler)
     second = Module(name="module2")
-    second.match(lambda message: True)(handler)
+    second.match(lambda text: True)(handler)
     registry.add(second)
     registry.add(first)
     assert [(module.name, matcher.order) for module, matcher in registry.matchers()] == [

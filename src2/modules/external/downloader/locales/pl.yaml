@@ -1,0 +1,10 @@
+name: 📥 Pobieracz
+description: Pobiera film z przesłanego linku
+
+commands.downloader: Dowiedz się, jak pobrać film
+
+title: Pobieracz
+how: Aby pobrać film, wystarczy, że wyślesz mi do niego link 😊
+working: Już się tym zajmuję, daj mi chwilę... ⏳
+failed: Nie udało mi się nic pobrać z tego linku 💔
+too_big: Ten film jest zbyt duży, abym mógł go wysłać 💔

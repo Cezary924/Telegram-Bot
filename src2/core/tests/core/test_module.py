@@ -57,7 +57,7 @@ def test_declarations_run_in_the_foreground_by_default(module):
     module.command("command1")(handler)
     module.callback("action1")(handler)
     module.state("view1")(handler)
-    module.match(lambda message: True)(handler)
+    module.match(lambda text: True)(handler)
     assert not module.commands[0].is_background
     assert not module.callbacks[0].is_background
     assert not module.states[0].is_background
@@ -68,7 +68,7 @@ def test_declarations_can_ask_for_a_background_thread(module):
     module.command("command1", is_background=True)(handler)
     module.callback("action1", is_background=True)(handler)
     module.state("view1", is_background=True)(handler)
-    module.match(lambda message: True, is_background=True)(handler)
+    module.match(lambda text: True, is_background=True)(handler)
     assert module.commands[0].is_background
     assert module.callbacks[0].is_background
     assert module.states[0].is_background
@@ -123,7 +123,7 @@ def test_callback_data(module):
 
 
 def test_matcher_records_priority_and_order(module):
-    def predicate(_message):
+    def predicate(_text):
         return True
 
     module.match(predicate, priority=10)(handler)
@@ -134,8 +134,8 @@ def test_matcher_records_priority_and_order(module):
 
 
 def test_matchers_may_repeat(module):
-    module.match(lambda message: True)(handler)
-    module.match(lambda message: True)(handler)
+    module.match(lambda text: True)(handler)
+    module.match(lambda text: True)(handler)
     assert len(module.matchers) == 2
 
 
