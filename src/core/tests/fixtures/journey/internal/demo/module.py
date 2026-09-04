@@ -1,6 +1,6 @@
 from core.api import Button, Ctx, Module, Role, View
 
-module = Module(name="demo", features=["demo"])
+module = Module(name="demo")
 
 
 @module.command("demo", role=Role.USER)

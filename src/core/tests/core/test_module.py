@@ -27,7 +27,6 @@ def test_table_prefix(module):
 def test_defaults(module):
     assert module.title == "name" and module.description == "description"
     assert module.requires == [] and module.tokens == []
-    assert module.features == []
     assert not module.is_internal
 
 

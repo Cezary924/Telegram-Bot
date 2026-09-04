@@ -2,16 +2,18 @@
 
 ## Current Version
 
-Currently, the latest version of Telegram Bot is **15.2**. An information about the newest update can be found in the
+Currently, the latest version of Telegram Bot is **2.0.0**. An information about the newest update can be found in the
 Releases section.
 
 ## Supported Versions
 
-|    Version    |   Support status   |
-|:-------------:|:------------------:|
-|    _15.2_     | :white_check_mark: |
-| _15.x - 13.x_ | :heavy_check_mark: |
-| _12.x - 0.x_  |        :x:         |
+A release stays partially supported until three more minor versions have come out after it.
+
+|      Version      |   Support status   |
+|:-----------------:|:------------------:|
+|      _2.0.x_      | :white_check_mark: |
+| _1.41.x - 1.39.x_ | :heavy_check_mark: |
+| _1.38.x - 0.1.x_  |        :x:         |
 
 :white_check_mark: - _Fully supported_ - You can expect to get an update on every reported vulnerability/problem.
 

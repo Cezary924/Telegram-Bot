@@ -66,7 +66,6 @@ class Module:
     description: str = "description"
     requires: list[str] = field(default_factory=list)
     tokens: list[str] = field(default_factory=list)
-    features: list[str] = field(default_factory=list)
 
     commands: list[Command] = field(default_factory=list, init=False)
     callbacks: list[Callback] = field(default_factory=list, init=False)

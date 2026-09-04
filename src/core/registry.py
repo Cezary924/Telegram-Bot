@@ -70,6 +70,3 @@ class Registry:
 
     def jobs(self) -> list[tuple[Module, Job]]:
         return [(module, job) for module in self.modules() for job in module.jobs]
-
-    def features(self) -> list[str]:
-        return [feature for module in self.modules() for feature in module.features]

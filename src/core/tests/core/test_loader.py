@@ -89,7 +89,6 @@ def test_a_module_without_a_schema_creates_no_tables(registry, services):
 
 def test_declarations_reach_the_registry(registry):
     assert [command.name for _, command in registry.commands()] == ["command1", "command2"]
-    assert registry.features() == ["feature1"]
 
 
 def test_an_entry_without_a_directory_is_reported(services, module_sources, config, tmp_path, capsys):

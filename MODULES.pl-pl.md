@@ -60,8 +60,7 @@ answer: Ask again later
 module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
-    tokens=["spotify_id"],  # jedyne sekrety, które ten moduł może odczytać
-    features=["reminder"])  # wpisy do ekranów pomocy i listy funkcji
+    tokens=["spotify_id"])  # jedyne sekrety, które ten moduł może odczytać
 ```
 
 > Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```, a kontrakt odrzuca moduł

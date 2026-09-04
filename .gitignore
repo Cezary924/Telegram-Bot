@@ -1,6 +1,7 @@
 # Ignore secret files containing tokens, keys, etc.
 /.venv/
 /config/*.yaml
+.env
 /db/*.db
 /log/*.log
 .coverage

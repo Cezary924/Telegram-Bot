@@ -17,7 +17,7 @@ def registry():
 
 @pytest.fixture
 def module1():
-    module = Module(name="module1", features=["feature1"])
+    module = Module(name="module1")
     module.command("command1", role=Role.USER)(handler)
     module.callback("action1")(handler)
     module.state("view1")(handler)
@@ -28,7 +28,7 @@ def module1():
 
 @pytest.fixture
 def module2():
-    module = Module(name="module2", features=["feature2"])
+    module = Module(name="module2")
     module.command("command2")(handler)
     module.match(lambda text: True, priority=50)(handler)
     return module
@@ -39,7 +39,6 @@ def test_empty_registry(registry):
     assert registry.modules() == []
     assert registry.matchers() == []
     assert registry.jobs() == []
-    assert registry.features() == []
 
 
 def test_add_and_get(registry, module1):
@@ -138,12 +137,6 @@ def test_jobs(registry, module1, module2):
     registry.add(module1)
     registry.add(module2)
     assert [(module.name, job.name) for module, job in registry.jobs()] == [("module1", "job1")]
-
-
-def test_features_follow_module_order(registry, module1, module2):
-    registry.add(module2)
-    registry.add(module1)
-    assert registry.features() == ["feature1", "feature2"]
 
 
 def test_view_lookup(registry, module1):

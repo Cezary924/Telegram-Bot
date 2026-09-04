@@ -1,6 +1,6 @@
 from core.api import Ctx, Module, Role
 
-module = Module(name="module1", features=["feature1"], tokens=["token1"])
+module = Module(name="module1", tokens=["token1"])
 
 
 @module.command("command1", role=Role.USER)

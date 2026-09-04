@@ -60,8 +60,7 @@ answer: Ask again later
 module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
-    tokens=["spotify_id"],  # the only secrets this module can read
-    features=["reminder"])  # entries for the help and features screens
+    tokens=["spotify_id"])  # the only secrets this module can read
 ```
 
 > A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```, and the contract
