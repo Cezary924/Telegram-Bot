@@ -15,7 +15,7 @@
 ## 📁 Structure
 
 ```
-src2/modules/
+src/modules/
    internal/     shipped with the Bot, cannot be turned off, get the advanced context
    external/     optional features, can be turned off, get the basic context
 ```
@@ -64,8 +64,10 @@ module = Module(
     features=["reminder"])  # entries for the help and features screens
 ```
 
-> A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```. When the package is
-> missing, the module is skipped with a line in the log and the Bot starts without it.
+> A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```, and the contract
+> refuses a module that imports something it did not declare. The name of the package counts, not the name of the
+> import, so ```bs4``` is declared as ```beautifulsoup4```. When the package is missing, the module is skipped with a
+> line in the log and the Bot starts without it.
 
 ## 🧩 Declarations
 
@@ -236,4 +238,5 @@ youtube: false
 - ```schema.sql``` creates objects carrying the module prefix only,
 - an external module imports only ```core.api``` and ```core.testing``` from the core, and from other modules only those
   listed in ```requires```,
+- every package the module imports outside its ```tests``` is named in its own ```requirements.txt```,
 - the module has a ```tests``` directory.

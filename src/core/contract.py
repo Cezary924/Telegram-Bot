@@ -1,6 +1,9 @@
 import ast
 import importlib
 import os
+import re
+import sys
+from importlib.metadata import packages_distributions
 
 import yaml
 
@@ -12,6 +15,8 @@ from core.module import Module
 
 allowed_core_imports = {"core.api", "core.testing"}
 tests_name = "tests"
+requirements_name = "requirements.txt"
+version_pattern = re.compile(r"[<>=!~;\[ ]")
 
 
 def import_modules(directory: str, package: str, is_internal: bool) -> list[Module]:
@@ -152,6 +157,57 @@ def check_imports(module: Module) -> list[str]:
     return problems
 
 
+def normalized(name: str) -> str:
+    return name.strip().lower().replace("_", "-")
+
+
+def declared_packages(module: Module) -> set[str]:
+    path = os.path.join(module.path, requirements_name)
+    if not os.path.isfile(path):
+        return set()
+    names = set()
+    with open(path, encoding='utf8') as f:
+        for line in f:
+            line = line.split("#")[0].strip()
+            if line and not line.startswith("-"):
+                names.add(normalized(version_pattern.split(line)[0]))
+    return names
+
+
+def runtime_files(module: Module) -> list[str]:
+    files = []
+    for directory, _, names in os.walk(module.path):
+        parts = os.path.relpath(directory, module.path).split(os.sep)
+        if tests_name in parts:
+            continue
+        files += [os.path.join(directory, name) for name in sorted(names) if name.endswith(".py")]
+    return files
+
+
+def imported_packages(module: Module) -> set[str]:
+    local = ("core", internal_package.split(".")[0])
+    found = set()
+    for path in runtime_files(module):
+        for name in imported_names(path):
+            root = name.split(".")[0]
+            if root not in local and root not in sys.stdlib_module_names:
+                found.add(root)
+    return found
+
+
+def distributions_of(name: str) -> set[str]:
+    known = packages_distributions().get(name)
+    return {normalized(one) for one in known} if known else {normalized(name)}
+
+
+def check_requirements(module: Module) -> list[str]:
+    declared = declared_packages(module)
+    return ["'" + name + "' is imported but no package providing it is in '" +
+            requirements_name + "'"
+            for name in sorted(imported_packages(module))
+            if not distributions_of(name) & declared]
+
+
 def check_tests(module: Module) -> list[str]:
     if os.path.isdir(os.path.join(module.path, tests_name)):
         return []
@@ -159,7 +215,7 @@ def check_tests(module: Module) -> list[str]:
 
 
 checks = [check_manifest, check_locales, check_yaml_traps, check_callbacks, check_schema,
-          check_imports, check_tests]
+          check_imports, check_requirements, check_tests]
 
 
 def check(module: Module) -> list[str]:

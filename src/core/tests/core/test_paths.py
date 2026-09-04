@@ -11,7 +11,7 @@ def test_dirs_are_absolute():
 
 def test_layout():
     assert paths.core_dir == os.path.join(paths.src_dir, "core")
-    assert paths.src_dir == os.path.join(paths.root_dir, "src2")
+    assert paths.src_dir == os.path.join(paths.root_dir, "src")
     assert paths.internal_modules_dir == os.path.join(paths.modules_dir, "internal")
     assert paths.external_modules_dir == os.path.join(paths.modules_dir, "external")
 

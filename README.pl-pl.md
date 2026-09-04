@@ -2,7 +2,8 @@
    <h1>Telegram Bot</h1>
    <h3>🤖</h3>
    <h3>Wielofunkcyjny Bot na platformie Telegram</h3>
-   <a href="https://t.me/Cezary924Bot" target="__blank"><img alt="Etykieta z napisem 'Telegram Bot' - link prowadzi do czatu z Cezary924Bot na platformie Telegram" src="https://img.shields.io/badge/Telegram-Bot-222222?style=for-the-badge&logo=telegram&logoColor=30A3E6"></a><br/><br/>
+   <a href="https://t.me/Cezary924Bot" target="__blank"><img alt="Etykieta z napisem 'Telegram Bot' - link prowadzi do czatu z Cezary924Bot na platformie Telegram" src="https://img.shields.io/badge/Telegram-Bot-222222?style=for-the-badge&logo=telegram&logoColor=30A3E6"></a>
+   <a href="https://github.com/Cezary924/Telegram-Bot/actions/workflows/ci.yml" target="__blank"><img alt="Etykieta z napisem 'CI' - link prowadzi do przebiegów workflow na GitHubie" src="https://img.shields.io/github/actions/workflow/status/Cezary924/Telegram-Bot/ci.yml?style=for-the-badge&label=CI"></a><br/><br/>
    <a href="https://github.com/Cezary924/Telegram-Bot/blob/master/README.md" target="__blank"><img alt="Etykieta z napisem 'Jęz 🇬🇧' - link prowadzi do pliku README w języku angielskim" src="https://img.shields.io/badge/Jęz-🇬🇧-012169?style=for-the-badge"></a>
    <a href="https://github.com/Cezary924/Telegram-Bot/blob/master/README.pl-pl.md" target="__blank"><img alt="Etykieta z napisem 'Jęz 🇵🇱' - link prowadzi do pliku README w języku polskim" src="https://img.shields.io/badge/Jęz-🇵🇱-dc143c?style=for-the-badge"></a>
 </div><br/>

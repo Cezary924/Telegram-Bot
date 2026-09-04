@@ -15,7 +15,7 @@
 ## 📁 Struktura
 
 ```
-src2/modules/
+src/modules/
    internal/     dostarczane z Botem, nie da się ich wyłączyć, dostają rozszerzony kontekst
    external/     opcjonalne funkcje, da się je wyłączyć, dostają podstawowy kontekst
 ```
@@ -64,8 +64,9 @@ module = Module(
     features=["reminder"])  # wpisy do ekranów pomocy i listy funkcji
 ```
 
-> Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```. Gdy paczki brakuje, moduł
-> jest pomijany z linią w logu, a Bot wstaje bez niego.
+> Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```, a kontrakt odrzuca moduł
+> importujący coś, czego nie zadeklarował. Liczy się nazwa pakietu, nie nazwa importu, więc ```bs4``` deklaruje się jako
+> ```beautifulsoup4```. Gdy paczki brakuje, moduł jest pomijany z linią w logu, a Bot wstaje bez niego.
 
 ## 🧩 Deklaracje
 
@@ -237,4 +238,5 @@ youtube: false
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
 - moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w
   ```requires```,
+- każdy pakiet, który moduł importuje poza katalogiem ```tests```, jest wypisany w jego ```requirements.txt```,
 - moduł ma katalog ```tests```.

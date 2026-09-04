@@ -3,6 +3,7 @@ import os
 import pytest
 
 from core import contract
+from core.contract import tests_name
 from core.i18n import supported_languages
 from core.module import Callback, Module
 from core.roles import Role
@@ -157,6 +158,47 @@ def test_another_module_may_be_imported_only_when_required(tmp_path):
     assert "imports 'modules.external.module2.helper1'" in contract.check_imports(module)[0]
     module.requires = ["module2"]
     assert contract.check_imports(module) == []
+
+
+def test_a_used_package_must_be_declared(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    (tmp_path / "module.py").write_text("import requests\n", encoding='utf8')
+    assert "'requests' is imported but no package" in contract.check_requirements(module)[0]
+    (tmp_path / "requirements.txt").write_text("requests==2.34.2\n", encoding='utf8')
+    assert contract.check_requirements(module) == []
+
+
+def test_the_declaration_may_name_the_package_rather_than_the_import(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    (tmp_path / "module.py").write_text("from bs4 import BeautifulSoup\n", encoding='utf8')
+    (tmp_path / "requirements.txt").write_text("beautifulsoup4==4.15.0\n", encoding='utf8')
+    assert contract.check_requirements(module) == []
+
+
+def test_the_core_and_the_standard_library_need_no_declaration(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    (tmp_path / "module.py").write_text(
+        "import os\nimport sqlite3\nfrom core.api import Module\n", encoding='utf8')
+    assert contract.check_requirements(module) == []
+
+
+def test_what_only_the_tests_import_needs_no_declaration(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    (tmp_path / tests_name).mkdir()
+    (tmp_path / tests_name / "test_module.py").write_text("import pytest\n", encoding='utf8')
+    assert contract.check_requirements(module) == []
+
+
+def test_a_comment_or_a_flag_is_not_a_package(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    (tmp_path / "requirements.txt").write_text(
+        "# a note\n-r ../other.txt\nrequests==2.34.2  # pinned\n", encoding='utf8')
+    assert contract.declared_packages(module) == {"requests"}
 
 
 def test_a_module_needs_tests(tmp_path):
