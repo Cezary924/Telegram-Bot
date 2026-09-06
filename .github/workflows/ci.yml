@@ -59,18 +59,40 @@ jobs:
           done
           pip-audit "$@"
 
-  complete:
-    name: Complete
+  summary:
+    name: Summary
     needs: [ tests, audit ]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Check that every job passed
+      - name: Report what passed
+        env:
+          TESTS: ${{ needs.tests.result }}
+          AUDIT: ${{ needs.audit.result }}
         run: |
-          echo "tests: ${{ needs.tests.result }}"
-          echo "audit: ${{ needs.audit.result }}"
-          [ "${{ needs.tests.result }}" = "success" ] || exit 1
-          [ "${{ needs.audit.result }}" = "success" ] || exit 1
+          {
+            echo "## CI summary"
+            echo
+            echo "| Job | Result |"
+            echo "| --- | --- |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          failed=0
+          for entry in "Tests|$TESTS" "Vulnerable dependencies|$AUDIT"; do
+            name="${entry%|*}"
+            result="${entry##*|}"
+            if [ "$result" = "success" ]; then
+              echo "| $name | ✅ $result |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $name | ❌ $result |" >> "$GITHUB_STEP_SUMMARY"
+              failed=1
+            fi
+          done
+          echo >> "$GITHUB_STEP_SUMMARY"
+          if [ "$failed" = "1" ]; then
+            echo "Something did not pass, so this cannot go in." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "Everything passed." >> "$GITHUB_STEP_SUMMARY"
 
   report:
     name: Report a failed weekly run
