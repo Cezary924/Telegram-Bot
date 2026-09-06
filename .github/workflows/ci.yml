@@ -16,11 +16,11 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -35,15 +35,19 @@ jobs:
         run: pycodestyle src
 
       - name: Run the tests
-        run: pytest --cov=src --cov-report=term-missing
+        run: pytest --cov=src --cov-report=term-missing --junitxml=tests.xml
+
+      - name: Write down how the tests went
+        if: always()
+        run: python .github/summary.py tests tests.xml >> "$GITHUB_STEP_SUMMARY"
 
   audit:
     name: Vulnerable dependencies
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -57,42 +61,27 @@ jobs:
             echo "auditing $file"
             set -- "$@" -r "$file"
           done
-          pip-audit "$@"
+          pip-audit "$@" --format json --output audit.json
+
+      - name: Write down what the audit found
+        if: always()
+        run: python .github/summary.py audit audit.json >> "$GITHUB_STEP_SUMMARY"
 
   summary:
-    name: Summary
-    needs: [ tests, audit ]
+    name: Jobs summary
+    needs: [ tests, audit, report ]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Report what passed
-        env:
-          TESTS: ${{ needs.tests.result }}
-          AUDIT: ${{ needs.audit.result }}
+      - uses: actions/checkout@v7
+
+      - name: Report what happened
         run: |
-          {
-            echo "## CI summary"
-            echo
-            echo "| Job | Result |"
-            echo "| --- | --- |"
-          } >> "$GITHUB_STEP_SUMMARY"
-          failed=0
-          for entry in "Tests|$TESTS" "Vulnerable dependencies|$AUDIT"; do
-            name="${entry%|*}"
-            result="${entry##*|}"
-            if [ "$result" = "success" ]; then
-              echo "| $name | ✅ $result |" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "| $name | ❌ $result |" >> "$GITHUB_STEP_SUMMARY"
-              failed=1
-            fi
-          done
-          echo >> "$GITHUB_STEP_SUMMARY"
-          if [ "$failed" = "1" ]; then
-            echo "Something did not pass, so this cannot go in." >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          echo "Everything passed." >> "$GITHUB_STEP_SUMMARY"
+          python .github/summary.py jobs \
+            "Tests=${{ needs.tests.result }}" \
+            "Vulnerable dependencies=${{ needs.audit.result }}" \
+            "Report a failed weekly run=${{ needs.report.result }}" \
+            >> "$GITHUB_STEP_SUMMARY"
 
   report:
     name: Report a failed weekly run
