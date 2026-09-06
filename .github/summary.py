@@ -35,7 +35,7 @@ def tests(path: str) -> int:
     broken = [case for case in suite.iter("testcase")
               if case.find("failure") is not None or case.find("error") is not None]
     if not broken:
-        print("\nEvery test passed. ✅")
+        print("\nEvery test passed ✅")
         return 0
     print("\n### What failed\n")
     print("| Test | Why |")
@@ -58,7 +58,7 @@ def counted(number: int, one: str, many: str) -> str:
 def audit(path: str) -> int:
     if not os.path.isfile(path):
         print("## Vulnerable dependencies\n")
-        print("The audit left no result behind, so it did not get to run. ❌")
+        print("The audit left no result behind, so it did not get to run ❌")
         return 0
     with open(path, encoding='utf8') as f:
         found = json.load(f)
@@ -66,7 +66,7 @@ def audit(path: str) -> int:
     risky = [(one, vuln) for one in packages for vuln in one.get("vulns", [])]
     print("## Vulnerable dependencies\n")
     if not risky:
-        print("No known vulnerabilities found in " + counted(len(packages), "package", "packages") + ". ✅")
+        print("No known vulnerabilities found in " + counted(len(packages), "package", "packages") + " ✅")
         return 0
     print("| Package | Version | Advisory | Also known as | Fixed in |")
     print("| --- | --- | --- | --- | --- |")
@@ -77,7 +77,7 @@ def audit(path: str) -> int:
                                  vuln.get("id", "?"), names, fixes]) + " |")
     packages_hit = len({one.get("name") for one, _ in risky})
     print("\n" + counted(len(risky), "advisory", "advisories") + " in " +
-          counted(packages_hit, "package", "packages") + ". ❌")
+          counted(packages_hit, "package", "packages") + " ❌")
     return 0
 
 
