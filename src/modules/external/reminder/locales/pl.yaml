@@ -1,0 +1,34 @@
+name: 🔔 Przypomnienia
+description: Przypomina Ci o czymkolwiek o wyznaczonej porze
+
+commands.reminder: Ustaw i zarządzaj swoimi przypomnieniami
+
+title: Przypomnienia
+menu: "Ustawione przez Ciebie przypomnienia: _{count}_"
+set: Ustaw przypomnienie
+manage: Zarządzaj przypomnieniami
+
+content: Treść
+date: Data
+ask_content: Napisz, o czym mam Ci przypomnieć
+ask_date: "Napisz, kiedy mam Ci przypomnieć, na przykład: _{example}_"
+wrong_content: Treść musi mieć od 1 do {limit} znaków
+wrong_date: "Nie rozumiem tej daty, zapisz ją tak: _{example}_"
+past_date: Nie przypomnę Ci o czymś, co już minęło
+
+done: Przypomnienie zostało ustawione ✅
+changed: Przypomnienie zostało zmienione ✅
+deleted: Przypomnienie zostało usunięte ✅
+gone: Tego przypomnienia już nie ma 💔
+empty: Nie masz jeszcze żadnych przypomnień
+pick: "Wybierz przypomnienie, którym chcesz zarządzać.\nStrona _{page}_ z _{pages}_, łącznie _{total}_"
+previous: ⬅️ Poprzednia
+next: ➡️ Następna
+
+edit_content: Zmień treść
+edit_date: Zmień datę
+delete: Usuń
+sure: Czy na pewno chcesz usunąć to przypomnienie?
+
+due: Już czas!
+delayed: To już był czas, ale nie mogłem się do Ciebie odezwać wcześniej.

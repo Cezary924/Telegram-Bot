@@ -1,8 +1,9 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends git ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && ffmpeg -version > /dev/null
 
 WORKDIR /app
 

@@ -1,0 +1,7 @@
+name: 📃 Help
+description: The list of the Bot commands
+
+commands.help: Show the list of available commands
+
+title: 📃 Help
+intro: 'Here is what I can do for you:'

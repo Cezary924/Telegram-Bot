@@ -1,0 +1,4 @@
+name: One
+description: The first module
+commands.command1: Run the first command
+key1: one

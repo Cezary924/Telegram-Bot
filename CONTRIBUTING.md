@@ -14,6 +14,24 @@ Please note we have a code of conduct, please follow it in all your interactions
 3. You may merge the Pull Request in once you have the sign-off of other developers, or if you 
    do not have permission to do that, you may request the second reviewer to merge it for you.
 
+## Development
+
+Install the development dependencies, which bring the runtime ones with them:
+
+```
+pip install -r requirements-dev.txt
+```
+
+Run the whole test suite, the style check and the module contract from the main directory:
+
+```
+pytest
+pycodestyle src
+```
+
+The contract runs as part of the test suite and refuses a module that breaks the rules described in
+[MODULES.md](MODULES.md), which is also where writing your own module is explained.
+
 ## Code of Conduct
 
 Please first check out our [Code of Conduct](https://github.com/Cezary924/Telegram-Bot/blob/master/CODE_OF_CONDUCT.md) file.

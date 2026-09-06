@@ -1,0 +1,17 @@
+name: ℹ️ About
+description: Information about the Bot and its Creator
+
+commands.about: Information about the Bot
+
+title: ℹ️ About The Bot
+tagline: Multifunctional Telegram Bot
+
+labels:
+  description: Description
+  creator: Creator
+  version: Version
+  status: Version status
+
+up_to_date: Up-to-date 😊
+behind: Outdated (Up-to-date {version})
+ahead: Beta (Stable {version})

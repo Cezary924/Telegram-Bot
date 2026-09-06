@@ -1,0 +1,27 @@
+name: 🔮 Crystal ball
+description: Answers your question
+
+commands.crystalball: Ask the crystal ball about anything
+
+title: Crystal ball
+
+sure:
+  1: Yes!
+  2: Without a doubt!
+  3: Of course!
+  4: Surely!
+  5: Certainly!
+
+maybe:
+  1: Maybe...
+  2: Perhaps...
+  3: I guess...
+  4: Very doubtful...
+  5: I suppose...
+
+nope:
+  1: No.
+  2: Never.
+  3: Not really.
+  4: Forget about it.
+  5: No way.

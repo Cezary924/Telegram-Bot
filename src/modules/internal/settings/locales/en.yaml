@@ -1,0 +1,20 @@
+name: ⚙️ Settings
+description: Language, notifications and data deletion
+
+commands.settings: Show the settings menu
+
+title: ⚙️ Settings
+menu: 'Select the setting of the following:'
+
+notifications: 🛎️ Notifications
+notifications_question: Do you want notifications to be turned on?
+notifications_on: Notifications have been enabled ✅
+notifications_off: Notifications have been disabled ❌
+
+language: 🌐 Language
+language_question: 'Select a language:'
+language_changed: The displayed language has been changed ✅
+
+deletedata: 🗑️ Data Deletion
+deletedata_question: Are you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.
+deletedata_done: Your data has been deleted ✅

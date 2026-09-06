@@ -1,0 +1,11 @@
+name: 👋 Start
+description: The welcome screen and the feature list
+
+commands.start: Start a conversation with the Bot
+commands.features: Check the Bot features
+
+greeting: Hi
+welcome: This is
+features_title: ✨ Bot Features
+features_button: ✨ Bot Features
+nothing: No features are turned on right now.

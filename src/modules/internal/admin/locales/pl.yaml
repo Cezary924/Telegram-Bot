@@ -1,0 +1,61 @@
+name: 🛠️ Admin
+description: Użytkownicy, statystyki i sterowanie Botem
+
+commands.admin: Wyświetl menu Administratora
+
+title: 🛠️ Admin
+menu: 'Wybierz zadanie z podanych:'
+
+has_consent: tak
+no_consent: nie
+turned_on: włączone
+turned_off: wyłączone
+previous: ⬅️ Poprzednia
+next: ➡️ Następna
+
+users: 🙋 Użytkownicy
+users_menu: 'Znajdź użytkownika, którym chcesz zarządzać:'
+users_list: 📋 Lista
+users_list_text: 'Strona {page} z {pages}, łącznie {total} użytkowników:'
+users_search: 🔍 Szukaj po ID
+users_search_text: Podaj ID użytkownika
+users_search_missing: Użytkownik o podanym ID nie został znaleziony w bazie 😞
+users_forward: ↪️ Znajdź po wiadomości
+users_forward_text: Prześlij mi wiadomość napisaną przez użytkownika, którego ID chcesz poznać 😁
+users_forward_missing: Ta wiadomość nie ma nadawcy - użytkownik ukrywa konto przy przesyłaniu 😐
+
+user_text: '*{name}*\nNazwa: _{username}_\nRanga: _{role}_\nZgoda: _{consent}_\nJęzyk: _{language}_\nPierwszy raz: _{created}_\nOstatnio: _{seen}_'
+user_role: 🎖️ Zmień rangę
+user_wipe: 🗑️ Usuń dane
+
+role_text: 'Obecna ranga to _{role}_. Wybierz nową:'
+role_confirm: Czy na pewno chcesz obniżyć rangę do _{role}_? Użytkownik straci uprawnienia, które ma teraz.
+role_done: Ranga została zmieniona na _{role}_ ✅
+role_changed: 'Zmieniono Twoją rangę na: _{role}_'
+
+wipe_text: Czy na pewno chcesz usunąć wszystkie dane, które Bot zgromadził o tym użytkowniku? Operacji nie da się cofnąć.
+wipe_done: Dane użytkownika zostały usunięte ✅
+
+statistics: 📊 Statystyki
+statistics_text: '{people}\n\nUżytkowników łącznie: _{total}_\nZe zgodą: _{consent}_\nZaładowanych modułów: _{modules}_\nWersja: _{version}_\nDziała od: _{uptime}_'
+
+announcement: 📢 Ogłoszenie
+announcement_text: Napisz wiadomość, którą mają przeczytać wszyscy użytkownicy. Trafi do każdego, kto ma włączone powiadomienia.
+announcement_done: Ogłoszenie dotarło do _{reached}_ użytkowników ✅
+
+alerts: 🔔 Powiadomienia o nowych użytkownikach
+alerts_text: 'Powiadomienia o nowych użytkownikach są {state}. Chcesz je włączyć?'
+alerts_done: Powiadomienia o nowych użytkownikach są teraz {state} ✅
+
+modules: 🧩 Moduły
+modules_text: 'Dotknij modułu, aby go włączyć lub wyłączyć. Zmiana zadziała po następnym starcie:'
+modules_none: Nie ma żadnych modułów zewnętrznych do zarządzania.
+modules_done: Moduł _{module}_ jest teraz {state}. Zrestartuj Bota, aby to zastosować ✅
+
+bot: 🤖 Bot
+bot_text: 'Wersja: _{version}_\nDziała od: _{uptime}_'
+bot_log: 📃 Log
+bot_log_none: W logu nic jeszcze nie ma.
+bot_restart: 🔄 Restart
+bot_restart_text: Czy na pewno chcesz zrestartować Bota?
+bot_restart_done: Bot się restartuje...

@@ -1,8 +1,13 @@
 # Ignore secret files containing tokens, keys, etc.
+/.venv/
 /config/*.yaml
+.env
 /db/*.db
 /log/*.log
-/src/__pycache__/
+.coverage
+.pytest_cache/
+/tmp/
+/src/**/__pycache__/
 *.mp4
 *.mp3
 *.jpeg

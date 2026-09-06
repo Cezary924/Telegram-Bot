@@ -1,0 +1,27 @@
+name: 🔮 Kryształowa kula
+description: Odpowiada na Twoje pytanie
+
+commands.crystalball: Zapytaj kryształową kulę o cokolwiek
+
+title: Kryształowa kula
+
+sure:
+  1: Tak!
+  2: No raczej, nie inaczej!
+  3: Owszem!
+  4: No pewnie!
+  5: Tak jak Pan Jezus powiedział!
+
+maybe:
+  1: Może...
+  2: Zobaczymy...
+  3: Na dwoje babka wróżyła...
+  4: Niewykluczone...
+  5: Jak Bóg da...
+
+nope:
+  1: Nie.
+  2: Nigdy.
+  3: Nie ma o czym mówić.
+  4: Pod żadnym pozorem.
+  5: Broń Boże.
