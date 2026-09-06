@@ -5,6 +5,7 @@ import pytest
 
 from core import loader, paths
 from core.app import App
+from core.module import Module
 from core.roles import Role
 from core.testing import FakeBot, make_message
 from core.version import Version
@@ -71,6 +72,15 @@ def test_commands_are_published_per_language(app):
     assert app.services.bot.commands["pl"] == ["command1", "command2"]
 
 
+def test_a_command_only_admins_may_run_is_not_published(app):
+    app.load_modules()
+    hidden = Module(name="module9")
+    hidden.command("hidden1", role=Role.ADMIN)(lambda ctx: "ran")
+    app.registry.add(hidden)
+    app.publish_commands()
+    assert "hidden1" not in app.services.bot.commands["en"]
+
+
 def test_admins_are_notified(app):
     app.storage.users.save(1, "First", "Last", "username")
     app.storage.users.save(2, "Other", "Person", "other")
@@ -116,9 +126,9 @@ def test_worker_threads_reach_the_bot(app, tmp_path):
 
 def test_a_job_reaches_its_handler_through_the_scheduler(app, capsys):
     app.load_modules()
-    name, handler, interval = app.scheduler._jobs[0]
-    assert name == "module2.job1" and interval == 3600
-    handler()
+    job = app.scheduler.find("module2.job1")
+    assert job is not None and job.interval == 3600 and not job.is_aligned
+    job.handler()
     assert "Tick in 'module2'." in capsys.readouterr().out
 
 

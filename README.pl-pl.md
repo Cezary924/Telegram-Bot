@@ -25,15 +25,13 @@ pip install -r requirements.txt
    github_username: nazwa_uzytkownika_github
    telegram_username: nazwa_uzytkownika_telegram
    ```
+   > Nazwę użytkownika wpisz bez ```@```. Osoba, do której należy, zostaje pierwszym
+   Administratorem Bota, o ile żadnego Administratora jeszcze nie ma.
     - plik ```tokens.yaml``` w folderze *config* i wprowadź do niego poniższy kod:
    ```
    telegram: token_telegram
    telegram_beta: inny_token_telegram
-   spotify_id: spotify_client_id
-   spotify_secret: spotify_client_secret
    ```
-   > Tokeny Spotify: należy utworzyć aplikację w serwisie Spotify dla
-   deweloperów https://developer.spotify.com/dashboard
 
 4. Zainstaluj [ffmpeg](https://ffmpeg.org/download.html). Serwisy, które oddają obraz i dźwięk w osobnych plikach -
    a takim jest YouTube - bez niego się nie pobiorą.

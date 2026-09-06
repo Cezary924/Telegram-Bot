@@ -52,6 +52,16 @@ def test_missing_setting_raises(config_dir):
     assert config.setting('nope', "fallback") == "fallback"
 
 
+def test_an_empty_setting_falls_back_to_the_default(tmp_path, monkeypatch):
+    monkeypatch.setattr(paths, "config_dir", str(tmp_path))
+    (tmp_path / "config.yaml").write_text("bot_name: Bot\nsetting1:\n", encoding='utf8')
+    (tmp_path / "tokens.yaml").write_text("telegram: 0:aaa\n", encoding='utf8')
+    config = Config()
+    assert config.setting('setting1', "fallback") == "fallback"
+    with pytest.raises(KeyError):
+        config.setting('setting1')
+
+
 def test_tokens(config_dir):
     config = Config()
     assert config.token('token1') == "value1"

@@ -13,16 +13,24 @@ families = [
      'wk': 1 / 604800, 'mo': 1 / 2592000, 'yr': 1 / 31536000},
 ]
 
+aliases = {'lbs': "lb", 'sec': "s", 'secs': "s", 'mins': "min", 'hr': "h", 'hrs': "h",
+           'day': "d", 'days': "d", 'wks': "wk", 'mos': "mo", 'yrs': "yr"}
+
+
+def written_units(family: dict) -> list[str]:
+    known = list(family) + [written for written, unit in aliases.items() if unit in family]
+    return sorted(known, key=lambda written: len(written), reverse=True)
+
 
 def parse(text: str) -> tuple[dict, str, float] | None:
     compact = text.replace(" ", "")
     for family in families:
-        for unit in sorted(family, key=len, reverse=True):
-            if unit not in compact:
+        for written in written_units(family):
+            if written not in compact:
                 continue
-            number = compact.replace(unit, "")
+            number = compact.replace(written, "")
             if is_number(number):
-                return family, unit, float(number)
+                return family, aliases.get(written, written), float(number)
             break
     return None
 

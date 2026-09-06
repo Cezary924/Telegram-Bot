@@ -60,7 +60,7 @@ answer: Ask again later
 module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
-    tokens=["spotify_id"])  # the only secrets this module can read
+    tokens=["service_key"])  # the only secrets this module can read
 ```
 
 > A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```, and the contract
@@ -77,11 +77,15 @@ module = Module(
 | ```@module.view("name")```                                         | builds a screen the core can rebuild when going back              |
 | ```@module.state("name", role=, is_background=)```                 | takes plain messages while the user sits on the screen ```name``` |
 | ```@module.match(predicate, priority=, role=, is_background=)```   | takes messages matching ```predicate(text)```                     |
-| ```@module.job(interval=, name=)```                                | runs every ```interval``` seconds in its own thread               |
+| ```@module.job(interval=, name=, is_aligned=)```                   | runs every ```interval``` seconds in its own thread               |
 
 - ```role``` defaults to ```Role.GUEST```.
+- A command asking for more than ```Role.USER``` is hidden: it stays out of the Telegram command menu and out of the
+  help screen, because both are the same for everybody.
 - ```is_background=True``` puts the handler on its own thread - use it for anything that takes time, like downloading or
   calling a remote API.
+- ```is_aligned=True``` on a job makes it wait until the clock reaches the next whole interval, so a check every 60
+  seconds lands on the minute instead of drifting from whenever the Bot started.
 - Matchers are sorted by priority, highest first, then by module name and declaration order, so the outcome does not
   depend on the order modules are loaded.
 
@@ -132,7 +136,7 @@ ctx.arguments  # arguments from the callback data
 ctx.state["step"] = "2"  # per user and module, kept in the database
 ctx.nav  # the navigation stack, scoped to this module
 ctx.db  # this module's own tables
-ctx.token("spotify_id")  # only the secrets declared in the manifest
+ctx.token("service_key")  # only the secrets declared in the manifest
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.close_screen()  # closes the screen the user acted on
 ctx.send_file(path, "video")  # audio, document, photo, video or voice

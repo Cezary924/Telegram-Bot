@@ -1,3 +1,5 @@
+import sys
+
 from core import log
 
 
@@ -65,3 +67,99 @@ def test_logger_names_its_own_file(tmp_path, monkeypatch):
     written = list(tmp_path.glob("log_*.log"))
     assert len(written) == 1
     assert written[0].read_text() == "value1"
+
+
+def test_closing_puts_the_terminal_back(tmp_path, monkeypatch):
+    monkeypatch.setattr(log.paths, "log_dir", str(tmp_path))
+    terminal = sys.stdout
+    logger = log.Logger()
+    sys.stdout = logger
+    logger.close()
+    assert sys.stdout is terminal
+
+
+def test_writing_after_closing_reaches_the_terminal_only(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(log.paths, "log_dir", str(tmp_path))
+    logger = log.Logger()
+    logger.close()
+    logger.write("text1")
+    logger.flush()
+    assert "text1" in capsys.readouterr().out
+
+
+def test_closing_twice_is_harmless(tmp_path, monkeypatch):
+    monkeypatch.setattr(log.paths, "log_dir", str(tmp_path))
+    logger = log.Logger()
+    logger.close()
+    logger.close()
+
+
+def make_logger(tmp_path, monkeypatch):
+    monkeypatch.setattr(log.paths, "log_dir", str(tmp_path))
+    return log.Logger()
+
+
+def test_what_is_held_waits_for_the_release(tmp_path, monkeypatch, capsys):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.hold()
+    logger.write("first")
+    logger.write("second")
+    assert capsys.readouterr().out == ""
+    logger.release()
+    assert capsys.readouterr().out == "firstsecond"
+
+
+def test_a_direct_write_jumps_the_queue(tmp_path, monkeypatch, capsys):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.hold()
+    logger.write("queued")
+    with logger.direct():
+        logger.write("banner")
+    logger.release()
+    assert capsys.readouterr().out == "bannerqueued"
+
+
+def test_holding_carries_on_after_a_direct_write(tmp_path, monkeypatch, capsys):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.hold()
+    with logger.direct():
+        logger.write("banner")
+    logger.write("still queued")
+    assert capsys.readouterr().out == "banner"
+    logger.release()
+    assert capsys.readouterr().out == "still queued"
+
+
+def test_nothing_is_lost_when_the_logger_closes_while_holding(tmp_path, monkeypatch, capsys):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.hold()
+    logger.write("queued")
+    logger.close()
+    assert "queued" in capsys.readouterr().out
+    assert list(tmp_path.glob("log_*.log"))[0].read_text() == "queued"
+
+
+def test_writing_without_holding_goes_straight_out(tmp_path, monkeypatch, capsys):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.write("now")
+    assert capsys.readouterr().out == "now"
+
+
+def test_the_file_carries_the_lines_before_the_logger_closes(tmp_path, monkeypatch):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.write("line one\n")
+    logger.write("line two\n")
+    written = list(tmp_path.glob("log_*.log"))[0]
+    assert written.read_text() == "line one\nline two\n"
+    logger.close()
+
+
+def test_released_lines_reach_the_file_at_once(tmp_path, monkeypatch):
+    logger = make_logger(tmp_path, monkeypatch)
+    logger.hold()
+    logger.write("queued\n")
+    written = list(tmp_path.glob("log_*.log"))[0]
+    assert written.read_text() == ""
+    logger.release()
+    assert written.read_text() == "queued\n"
+    logger.close()

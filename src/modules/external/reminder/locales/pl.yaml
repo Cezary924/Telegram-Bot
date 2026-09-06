@@ -21,7 +21,9 @@ changed: Przypomnienie zostało zmienione ✅
 deleted: Przypomnienie zostało usunięte ✅
 gone: Tego przypomnienia już nie ma 💔
 empty: Nie masz jeszcze żadnych przypomnień
-pick: Wybierz przypomnienie, którym chcesz zarządzać
+pick: "Wybierz przypomnienie, którym chcesz zarządzać.\nStrona _{page}_ z _{pages}_, łącznie _{total}_"
+previous: ⬅️ Poprzednia
+next: ➡️ Następna
 
 edit_content: Zmień treść
 edit_date: Zmień datę

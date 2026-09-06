@@ -38,6 +38,21 @@ def test_loads_the_working_modules(registry):
     assert registry.names() == ["module1", "module2"]
 
 
+def test_the_two_kinds_are_reported_apart(loader, module_sources, capsys):
+    loader.load(Registry(), module_sources)
+    out = capsys.readouterr().out
+    assert "Internal modules loaded: module1." in out
+    assert "External modules loaded: module2." in out
+    assert out.index("Internal modules") < out.index("External modules")
+
+
+def test_a_kind_without_modules_says_so(loader, tmp_path, capsys):
+    loader.load(Registry(), [(str(tmp_path), "nowhere", True), (str(tmp_path), "nowhere", False)])
+    out = capsys.readouterr().out
+    assert "Internal modules loaded: none." in out
+    assert "External modules loaded: none." in out
+
+
 def test_marks_internal_modules(registry):
     assert not_none(registry.get("module1")).is_internal
     assert not not_none(registry.get("module2")).is_internal

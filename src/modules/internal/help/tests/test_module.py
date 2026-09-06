@@ -1,22 +1,49 @@
-from core.api import Module
+from core.api import Module, Role
 from core.testing import make_message
 
 
-def add_module(app, name: str, command: str, title: str, description: str, is_internal: bool) -> None:
+def add_module(app, name: str, command: str, title: str, description: str, is_internal: bool,
+               role: Role = Role.GUEST) -> None:
     found = Module(name=name)
-    found.command(command)(lambda ctx: "ran")
+    found.command(command, role=role)(lambda ctx: "ran")
     found.is_internal = is_internal
     app.registry.add(found)
     app.catalog.add(name, "en", {'name': title, 'description': description})
 
 
-def test_help_lists_every_internal_module(app, bot):
+def test_help_lists_every_internal_module_a_user_can_reach(app, bot):
     app.router.handle_message(make_message("/help"))
     text = bot.last.text
     assert text.startswith("*📃 Help:*\n\nHere is what I can do for you:\n\n")
     for found in app.registry.modules():
-        if found.is_internal and found.commands:
-            assert "/" + found.commands[0].name + " - " in text
+        open_commands = [one for one in found.commands if one.role <= Role.USER]
+        if found.is_internal and open_commands:
+            assert "/" + open_commands[0].name + " - " in text
+
+
+def test_help_leaves_out_a_module_only_admins_can_reach(app, bot):
+    add_module(app, "module1", "command1", "Module", "Does something", True, role=Role.ADMIN)
+    app.router.handle_message(make_message("/help"))
+    assert "/command1" not in bot.last.text
+    assert "Does something" not in bot.last.text
+
+
+def test_the_admin_command_stays_out_of_the_help(app, bot):
+    app.storage.users.set_role(1, Role.ADMIN)
+    app.router.handle_message(make_message("/help"))
+    assert "/admin" not in bot.last.text
+
+
+def test_a_module_names_the_first_command_a_user_can_run(app, bot):
+    found = Module(name="module2")
+    found.command("hidden1", role=Role.ADMIN)(lambda ctx: "ran")
+    found.command("open1")(lambda ctx: "ran")
+    found.is_internal = True
+    app.registry.add(found)
+    app.catalog.add("module2", "en", {'name': "Module", 'description': "Does something"})
+    app.router.handle_message(make_message("/help"))
+    assert "/open1 - Module" in bot.last.text
+    assert "/hidden1" not in bot.last.text
 
 
 def test_an_entry_names_the_command_the_module_and_what_it_does(app, bot):

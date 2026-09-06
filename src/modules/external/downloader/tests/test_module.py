@@ -75,6 +75,28 @@ def test_a_video_that_does_not_fit_is_reported(app, bot, monkeypatch):
     assert bot.files == []
 
 
+def test_a_failure_without_ffmpeg_names_the_reason(app, bot, monkeypatch, capsys):
+    monkeypatch.setattr(downloader, "has_ffmpeg", lambda: False)
+
+    def fail(_url, _path, _limit):
+        raise ValueError("no such video")
+
+    monkeypatch.setattr(downloader, "download", fail)
+    send(app, link1)
+    assert "ffmpeg is not installed" in capsys.readouterr().out
+
+
+def test_a_failure_with_ffmpeg_says_nothing_about_it(app, bot, monkeypatch, capsys):
+    monkeypatch.setattr(downloader, "has_ffmpeg", lambda: True)
+
+    def fail(_url, _path, _limit):
+        raise ValueError("no such video")
+
+    monkeypatch.setattr(downloader, "download", fail)
+    send(app, link1)
+    assert "ffmpeg" not in capsys.readouterr().out
+
+
 def test_a_failure_is_reported(app, bot, monkeypatch):
     def fail(_url, _path, _limit):
         raise ValueError("no such video")
@@ -135,6 +157,11 @@ def test_without_ffmpeg_only_a_single_file_is_asked_for(monkeypatch, tmp_path):
 
 def test_the_limit_reaches_yt_dlp(tmp_path):
     assert options(tmp_path)['max_filesize'] == 100
+
+
+def test_pages_are_asked_for_the_way_a_browser_does(tmp_path):
+    agent = options(tmp_path)['http_headers']['User-Agent']
+    assert agent.startswith("Mozilla/5.0") and "Chrome/" in agent
 
 
 def test_the_download_lands_in_the_workspace(tmp_path):

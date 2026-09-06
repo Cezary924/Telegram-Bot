@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
   schedule:
     - cron: "0 3 * * 0"
@@ -59,11 +59,9 @@ jobs:
           done
           pip-audit "$@"
 
-  # The one check to require on a pull request. Every job above has to reach it green,
-  # so a job added to 'needs' is required without touching the branch protection rules.
   complete:
     name: Complete
-    needs: [tests, audit]
+    needs: [ tests, audit ]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +74,7 @@ jobs:
 
   report:
     name: Report a failed weekly run
-    needs: [tests, audit]
+    needs: [ tests, audit ]
     if: failure() && github.event_name == 'schedule'
     runs-on: ubuntu-latest
     permissions:

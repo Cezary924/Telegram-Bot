@@ -8,11 +8,13 @@ unknown_tag = "unknown"
 
 @dataclass(frozen=True)
 class Version:
-    tag: str = unknown_tag
+    tag: str = ""
     commits: int = 0
 
     def __str__(self) -> str:
-        return self.tag + " (" + str(self.commits) + ")"
+        if not self.commits:
+            return unknown_tag
+        return self.tag + " (" + str(self.commits) + ")" if self.tag else str(self.commits)
 
 
 def run_git(*arguments: str) -> str:
@@ -20,10 +22,17 @@ def run_git(*arguments: str) -> str:
                                    stderr=subprocess.DEVNULL).decode("utf8").strip()
 
 
+def exact_tag() -> str:
+    try:
+        return run_git("describe", "--exact-match", "--tags")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return ""
+
+
 def read() -> Version:
     try:
         branch = run_git("rev-parse", "--abbrev-ref", "HEAD")
-        return Version(run_git("describe", "--abbrev=0", "--tags"),
-                       int(run_git("rev-list", "--count", branch)))
+        commits = int(run_git("rev-list", "--count", branch))
     except (subprocess.CalledProcessError, FileNotFoundError, ValueError):
         return Version()
+    return Version(exact_tag(), commits)

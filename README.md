@@ -25,15 +25,13 @@ pip install -r requirements.txt
    github_username: your_github_username
    telegram_username: your_telegram_username
    ```
+   > Write the username without the ```@```. The person it belongs to becomes the first
+   Administrator of the Bot, as long as there is no Administrator yet.
     - the ```tokens.yaml``` file in the *config* folder and write the following code to it:
    ```
    telegram: your_telegram_token
    telegram_beta: your_another_telegram_token
-   spotify_id: your_spotify_client_id
-   spotify_secret: your_spotify_client_secret
    ```
-   > Spotify Tokens: you have to create an app in the Spotify Developer
-   Dashboard https://developer.spotify.com/dashboard
 
 4. Install [ffmpeg](https://ffmpeg.org/download.html). Services that hand out video and sound as separate files -
    YouTube among them - cannot be downloaded without it.

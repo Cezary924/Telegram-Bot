@@ -14,6 +14,12 @@ locales_name = "locales"
 schema_name = "schema.sql"
 
 
+def report(registry: Registry, is_internal: bool) -> None:
+    names = [module.name for module in registry.modules() if module.is_internal == is_internal]
+    kind = "Internal" if is_internal else "External"
+    print_log(kind + " modules loaded: " + (", ".join(names) or "none") + ".")
+
+
 def discover(directory: str) -> list[str]:
     if not os.path.isdir(directory):
         return []
@@ -101,7 +107,8 @@ class Loader:
                 self.install(module, registry)
             except Exception as error:
                 self._skip(module.name, str(error))
-        print_log("Modules loaded: " + (", ".join(registry.names()) or "none") + ".")
+        report(registry, True)
+        report(registry, False)
         return registry
 
     def load_all(self, registry: Registry | None = None) -> Registry:

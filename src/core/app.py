@@ -16,7 +16,6 @@ from core.scheduler import Scheduler
 from core.services import Services
 from core.ui.view import View
 from core.version import read as read_version
-from core.version import unknown_tag
 from core.utils import not_none
 
 
@@ -50,7 +49,7 @@ class App:
             job_ctx = JobCtx(self.services, module)
             self.scheduler.add(module.name + "." + job.name,
                                lambda handler=job.handler, given=job_ctx: handler(given),
-                               job.interval)
+                               job.interval, job.is_aligned)
 
     def build_bot(self) -> telebot.TeleBot:
         bot = telebot.TeleBot(self.config.telegram_token, num_threads=self.config.worker_threads)
@@ -62,7 +61,8 @@ class App:
         for language in self.catalog.languages():
             commands = [telebot.types.BotCommand(command.name,
                                                  self.catalog.text(module.name, command.description, language))
-                        for module, command in self.registry.commands()]
+                        for module, command in self.registry.commands()
+                        if command.role <= Role.USER]
             if not commands:
                 return
             try:
@@ -91,7 +91,7 @@ class App:
         user = self.config.github_username
         repository = self.config.github_repo
         tag = self.services.version.tag
-        if not user or not repository or tag == unknown_tag:
+        if not user or not repository or not tag:
             return ""
         return "\n\n" + "https://github.com/" + user + "/" + repository + "/releases/tag/" + tag
 
@@ -104,19 +104,23 @@ class App:
                 print_error("Could not notify the admin - " + type(error).__name__ + ".", str(error))
 
     def start(self) -> None:
+        logger = Logger()
+        self.logger = logger
+        sys.stdout = logger
+        logger.hold()
         loading = LoadingString()
         Thread(target=loading.run, daemon=True).start()
         self.load_modules()
         self.build_bot()
         loading.stop()
 
-        self.logger = Logger()
-        sys.stdout = self.logger
-        print_banner(self.config.bot_name, True)
         self.publish_commands()
+        self.scheduler.start()
+        with logger.direct():
+            print_banner(self.config.bot_name, True)
+        logger.release()
         self.notify_admins("bot_started")
         self.announce_update()
-        self.scheduler.start()
 
         signal.signal(signal.SIGINT, lambda number, frame: self.stop())
         self.poll()

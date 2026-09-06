@@ -1,5 +1,8 @@
-import telebot
 from threading import Thread
+from typing import Callable
+
+import telebot
+from telebot.apihelper import ApiTelegramException
 
 from core import callbacks, middleware
 from core.context import User, create_context, send_to, user_from_row
@@ -8,15 +11,16 @@ from core.log import print_error, print_log
 from core.module import Module
 from core.roles import Role
 from core.services import Services
-from core.utils import not_none
 from core.ui.keyboard import back_action, command_action, delete_message
 from core.ui.view import View, render
+from core.utils import not_none
 
 
 class Router:
     def __init__(self, services: Services) -> None:
         self._services = services
         self._tasks: list[Thread] = []
+        self._has_admin = False
 
     @property
     def _bot(self) -> telebot.TeleBot:
@@ -31,10 +35,24 @@ class Router:
             return row['language']
         return "pl" if (telegram_language or "").startswith("pl") else default_language
 
+    def promote_first_admin(self, from_user: telebot.types.User) -> None:
+        if self._has_admin:
+            return
+        wanted = self._services.config.telegram_username.strip().lstrip("@")
+        if not wanted or self._services.storage.users.get_by_role(Role.ADMIN):
+            self._has_admin = True
+            return
+        if (from_user.username or "").casefold() != wanted.casefold():
+            return
+        self._services.storage.users.set_role(from_user.id, Role.ADMIN)
+        self._has_admin = True
+        print_log("@" + wanted + " (" + str(from_user.id) + ") is now the first Admin.")
+
     def load_user(self, from_user: telebot.types.User) -> User:
         users = self._services.storage.users
         is_new = users.save(from_user.id, from_user.first_name or "", from_user.last_name or "",
                             from_user.username or "")
+        self.promote_first_admin(from_user)
         language = self.language_for(from_user.id, from_user.language_code)
         user = user_from_row(not_none(users.get(from_user.id)), language)
         if is_new:
@@ -158,7 +176,7 @@ class Router:
             return False
         module, state = found
         self.run(module, state.handler, state.role, user, message,
-                 (top['argument'], ) if top['argument'] else (), state.is_background)
+                 (top['argument'],) if top['argument'] else (), state.is_background)
         return True
 
     def handle_matchers(self, user: User, message: telebot.types.Message) -> bool:
@@ -175,8 +193,14 @@ class Router:
             return True
         return False
 
+    def answer(self, callback: telebot.types.CallbackQuery) -> None:
+        try:
+            self._bot.answer_callback_query(callback.id)
+        except ApiTelegramException as error:
+            print_error("Could not answer a button press - " + type(error).__name__ + ".", str(error))
+
     def handle_callback(self, callback: telebot.types.CallbackQuery) -> None:
-        self._bot.answer_callback_query(callback.id)
+        self.answer(callback)
         user = self.load_user(callback.from_user)
         print_log("Callback: " + user.label + ".", callback.data or "")
         screen = callback.message
@@ -238,7 +262,7 @@ class Router:
             return
         module, view = found
         ctx = create_context(self._services, module, user, screen,
-                             (parent['argument'], ) if parent['argument'] else ())
+                             (parent['argument'],) if parent['argument'] else ())
         navigation.pop(user.id)
         self.present(user, module.name, view.handler(ctx))
 
@@ -255,6 +279,17 @@ class Router:
         self._bot.edit_message_text(text, user.id, screen.message_id,
                                     parse_mode=switched.parse_mode, reply_markup=markup)
 
+    @staticmethod
+    def guarded(handler: Callable) -> Callable:
+        def take(update) -> None:
+            try:
+                handler(update)
+            except Exception as error:
+                print_error("Handling an update failed - " + type(error).__name__ + ".", str(error))
+
+        return take
+
     def register(self, bot: telebot.TeleBot) -> None:
-        bot.callback_query_handler(func=lambda callback: True)(self.handle_callback)
-        bot.message_handler(func=lambda message: True, content_types=['text'])(self.handle_message)
+        bot.callback_query_handler(func=lambda callback: True)(self.guarded(self.handle_callback))
+        bot.message_handler(func=lambda message: True,
+                            content_types=['text'])(self.guarded(self.handle_message))

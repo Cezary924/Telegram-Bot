@@ -1,10 +1,11 @@
-import pytest
-import telebot
 import threading
 
+import pytest
+import telebot
 from telebot.apihelper import ApiTelegramException
 
 from core.api import Button, Module, Role, View
+from core.config import Config
 from core.registry import Registry
 from core.router import Router
 from core.testing import FakeBot, make_callback, make_message, not_none
@@ -434,15 +435,20 @@ def test_an_undeletable_screen_does_not_break_navigation(router, bot, services, 
     assert bot.last.text == "screen2"
 
 
+def test_the_registered_handlers_route_an_update(router, services, settled):
+    real_bot = telebot.TeleBot("0:aaa", validate_token=False)
+    router.register(real_bot)
+    real_bot.message_handlers[0]['function'](make_message("/command1"))
+    assert services.bot.last.text == "text1"
+
+
 def test_register_hooks_the_router_into_telebot(services, bot):
     real_bot = telebot.TeleBot("0:aaa", validate_token=False)
     router = Router(services)
     router.register(real_bot)
     assert len(real_bot.message_handlers) == 1
     assert len(real_bot.callback_query_handlers) == 1
-    assert real_bot.message_handlers[0]['function'] == router.handle_message
     assert real_bot.message_handlers[0]['filters']['content_types'] == ['text']
-    assert real_bot.callback_query_handlers[0]['function'] == router.handle_callback
 
 
 def test_a_command_starts_a_fresh_navigation(router, bot, services, settled):
@@ -514,3 +520,89 @@ def test_a_matcher_sees_the_text_not_the_message(router, bot, services, settled)
     router.handle_message(make_message("value1"))
     module1.matchers.pop(0)
     assert seen == ["value1"]
+
+
+@pytest.fixture
+def named(tmp_path, services, bot):
+    """A Router whose configuration names someone as the Bot owner."""
+
+    def build(username: str) -> Router:
+        (tmp_path / "config.yaml").write_text(
+            "bot_name: Bot\ntelegram_username: " + username + "\n", encoding='utf8')
+        services.config = Config()
+        services.catalog.load_core()
+        services.registry = Registry()
+        services.registry.add(module1)
+        return Router(services)
+
+    return build
+
+
+def test_the_person_named_in_the_config_becomes_the_first_admin(named, services):
+    named("username").handle_message(make_message("/command1", user_id=7))
+    assert services.storage.users.get_role(7) == Role.ADMIN
+
+
+def test_a_leading_at_sign_and_letter_case_are_ignored(named, services):
+    named('"@USERNAME"').handle_message(make_message("/command1", user_id=7))
+    assert services.storage.users.get_role(7) == Role.ADMIN
+
+
+def test_somebody_else_is_not_promoted(named, services):
+    named("someone").handle_message(make_message("/command1", user_id=7))
+    assert services.storage.users.get_role(7) == Role.GUEST
+
+
+def test_nobody_is_promoted_when_an_admin_is_already_there(named, services):
+    services.storage.users.save(9, "First", "Last", "admin1")
+    services.storage.users.set_role(9, Role.ADMIN)
+    named("username").handle_message(make_message("/command1", user_id=7))
+    assert services.storage.users.get_role(7) == Role.GUEST
+
+
+def test_nothing_happens_without_a_username_in_the_config(named, services):
+    named("  ").handle_message(make_message("/command1", user_id=7))
+    assert services.storage.users.get_by_role(Role.ADMIN) == []
+
+
+def test_the_promotion_happens_only_once(named, services):
+    router = named("username")
+    router.handle_message(make_message("/command1", user_id=7))
+    services.storage.users.set_role(7, Role.USER)
+    router.handle_message(make_message("/command1", user_id=7))
+    assert services.storage.users.get_role(7) == Role.USER
+
+
+def refusing_bot(services, description: str):
+    def refuse(*_arguments, **_values):
+        raise ApiTelegramException("answerCallbackQuery", description,
+                                   {'error_code': 400, 'description': description})
+
+    services.bot.answer_callback_query = refuse
+    return services.bot
+
+
+def test_a_button_press_that_can_no_longer_be_answered_is_still_handled(router, services, settled):
+    refusing_bot(services, "query is too old")
+    router.handle_callback(make_callback("module1:action1"))
+    assert "screen2" in services.bot.last.text
+
+
+def test_the_failure_to_answer_is_logged(router, services, settled, capsys):
+    refusing_bot(services, "query is too old")
+    router.handle_callback(make_callback("module1:action1"))
+    assert "Could not answer a button press" in capsys.readouterr().out
+
+
+def test_a_broken_handler_never_reaches_the_polling_thread(router, capsys):
+    def explode(_update) -> None:
+        raise RuntimeError("boom")
+
+    router.guarded(explode)(make_message("/command1"))
+    assert "Handling an update failed - RuntimeError." in capsys.readouterr().out
+
+
+def test_a_working_handler_passes_through_the_guard(router):
+    seen = []
+    router.guarded(seen.append)("update1")
+    assert seen == ["update1"]

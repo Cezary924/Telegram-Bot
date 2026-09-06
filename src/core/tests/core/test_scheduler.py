@@ -80,3 +80,25 @@ def test_one_failing_job_does_not_stop_another():
     scheduler.start()
     assert healthy.wait(2)
     scheduler.stop()
+
+
+def test_a_plain_job_waits_the_whole_interval():
+    assert Scheduler()._delay(60, False) == 60
+
+
+def test_an_aligned_job_waits_only_until_the_next_whole_interval(monkeypatch):
+    monkeypatch.setattr("core.scheduler.time.time", lambda: 1012.5)
+    assert Scheduler()._delay(60, True) == 60 - (1012.5 % 60)
+
+
+def test_an_aligned_job_lands_on_the_interval(monkeypatch):
+    monkeypatch.setattr("core.scheduler.time.time", lambda: 119.0)
+    assert Scheduler()._delay(60, True) == 1.0
+
+
+def test_a_job_is_found_by_its_name():
+    one = Scheduler()
+    one.add("job1", lambda: None, 60, is_aligned=True)
+    found = one.find("job1")
+    assert found is not None and found.interval == 60 and found.is_aligned
+    assert one.find("job2") is None

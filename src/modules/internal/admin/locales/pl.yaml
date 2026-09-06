@@ -43,7 +43,7 @@ announcement: 📢 Ogłoszenie
 announcement_text: Napisz wiadomość, którą mają przeczytać wszyscy użytkownicy. Trafi do każdego, kto ma włączone powiadomienia.
 announcement_done: Ogłoszenie dotarło do _{reached}_ użytkowników ✅
 
-alerts: 🔔 Powiadomienia o nowych
+alerts: 🔔 Powiadomienia o nowych użytkownikach
 alerts_text: 'Powiadomienia o nowych użytkownikach są {state}. Chcesz je włączyć?'
 alerts_done: Powiadomienia o nowych użytkownikach są teraz {state} ✅
 
@@ -55,7 +55,7 @@ modules_done: Moduł _{module}_ jest teraz {state}. Zrestartuj Bota, aby to zast
 bot: 🤖 Bot
 bot_text: 'Wersja: _{version}_\nDziała od: _{uptime}_'
 bot_log: 📃 Log
-bot_log_none: W logu nie ma jeszcze nic.
+bot_log_none: W logu nic jeszcze nie ma.
 bot_restart: 🔄 Restart
 bot_restart_text: Czy na pewno chcesz zrestartować Bota?
 bot_restart_done: Bot się restartuje...

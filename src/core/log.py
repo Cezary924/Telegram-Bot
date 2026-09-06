@@ -3,10 +3,11 @@ import os
 import sys
 import threading
 import time
+from contextlib import contextmanager
 
 from core import paths
 
-line_length = 102
+line_length = 146
 
 
 def print_log(info: str, message_text: str = "") -> None:
@@ -45,7 +46,14 @@ class LoadingString:
     def __init__(self) -> None:
         self._dots = 0
         self._is_running = True
-        print(loading_frame(0), end='\r')
+        self._terminal = sys.__stdout__
+        self._show(loading_frame(0))
+
+    def _show(self, frame: str) -> None:
+        if self._terminal is None:
+            return
+        self._terminal.write(frame + '\r')
+        self._terminal.flush()
 
     def __str__(self) -> str:
         if self._dots >= 4:
@@ -56,7 +64,7 @@ class LoadingString:
 
     def run(self) -> None:
         while self._is_running:
-            print(self, end='\r')
+            self._show(str(self))
             time.sleep(0.5)
 
     def stop(self) -> None:
@@ -67,21 +75,51 @@ class Logger:
     def __init__(self, path: str | None = None) -> None:
         self.lock = threading.Lock()
         self.terminal = sys.stdout
+        self._held: list[str] | None = None
         if path is None:
             name = datetime.datetime.now().strftime("log_%Y-%m-%d_%H-%M-%S.log")
             path = paths.log_file(name)
         paths.make_dir(os.path.dirname(path))
-        self.file = open(path, 'a')
+        self.file = open(path, 'a', buffering=1)
+
+    def hold(self) -> None:
+        with self.lock:
+            self._held = []
+
+    def release(self) -> None:
+        with self.lock:
+            held, self._held = self._held, None
+        for text in held or []:
+            self.write(text)
+
+    @contextmanager
+    def direct(self):
+        with self.lock:
+            held, self._held = self._held, None
+        try:
+            yield
+        finally:
+            with self.lock:
+                self._held = held
 
     def write(self, text: str) -> None:
         with self.lock:
+            if self._held is not None:
+                self._held.append(text)
+                return
             self.terminal.write(text)
-            self.file.write(text)
+            if not self.file.closed:
+                self.file.write(text)
 
     def flush(self) -> None:
         self.terminal.flush()
-        self.file.flush()
+        if not self.file.closed:
+            self.file.flush()
 
     def close(self) -> None:
+        self.release()
         with self.lock:
-            self.file.close()
+            if sys.stdout is self:
+                sys.stdout = self.terminal
+            if not self.file.closed:
+                self.file.close()

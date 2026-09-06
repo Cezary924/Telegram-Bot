@@ -57,6 +57,7 @@ class Job:
     name: str
     handler: Callable
     interval: int
+    is_aligned: bool = False
 
 
 @dataclass
@@ -141,12 +142,12 @@ class Module:
             return stamped
         return decorator
 
-    def job(self, interval: int, name: str | None = None) -> Callable:
+    def job(self, interval: int, name: str | None = None, is_aligned: bool = False) -> Callable:
         if interval <= 0:
             raise ValueError("Job interval must be positive: " + str(interval))
 
         def decorator(handler: Callable) -> Callable:
-            self.jobs.append(Job(name or handler.__name__, handler, interval))
+            self.jobs.append(Job(name or handler.__name__, handler, interval, is_aligned))
             return handler
         return decorator
 

@@ -9,15 +9,43 @@ def test_version_reads_as_a_tag_with_a_count():
 
 
 def test_an_unknown_version():
-    assert str(Version()) == "unknown (0)"
+    assert str(Version()) == "unknown"
+
+
+def test_a_build_without_a_tag_shows_only_its_count():
+    assert str(Version("", 100)) == "100"
 
 
 def test_read_returns_what_git_says(monkeypatch):
     answers = {("rev-parse", "--abbrev-ref", "HEAD"): "master",
-               ("describe", "--abbrev=0", "--tags"): "v1.2",
+               ("describe", "--exact-match", "--tags"): "1.2.0",
                ("rev-list", "--count", "master"): "100"}
     monkeypatch.setattr(version, "run_git", lambda *arguments: answers[arguments])
-    assert read() == Version("v1.2", 100)
+    assert read() == Version("1.2.0", 100)
+
+
+def test_a_commit_without_a_tag_of_its_own_gets_no_tag(monkeypatch):
+    def answer(*arguments):
+        if arguments[0] == "describe":
+            raise subprocess.CalledProcessError(128, "git")
+        return "master" if arguments[0] == "rev-parse" else "100"
+
+    monkeypatch.setattr(version, "run_git", answer)
+    assert read() == Version("", 100)
+
+
+def test_the_nearest_tag_is_never_borrowed(monkeypatch):
+    asked = []
+
+    def answer(*arguments):
+        asked.append(arguments)
+        if arguments[0] == "describe":
+            raise subprocess.CalledProcessError(128, "git")
+        return "master" if arguments[0] == "rev-parse" else "100"
+
+    monkeypatch.setattr(version, "run_git", answer)
+    read()
+    assert ("describe", "--abbrev=0", "--tags") not in asked
 
 
 def test_read_survives_a_repository_without_git(monkeypatch):

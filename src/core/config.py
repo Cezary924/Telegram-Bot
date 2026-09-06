@@ -28,7 +28,9 @@ class Config:
         self._modules = load_yaml_file(paths.config_file(modules_file), False)
 
     def setting(self, name: str, default: str | None = None) -> str:
-        value = self._settings.get(name, default)
+        value = self._settings.get(name)
+        if value is None:
+            value = default
         if value is None:
             raise KeyError("Missing setting in config.yaml: " + name)
         return str(value)

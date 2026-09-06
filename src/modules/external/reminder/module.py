@@ -6,11 +6,13 @@ module = Module(name="reminder")
 
 mark = "🔔 "
 interval = 60
-# A reminder is only late when the Bot missed a whole round of checks.
 delayed_after = 2 * interval
 date_format = "%Y-%m-%d %H:%M"
 content_limit = 200
 content_key = "content"
+page_size = 8
+waiting_mark = "🔔 "
+done_mark = "🔕 "
 
 
 def parse_date(text: str) -> datetime | None:
@@ -25,12 +27,12 @@ def table(ctx) -> str:
 
 
 def reminders_of(ctx: Ctx) -> list:
-    return ctx.db.query_all("SELECT id, date, content FROM " + table(ctx) +
-                            " WHERE user_id = ? ORDER BY date;", (ctx.user.id, ))
+    return ctx.db.query_all("SELECT id, date, content, is_notified FROM " + table(ctx) +
+                            " WHERE user_id = ? ORDER BY date DESC;", (ctx.user.id,))
 
 
 def reminder_of(ctx: Ctx, reminder_id: int):
-    return ctx.db.query_one("SELECT id, date, content FROM " + table(ctx) +
+    return ctx.db.query_one("SELECT id, date, content, is_notified FROM " + table(ctx) +
                             " WHERE id = ? AND user_id = ?;", (reminder_id, ctx.user.id))
 
 
@@ -168,8 +170,24 @@ def manage(ctx: Ctx) -> View:
     rows = reminders_of(ctx)
     if not rows:
         return View(text=ctx.t("empty"), path=[mark + ctx.t("title"), ctx.t("manage")])
-    return View(text=ctx.t("pick"), path=[mark + ctx.t("title"), ctx.t("manage")],
-                buttons=[Button(row['content'], "one", row['id']) for row in rows])
+    pages = max(1, -(-len(rows) // page_size))
+    page = min(wanted_page(ctx), pages - 1)
+    buttons = [Button(label(row), "one", row['id'])
+               for row in rows[page * page_size:(page + 1) * page_size]]
+    if pages > 1:
+        buttons.append(Button(ctx.t("previous"), "manage", max(0, page - 1)))
+        buttons.append(Button(ctx.t("next"), "manage", min(pages - 1, page + 1)))
+    return View(text=ctx.t("pick", page=str(page + 1), pages=str(pages), total=str(len(rows))),
+                path=[mark + ctx.t("title"), ctx.t("manage")],
+                buttons=buttons, argument=str(page))
+
+
+def wanted_page(ctx: Ctx) -> int:
+    return int(ctx.arguments[0]) if ctx.arguments and ctx.arguments[0].isdigit() else 0
+
+
+def label(row) -> str:
+    return (done_mark if row['is_notified'] else waiting_mark) + row['content']
 
 
 @module.callback("one", role=Role.USER)
@@ -183,7 +201,7 @@ def one(ctx: Ctx) -> View:
     row = reminder_of(ctx, reminder_id)
     if row is None:
         return gone(ctx)
-    return View(text=details(ctx, row['content'], row['date']),
+    return View(text=label(row) + "\n" + details(ctx, row['content'], row['date']),
                 path=[mark + ctx.t("title"), ctx.t("manage")],
                 buttons=[Button(ctx.t("edit_content"), "set", reminder_id),
                          Button(ctx.t("edit_date"), "date", reminder_id),
@@ -227,7 +245,7 @@ def gone(ctx: Ctx) -> View:
 
 # ----- notifying -----
 
-@module.job(interval=interval, name="check")
+@module.job(interval=interval, name="check", is_aligned=True)
 def check_reminders(ctx: JobCtx) -> None:
     now = datetime.now()
     for row in due_reminders(ctx, now):
@@ -241,7 +259,7 @@ def check_reminders(ctx: JobCtx) -> None:
 def due_reminders(ctx: JobCtx, now: datetime) -> list:
     return ctx.db.query_all(
         "SELECT id, user_id, date, content FROM " + ctx.db.table("reminders") +
-        " WHERE is_notified = 0 AND date <= ? ORDER BY date;", (now.strftime(date_format), ))
+        " WHERE is_notified = 0 AND date <= ? ORDER BY date;", (now.strftime(date_format),))
 
 
 def notify(ctx: JobCtx, row, key: str) -> None:
@@ -251,5 +269,5 @@ def notify(ctx: JobCtx, row, key: str) -> None:
             + ctx.t("date", language) + ": _" + row['date'] + "_")
     ctx.send(row['user_id'], View(text=text))
     ctx.db.execute("UPDATE " + ctx.db.table("reminders") + " SET is_notified = 1 WHERE id = ?;",
-                   (row['id'], ))
+                   (row['id'],))
     ctx.log("Reminder " + str(row['id']) + " sent")

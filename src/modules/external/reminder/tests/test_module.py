@@ -225,3 +225,77 @@ def test_wiping_a_user_takes_their_reminders_with_them(app, bot):
     set_one(app, bot)
     app.storage.users.delete(1)
     assert rows(app) == []
+
+
+def fill(app, bot, count: int) -> None:
+    set_one(app, bot)
+    extra = [(1, later(days), "Task " + str(days), 0) for days in range(2, count + 1)]
+    for row in extra:
+        app.storage.database.execute(
+            "INSERT INTO " + table_of(app) + " (user_id, date, content, is_notified) "
+            "VALUES (?, ?, ?, ?);", row)
+
+
+def open_list(app, bot):
+    send(app, "/reminder")
+    click(app, bot, "reminder:manage")
+
+
+def test_a_waiting_reminder_is_marked_apart_from_a_sent_one(app, bot):
+    set_one(app, bot)
+    open_list(app, bot)
+    assert [text for text, _ in bot.last.buttons][0] == "🔔 " + content1
+    make_due(app)
+    run_job(app)
+    open_list(app, bot)
+    assert [text for text, _ in bot.last.buttons][0] == "🔕 " + content1
+
+
+def test_the_list_fits_on_one_page_when_it_can(app, bot):
+    fill(app, bot, reminder.page_size)
+    open_list(app, bot)
+    labels = [text for text, _ in bot.last.buttons]
+    assert len([one for one in labels if one.startswith(("🔔", "🔕"))]) == reminder.page_size
+    assert "⬅️ Previous" not in labels
+    assert "Page _1_ of _1_" in bot.last.text
+
+
+def test_a_longer_list_is_split_into_pages(app, bot):
+    fill(app, bot, reminder.page_size + 3)
+    open_list(app, bot)
+    labels = [text for text, _ in bot.last.buttons]
+    assert len([one for one in labels if one.startswith(("🔔", "🔕"))]) == reminder.page_size
+    assert "⬅️ Previous" in labels and "➡️ Next" in labels
+    assert "Page _1_ of _2_" in bot.last.text
+    assert "_11_ in total" in bot.last.text
+
+
+def test_the_next_page_shows_the_rest(app, bot):
+    fill(app, bot, reminder.page_size + 3)
+    open_list(app, bot)
+    click(app, bot, "reminder:manage:1")
+    labels = [text for text, _ in bot.last.buttons]
+    assert len([one for one in labels if one.startswith(("🔔", "🔕"))]) == 3
+    assert "Page _2_ of _2_" in bot.last.text
+
+
+def test_a_page_past_the_end_falls_back_to_the_last_one(app, bot):
+    fill(app, bot, reminder.page_size + 3)
+    open_list(app, bot)
+    click(app, bot, "reminder:manage:9")
+    assert "Page _2_ of _2_" in bot.last.text
+
+
+def test_the_reminder_screen_shows_its_state(app, bot):
+    set_one(app, bot)
+    click(app, bot, "reminder:one:1")
+    assert bot.last.text.startswith("*🔔 Reminders > Manage reminders:*\n\n🔔 " + content1)
+
+
+def test_the_furthest_away_comes_first(app, bot):
+    set_one(app, bot, content="Soonest", date=later(1))
+    set_one(app, bot, content="Latest", date=later(9))
+    set_one(app, bot, content="Middle", date=later(5))
+    open_list(app, bot)
+    shown = [text for text, _ in bot.last.buttons if text.startswith(("🔔", "🔕"))]
+    assert shown == ["🔔 Latest", "🔔 Middle", "🔔 Soonest"]

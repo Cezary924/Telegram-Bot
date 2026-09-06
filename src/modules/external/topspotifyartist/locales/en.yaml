@@ -12,6 +12,7 @@ victory: Well done! 👏 You have guessed the artist! 😁
 defeat: 'Unfortunately, you have not guessed the artist 😞\nHere are the details:'
 
 nickname: Nickname
-genre: Genre
+streams: Streams in total
+tracks: Number of tracks
 listeners: Monthly listeners
 song: Most streamed song

@@ -60,7 +60,7 @@ answer: Ask again later
 module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
-    tokens=["spotify_id"])  # jedyne sekrety, które ten moduł może odczytać
+    tokens=["service_key"])  # jedyne sekrety, które ten moduł może odczytać
 ```
 
 > Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```, a kontrakt odrzuca moduł
@@ -76,11 +76,14 @@ module = Module(
 | ```@module.view("nazwa")```                                         | buduje ekran, który rdzeń umie odtworzyć przy cofaniu                     |
 | ```@module.state("nazwa", role=, is_background=)```                 | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
 | ```@module.match(predykat, priority=, role=, is_background=)```     | przejmuje wiadomości pasujące do ```predykat(text)```                     |
-| ```@module.job(interval=, name=)```                                 | uruchamia się co ```interval``` sekund we własnym wątku                   |
+| ```@module.job(interval=, name=, is_aligned=)```                    | uruchamia się co ```interval``` sekund we własnym wątku                   |
 
 - ```role``` domyślnie wynosi ```Role.GUEST```.
+- Komenda wymagająca więcej niż ```Role.USER``` jest ukryta: nie trafia do menu komend Telegrama ani na ekran pomocy.
 - ```is_background=True``` przenosi handler na osobny wątek — używaj do wszystkiego, co trwa, jak pobieranie czy
   odpytywanie zdalnego API.
+- ```is_aligned=True``` nakazuje czekać zadaniu do najbliższej pełnej wielokrotności interwału, więc sprawdzanie co 60
+  sekund trafia w pełną minutę zamiast dryfować od momentu startu Bota.
 - Matchery są sortowane po priorytecie malejąco, potem po nazwie modułu i kolejności deklaracji, więc wynik nie zależy
   od kolejności ładowania modułów.
 
@@ -131,7 +134,7 @@ ctx.arguments  # argumenty z danych callbacku
 ctx.state["step"] = "2"  # na użytkownika i moduł, trzymane w bazie
 ctx.nav  # stos nawigacji, ograniczony do tego modułu
 ctx.db  # własne tabele tego modułu
-ctx.token("spotify_id")  # tylko sekrety zadeklarowane w manifeście
+ctx.token("service_key")  # tylko sekrety zadeklarowane w manifeście
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął
 ctx.send_file(path, "video")  # audio, document, photo, video albo voice

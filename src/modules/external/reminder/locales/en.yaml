@@ -21,7 +21,9 @@ changed: The reminder has been changed ✅
 deleted: The reminder has been deleted ✅
 gone: This reminder is no longer there 💔
 empty: You have no reminders yet
-pick: Pick the reminder you want to manage
+pick: "Pick the reminder you want to manage.\nPage _{page}_ of _{pages}_, _{total}_ in total"
+previous: ⬅️ Previous
+next: ➡️ Next
 
 edit_content: Change the content
 edit_date: Change the date
