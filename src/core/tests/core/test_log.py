@@ -163,3 +163,13 @@ def test_released_lines_reach_the_file_at_once(tmp_path, monkeypatch):
     logger.release()
     assert written.read_text() == "queued\n"
     logger.close()
+
+
+def test_a_token_never_reaches_the_log(capsys):
+    log.print_error("Could not notify the admin - ConnectionError.",
+                    "HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries "
+                    "exceeded with url: /bot1234567890:not-a-real-token"
+                    "/sendMessage?chat_id=1")
+    out = capsys.readouterr().out
+    assert "not-a-real-token" not in out
+    assert "bot<hidden>/sendMessage" in out
