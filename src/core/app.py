@@ -1,6 +1,7 @@
 import signal
 import sys
 import telebot
+from datetime import datetime
 from threading import Thread
 
 from core.config import Config
@@ -16,10 +17,15 @@ from core.scheduler import Scheduler
 from core.services import Services
 from core.ui.view import View
 from core.version import read as read_version
-from core.utils import not_none
+from core.utils import not_none, without_secrets
 
 
 version_key = "version"
+stopped_key = "stopped_at"
+told_key = "stop_told"
+# A restart shorter than this, that nobody was told about, is the container coming back on its
+# own rather than news worth a message.
+quiet_restart = 120.0
 
 
 class App:
@@ -95,13 +101,36 @@ class App:
             return ""
         return "\n\n" + "https://github.com/" + user + "/" + repository + "/releases/tag/" + tag
 
-    def notify_admins(self, key: str) -> None:
+    def notify_admins(self, key: str, detail: str = "") -> bool:
+        reached = False
         for row in self.storage.users.get_by_role(Role.ADMIN):
             language = self.storage.settings.get_language(row['id'])
+            text = self.catalog.text(core_namespace, key, language)
             try:
-                self.bot.send_message(row['id'], self.catalog.text(core_namespace, key, language))
+                self.bot.send_message(row['id'], text + ("\n" + detail if detail else ""))
+                reached = True
             except Exception as error:
                 print_error("Could not notify the admin - " + type(error).__name__ + ".", str(error))
+        return reached
+
+    def away_for(self, stopped_at: str) -> float:
+        try:
+            return (datetime.now() - datetime.fromisoformat(stopped_at)).total_seconds()
+        except ValueError:
+            return quiet_restart
+
+    # A shutdown the admins already heard about gets its matching message, so a pair is never
+    # half told. A silent one that healed itself within a couple of minutes says nothing.
+    def announce_start(self) -> None:
+        stopped_at = self.storage.state.get(stopped_key)
+        was_told = self.storage.state.get(told_key) == "1"
+        self.storage.state.set(told_key, "0")
+        away = self.away_for(stopped_at) if stopped_at is not None else quiet_restart
+        if not was_told and away < quiet_restart:
+            print_log("Back after " + str(round(away)) +
+                      "s away, which nobody was told about, so nobody is told it is back.")
+            return
+        self.notify_admins("bot_started")
 
     def start(self) -> None:
         logger = Logger()
@@ -119,24 +148,33 @@ class App:
         with logger.direct():
             print_banner(self.config.bot_name, True)
         logger.release()
-        self.notify_admins("bot_started")
+        self.announce_start()
         self.announce_update()
 
-        signal.signal(signal.SIGINT, lambda number, frame: self.stop())
+        # Ctrl+C is a person, SIGTERM is 'docker stop' - both mean the same thing here, and
+        # without the second one the container is killed before it can write anything down.
+        for number in (signal.SIGINT, signal.SIGTERM):
+            signal.signal(number, lambda caught, frame: self.stop())
         self.poll()
 
     def poll(self) -> None:
         try:
-            self.bot.polling(non_stop=True, timeout=100)
+            self.bot.infinity_polling(timeout=100)
         except KeyboardInterrupt:
             self.stop()
         except Exception as error:
             print_error("Polling stopped - " + type(error).__name__ + ".", str(error))
-            self.notify_admins("bot_failed")
-            self.stop(1)
+            self.stop(1, type(error).__name__ + ": " + without_secrets(str(error)))
 
-    def stop(self, code: int = 0) -> None:
-        self.notify_admins("bot_stopped")
+    def stop(self, code: int = 0, failure: str = "") -> None:
+        # Written down first: 'docker stop' allows ten seconds, and a message to Telegram on a
+        # dead network eats more than that before it gives up.
+        self.storage.state.set(stopped_key, datetime.now().isoformat(timespec="seconds"))
+        self.storage.state.set(told_key, "0")
+        if self.services.bot is not None:
+            told = self.notify_admins("bot_failed", failure) if failure \
+                else self.notify_admins("bot_stopped")
+            self.storage.state.set(told_key, "1" if told else "0")
         self.router.wait_for_tasks(2.0)
         self.scheduler.stop()
         if self.services.bot is not None:
