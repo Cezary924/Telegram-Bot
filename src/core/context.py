@@ -12,13 +12,14 @@ from core.config import Config
 from core.db.module_db import ModuleDatabase
 from core.db.user_settings import UserSettings
 from core.db.users import Users
-from core.i18n import supported_languages
+from core.i18n import core_namespace, supported_languages
 from core.log import print_error, print_log
 from core.module import Module
 from core.registry import Registry
 from core.roles import Role
 from core.services import Services
-from core.ui.keyboard import delete_message
+from core.ui.keyboard import Button, delete_message
+from core.ui.view import View
 from core.utils import not_none
 from core.version import Version
 
@@ -99,13 +100,37 @@ class UserNavigation:
         self._navigation.clear(self._user_id)
 
 
-def send_to(services: Services, module_name: str, user_id: int, view) -> None:
+def heading_for(services: Services, module_name: str, view, language: str) -> list[str]:
+    module = services.registry.get(module_name)
+    if module is None:
+        return []
+    segments = [services.catalog.text(module_name, module.title, language)]
+    for step in module.branch(view.name):
+        if step.title:
+            segments.append(services.catalog.text(module_name, step.title, language))
+    return segments
+
+
+def controls_for(services: Services, module_name: str, view, language: str) -> list[Button]:
+    module = services.registry.get(module_name)
+    if module is None or not view.is_screen:
+        return []
+    close = Button.close(services.catalog.text(core_namespace, "close_button", language))
+    if len(module.branch(view.name)) <= 1:
+        return [close]
+    return [Button.back(services.catalog.text(core_namespace, "return_button", language)),
+            Button.home(services.catalog.text(core_namespace, "home_button", language)), close]
+
+
+def send_to(services: Services, module_name: str, user_id: int, view,
+            heading: list[str] | None = None) -> None:
     from core.ui.view import View, render
     if isinstance(view, str):
         view = View(view, parse_mode=None)
     language = services.storage.settings.get_language(user_id)
-    return_text = services.catalog.text("core", "return_button", language)
-    text, markup = render(view, module_name, return_text)
+
+    text, markup = render(view, module_name, controls_for(services, module_name, view, language),
+                          heading)
     is_silent = not services.storage.settings.has_notifications(user_id)
     bot = not_none(services.bot, "the bot is not built yet")
     bot.send_message(user_id, text, parse_mode=view.parse_mode,
@@ -160,7 +185,9 @@ class Ctx:
         return self._services.config.token(name)
 
     def reply(self, view) -> None:
-        send_to(self._services, self.module.name, self.user.id, view)
+        heading = heading_for(self._services, self.module.name, view, self.user.language) \
+            if isinstance(view, View) else None
+        send_to(self._services, self.module.name, self.user.id, view, heading)
 
     def send_file(self, path: str, kind: str = "document", caption: str = "") -> None:
         send_file_to(self._services, self.user.id, path, kind, caption)

@@ -35,7 +35,7 @@ def test_the_menu_lists_every_section(boss, bot):
     assert bot.last.text == "*🛠️ Admin:*\n\nSelect the task of the following:"
     assert [data for _, data in bot.last.buttons] == [
         "admin:users", "admin:statistics", "admin:announcement",
-        "admin:alerts", "admin:modules", "admin:bot", "core:back"]
+        "admin:alerts", "admin:modules", "admin:bot", "core:close"]
 
 
 def test_the_user_list_pages_through_people(boss, bot):
@@ -208,7 +208,8 @@ def test_the_bot_screen_shows_the_version(boss, bot):
     open_menu(boss)
     press(boss, "admin:bot")
     assert "Version: _" in bot.last.text
-    assert [data for _, data in bot.last.buttons] == ["admin:log", "admin:restart", "core:back"]
+    assert [data for _, data in bot.last.buttons] == ["admin:log", "admin:restart",
+                                                      "core:back", "core:home", "core:close"]
 
 
 def test_the_log_screen_reads_the_newest_file(boss, bot, tmp_path, monkeypatch):

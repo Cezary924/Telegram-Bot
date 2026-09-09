@@ -28,7 +28,7 @@ def view1(ctx) -> View:
     return View("screen1", buttons=[Button(ctx.t("core:yes_button"), "action1")])
 
 
-@module1.view("view2")
+@module1.view("view2", parent="view1")
 def view2(_ctx) -> View:
     return View("screen2")
 
@@ -86,6 +86,7 @@ def bot(services):
 @pytest.fixture
 def router(services, bot):
     services.catalog.load_core()
+    services.catalog.add("module1", "en", {'name': "Module one"})
     services.registry = Registry()
     services.registry.add(module1)
     return Router(services)
@@ -196,7 +197,7 @@ def test_opening_a_screen_pushes_it_on_the_stack(router, bot, services, settled)
     top = not_none(services.storage.navigation.top(1))
     assert top['module'] == "module1" and top['view'] == "view1"
     assert top['message_id'] == bot.last.message_id
-    assert bot.last.buttons[-1] == (core_text(services, "return_button"), "core:back")
+    assert bot.last.buttons[-1] == (core_text(services, "close_button"), "core:close")
 
 
 def test_going_deeper_replaces_the_message(router, bot, services, settled):
@@ -212,7 +213,7 @@ def test_going_back_restores_the_parent(router, bot, services, settled):
     router.handle_message(make_message("/menu"))
     router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
     router.handle_callback(make_callback("core:back", message_id=bot.last.message_id))
-    assert bot.last.text == "screen1"
+    assert bot.last.text == "*Module one:*\n\nscreen1"
     assert services.storage.navigation.depth(1) == 1
     assert not_none(services.storage.navigation.top(1))['view'] == "view1"
     assert not_none(services.storage.navigation.top(1))['message_id'] == bot.last.message_id
@@ -370,7 +371,7 @@ def test_a_screen_argument_survives_going_back(router, bot, services, settled):
     assert not_none(services.storage.navigation.top(1))['argument'] == "42"
     router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
     router.handle_callback(make_callback("core:back", message_id=bot.last.message_id))
-    assert bot.last.text == "screen3 for ('42',)"
+    assert bot.last.text == "*Module one:*\n\nscreen3 for ('42',)"
 
 
 def test_a_message_without_a_sender_is_ignored(router, bot, settled):
@@ -432,7 +433,7 @@ def test_an_undeletable_screen_does_not_break_navigation(router, bot, services, 
     monkeypatch.setattr(bot, "delete_message", refuse)
     router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
     assert services.storage.navigation.depth(1) == 2
-    assert bot.last.text == "screen2"
+    assert bot.last.text == "*Module one:*\n\nscreen2"
 
 
 def test_the_registered_handlers_route_an_update(router, services, settled):
@@ -606,3 +607,37 @@ def test_a_working_handler_passes_through_the_guard(router):
     seen = []
     router.guarded(seen.append)("update1")
     assert seen == ["update1"]
+
+
+def test_a_deep_screen_offers_back_home_and_a_way_out(router, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
+    assert [data for _, data in bot.last.buttons] == ["core:back", "core:home", "core:close"]
+
+
+def test_home_walks_all_the_way_up(router, services, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
+    assert services.storage.navigation.depth(1) == 2
+    router.handle_callback(make_callback("core:home", message_id=bot.last.message_id))
+    assert services.storage.navigation.depth(1) == 1
+    assert not_none(services.storage.navigation.top(1))['view'] == "view1"
+
+
+def test_closing_leaves_the_menu_behind(router, services, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_callback(make_callback("core:close", message_id=bot.last.message_id))
+    assert services.storage.navigation.depth(1) == 0
+    assert bot.last.text == core_text(services, "menu_closed")
+
+
+def test_home_from_a_button_that_is_no_longer_the_screen_is_refused(router, services, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_callback(make_callback("core:home", message_id=999))
+    assert bot.last.text == core_text(services, "not_working_buttons")
+
+
+def test_closing_a_button_that_is_no_longer_the_screen_is_refused(router, services, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_callback(make_callback("core:close", message_id=999))
+    assert bot.last.text == core_text(services, "not_working_buttons")

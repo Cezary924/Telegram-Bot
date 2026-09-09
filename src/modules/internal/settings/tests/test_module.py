@@ -16,7 +16,7 @@ def test_the_menu_lists_every_setting(app, bot):
     open_menu(app)
     assert bot.last.text == "*⚙️ Settings:*\n\nSelect the setting of the following:"
     assert [data for _, data in bot.last.buttons] == [
-        "settings:notifications", "settings:language", "settings:deletedata", "core:back"]
+        "settings:notifications", "settings:language", "settings:deletedata", "core:close"]
 
 
 def test_a_guest_is_not_offered_notifications(app, bot):
@@ -36,7 +36,7 @@ def test_turning_notifications_on(app, bot):
     press(app, "settings:notifications")
     assert bot.last.text == "*⚙️ Settings > 🛎️ Notifications:*\n\nDo you want notifications to be turned on?"
     press(app, "settings:notifications_set:1")
-    assert bot.last.text == "*⚙️ Settings > 🛎️ Notifications:*\n\nNotifications have been enabled ✅"
+    assert bot.last.text == "*⚙️ Settings:*\n\nNotifications have been enabled ✅"
     assert app.storage.settings.has_notifications(1)
 
 
@@ -63,7 +63,7 @@ def test_changing_the_language_answers_in_the_new_one(app, bot):
     press(app, "settings:language")
     assert [text for text, _ in bot.last.buttons][:2] == ["🇬🇧 English", "🇵🇱 Polski"]
     press(app, "settings:language_set:pl")
-    assert bot.last.text == "*⚙️ Ustawienia > 🌐 Język:*\n\nZmieniono język ✅"
+    assert bot.last.text == "*⚙️ Ustawienia:*\n\nZmieniono język ✅"
     assert app.storage.settings.get_language(1) == "pl"
 
 

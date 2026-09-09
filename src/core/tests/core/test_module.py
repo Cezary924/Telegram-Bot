@@ -176,3 +176,48 @@ def test_view_cannot_be_declared_twice(module):
     module.view("view1")(handler)
     with pytest.raises(ValueError):
         module.view("view1")
+
+
+def test_a_view_has_no_parent_and_adds_nothing_to_the_heading_by_default(module):
+    module.view("view1")(lambda ctx: None)
+    declared = module.views[0]
+    assert (declared.parent, declared.title) == ("", "")
+
+
+def test_a_view_can_name_its_parent_and_its_title(module):
+    module.view("menu")(lambda ctx: None)
+    module.view("users", parent="menu", title="users_title")(lambda ctx: None)
+    declared = module.views[1]
+    assert (declared.parent, declared.title) == ("menu", "users_title")
+
+
+def test_a_view_cannot_be_its_own_parent(module):
+    with pytest.raises(ValueError) as error:
+        module.view("view1", parent="view1")(lambda ctx: None)
+    assert "its own parent" in str(error.value)
+
+
+def test_the_parent_of_an_unknown_view_is_nothing(module):
+    assert module.parent_of("nope") == ""
+
+
+def test_a_branch_runs_from_the_root_down(module):
+    module.view("menu")(lambda ctx: None)
+    module.view("users", parent="menu")(lambda ctx: None)
+    module.view("user", parent="users")(lambda ctx: None)
+    assert [view.name for view in module.branch("user")] == ["menu", "users", "user"]
+
+
+def test_a_branch_of_a_root_is_only_itself(module):
+    module.view("menu")(lambda ctx: None)
+    assert [view.name for view in module.branch("menu")] == ["menu"]
+
+
+def test_a_branch_of_an_unknown_view_is_empty(module):
+    assert module.branch("nope") == []
+
+
+def test_a_branch_does_not_hang_on_a_loop(module):
+    module.view("one", parent="two")(lambda ctx: None)
+    module.view("two", parent="one")(lambda ctx: None)
+    assert [view.name for view in module.branch("one")] == ["two", "one"]

@@ -45,7 +45,7 @@ def carries_a_unit(text: str) -> bool:
 
 @module.command("unitconverter", role=Role.USER)
 def command_unitconverter(ctx: Ctx) -> View:
-    return View(text=ctx.t("how"), path=["🧮 " + ctx.t("title")])
+    return View(text=ctx.t("how"))
 
 
 @module.match(carries_a_unit, priority=priority, role=Role.USER)
@@ -57,5 +57,4 @@ def convert(ctx: Ctx) -> View | None:
     base = number / family[unit]
     lines = "\n".join("_" + name + "_: " + "{:g}".format(base * factor)
                       for name, factor in family.items())
-    return View(text="*" + "{:g}".format(number) + " " + unit + "*\n" + lines,
-                path=["🧮 " + ctx.t("title")])
+    return View(text="*" + "{:g}".format(number) + " " + unit + "*\n" + lines)

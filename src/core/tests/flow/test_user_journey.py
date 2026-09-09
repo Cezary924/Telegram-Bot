@@ -76,10 +76,10 @@ class TestUserJourney:
         assert app.storage.navigation.depth(1) == 1
         assert not_none(app.storage.navigation.top(1))['view'] == "menu"
 
-    def test_07_the_screen_carries_a_back_button(self, app):
+    def test_07_the_first_screen_only_offers_a_way_out(self, app):
         assert app.services.bot.last.buttons == [
             (module_text(app, "menu.open"), "demo:open"),
-            (core_text(app, "return_button"), "core:back")]
+            (core_text(app, "close_button"), "core:close")]
 
     def test_08_going_deeper_replaces_the_message(self, app):
         screen = app.services.bot.last.message_id
