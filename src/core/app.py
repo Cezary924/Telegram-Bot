@@ -1,8 +1,9 @@
 import signal
 import sys
-import telebot
 from datetime import datetime
 from threading import Thread
+
+import telebot
 
 from core.config import Config
 from core.context import JobCtx, send_to
@@ -16,15 +17,12 @@ from core.router import Router
 from core.scheduler import Scheduler
 from core.services import Services
 from core.ui.view import View
-from core.version import read as read_version
 from core.utils import not_none, without_secrets
-
+from core.version import read as read_version
 
 version_key = "version"
 stopped_key = "stopped_at"
 told_key = "stop_told"
-# A restart shorter than this, that nobody was told about, is the container coming back on its
-# own rather than news worth a message.
 quiet_restart = 120.0
 
 
@@ -119,8 +117,6 @@ class App:
         except ValueError:
             return quiet_restart
 
-    # A shutdown the admins already heard about gets its matching message, so a pair is never
-    # half told. A silent one that healed itself within a couple of minutes says nothing.
     def announce_start(self) -> None:
         stopped_at = self.storage.state.get(stopped_key)
         was_told = self.storage.state.get(told_key) == "1"
@@ -128,7 +124,7 @@ class App:
         away = self.away_for(stopped_at) if stopped_at is not None else quiet_restart
         if not was_told and away < quiet_restart:
             print_log("Back after " + str(round(away)) +
-                      "s away, which nobody was told about, so nobody is told it is back.")
+                      "s away, so nobody is told the Bot is back.")
             return
         self.notify_admins("bot_started")
 
@@ -151,8 +147,6 @@ class App:
         self.announce_start()
         self.announce_update()
 
-        # Ctrl+C is a person, SIGTERM is 'docker stop' - both mean the same thing here, and
-        # without the second one the container is killed before it can write anything down.
         for number in (signal.SIGINT, signal.SIGTERM):
             signal.signal(number, lambda caught, frame: self.stop())
         self.poll()
@@ -167,8 +161,6 @@ class App:
             self.stop(1, type(error).__name__ + ": " + without_secrets(str(error)))
 
     def stop(self, code: int = 0, failure: str = "") -> None:
-        # Written down first: 'docker stop' allows ten seconds, and a message to Telegram on a
-        # dead network eats more than that before it gives up.
         self.storage.state.set(stopped_key, datetime.now().isoformat(timespec="seconds"))
         self.storage.state.set(told_key, "0")
         if self.services.bot is not None:
