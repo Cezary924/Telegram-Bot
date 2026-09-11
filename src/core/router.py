@@ -81,45 +81,65 @@ class Router:
         self.send(user, core_namespace, View(self.core_text(key, user.language), parse_mode=None))
 
     def close_screen(self, user: User) -> None:
-        top = self._services.storage.navigation.top(user.id)
-        if top is not None:
-            delete_message(self._bot, user.id, top['message_id'])
-
-    def open_screen(self, user: User, module_name: str, view: View, is_entry: bool = False) -> None:
         navigation = self._services.storage.navigation
-        self.close_screen(user)
-        if is_entry:
-            navigation.clear(user.id)
-        navigation.push(user.id, module_name, view.name, view.argument)
-        navigation.set_message_id(user.id, self.send(user, module_name, view).message_id)
+        current = navigation.current(user.id)
+        if current is not None:
+            delete_message(self._bot, user.id, current['message_id'])
+        navigation.clear(user.id)
 
-    def present(self, user: User, module_name: str, result, is_entry: bool = False) -> None:
+    def show(self, user: User, module_name: str, view: View, anchor: int | None) -> int:
+        heading = heading_for(self._services, module_name, view, user.language)
+        controls = controls_for(self._services, module_name, view, user.language)
+        text, markup = render(view, module_name, controls, heading)
+        if anchor is not None:
+            try:
+                self._bot.edit_message_text(text, user.id, anchor, parse_mode=view.parse_mode,
+                                            reply_markup=markup)
+                return anchor
+            except ApiTelegramException as error:
+                if "not modified" in str(error):
+                    return anchor
+        return self._bot.send_message(user.id, text, parse_mode=view.parse_mode,
+                                      reply_markup=markup).message_id
+
+    def open_screen(self, user: User, module_name: str, view: View, is_typed: bool = False) -> None:
+        navigation = self._services.storage.navigation
+        current = navigation.current(user.id)
+        anchor = current['message_id'] if current is not None else None
+        if is_typed:
+            self.close_screen(user)
+            anchor = None
+        navigation.remember(user.id, module_name, view.name, view.argument)
+        navigation.set_current(user.id, module_name, view.name, view.argument,
+                               self.show(user, module_name, view, anchor))
+
+    def present(self, user: User, module_name: str, result, is_typed: bool = False) -> None:
         if result is None:
             return
         view = View(result, heading=None) if isinstance(result, str) else result
         if not isinstance(view, View):
             return
         if view.is_screen:
-            self.open_screen(user, module_name, view, is_entry)
-        else:
-            self.send(user, module_name, view)
+            self.open_screen(user, module_name, view, is_typed)
+            return
+        self.send(user, module_name, view)
 
     def run(self, module: Module, handler, role: Role, user: User,
             message: telebot.types.Message | None = None, arguments: tuple[str, ...] = (),
-            is_background: bool = False, is_entry: bool = False) -> None:
+            is_background: bool = False, is_typed: bool = False) -> None:
         blocked = middleware.check(self._services, user, role)
         if blocked is not None:
             self.send(user, core_namespace, blocked)
             return
         ctx = create_context(self._services, module, user, message, arguments)
         if is_background:
-            self.start_task(module, handler, ctx, user, is_entry)
+            self.start_task(module, handler, ctx, user, is_typed)
             return
-        self.execute(module, handler, ctx, user, is_entry)
+        self.execute(module, handler, ctx, user, is_typed)
 
-    def start_task(self, module: Module, handler, ctx, user: User, is_entry: bool = False) -> None:
+    def start_task(self, module: Module, handler, ctx, user: User, is_typed: bool = False) -> None:
         self._tasks = [task for task in self._tasks if task.is_alive()]
-        task = Thread(target=self.execute, args=(module, handler, ctx, user, is_entry), daemon=True,
+        task = Thread(target=self.execute, args=(module, handler, ctx, user, is_typed), daemon=True,
                       name="task-" + module.name)
         self._tasks.append(task)
         task.start()
@@ -128,10 +148,10 @@ class Router:
         for task in list(self._tasks):
             task.join(timeout)
 
-    def execute(self, module: Module, handler, ctx, user: User, is_entry: bool = False) -> None:
+    def execute(self, module: Module, handler, ctx, user: User, is_typed: bool = False) -> None:
         try:
             result = handler(ctx)
-            self.present(ctx.user, module.name, result, is_entry)
+            self.present(ctx.user, module.name, result, is_typed)
         except Exception as error:
             print_error("Handler failed in '" + module.name + "' - " + type(error).__name__ + ".",
                         str(error))
@@ -167,20 +187,22 @@ class Router:
         if found is None:
             self.send_core(user, "unknown_command")
             return
+        self.close_screen(user)
         module, command = found
         self.run(module, command.handler, command.role, user, message,
-                 is_background=command.is_background, is_entry=True)
+                 is_background=command.is_background, is_typed=True)
 
     def handle_state(self, user: User, message: telebot.types.Message) -> bool:
-        top = self._services.storage.navigation.top(user.id)
-        if top is None:
+        current = self._services.storage.navigation.current(user.id)
+        if current is None:
             return False
-        found = self._services.registry.state(top['module'], top['view'])
+        found = self._services.registry.state(current['module'], current['view'])
         if found is None:
             return False
         module, state = found
         self.run(module, state.handler, state.role, user, message,
-                 (top['argument'],) if top['argument'] else (), state.is_background)
+                 (current['argument'],) if current['argument'] else (), state.is_background,
+                 is_typed=True)
         return True
 
     def handle_matchers(self, user: User, message: telebot.types.Message) -> bool:
@@ -193,7 +215,7 @@ class Router:
                             type(error).__name__ + ".", str(error))
                 continue
             self.run(module, matcher.handler, matcher.role, user, message,
-                     is_background=matcher.is_background)
+                     is_background=matcher.is_background, is_typed=True)
             return True
         return False
 
@@ -251,54 +273,52 @@ class Router:
         else:
             self.send_core(user, "not_working_buttons")
 
-    def leave_screen(self, user: User, screen: telebot.types.Message) -> bool:
-        top = self._services.storage.navigation.top(user.id)
-        if top is None or top['message_id'] != screen.message_id:
+    def leave_screen(self, user: User, screen: telebot.types.Message) -> sqlite3.Row | None:
+        current = self._services.storage.navigation.current(user.id)
+        if current is None or current['message_id'] != screen.message_id:
             self.send_core(user, "not_working_buttons")
-            return False
-        self.close_screen(user)
-        return True
+            return None
+        return current
 
-    def rebuild(self, user: User, screen: telebot.types.Message, entry: sqlite3.Row) -> None:
-        navigation = self._services.storage.navigation
-        found = self._services.registry.view(entry['module'], entry['view'])
+    def open_named(self, user: User, module: Module, name: str,
+                   screen: telebot.types.Message) -> None:
+        found = self._services.registry.view(module.name, name)
         if found is None:
-            navigation.clear(user.id)
+            self.close_screen(user)
             self.send_core(user, "not_working_buttons")
             return
-        module, view = found
+        argument = self._services.storage.navigation.remembered(user.id, module.name, name)
         ctx = create_context(self._services, module, user, screen,
-                             (entry['argument'],) if entry['argument'] else ())
-        navigation.pop(user.id)
-        self.present(user, module.name, view.handler(ctx))
+                             (argument,) if argument else ())
+        self.present(user, module.name, found[1].handler(ctx))
+
+    def step_out(self, user: User, screen: telebot.types.Message, to_root: bool) -> None:
+        current = self.leave_screen(user, screen)
+        if current is None:
+            return
+        module = self._services.registry.get(current['module'])
+        if module is None:
+            self.close_screen(user)
+            self.send_core(user, "not_working_buttons")
+            return
+        branch = module.branch(current['view'])
+        name = branch[0].name if to_root and branch else module.parent_of(current['view'])
+        if not name or name == current['view']:
+            self.close_screen(user)
+            self.send_core(user, "menu_closed")
+            return
+        self.open_named(user, module, name, screen)
 
     def handle_back(self, user: User, screen: telebot.types.Message) -> None:
-        if not self.leave_screen(user, screen):
-            return
-        navigation = self._services.storage.navigation
-        navigation.pop(user.id)
-        parent = navigation.top(user.id)
-        if parent is None:
-            self.send_core(user, "menu_closed")
-            return
-        self.rebuild(user, screen, parent)
+        self.step_out(user, screen, False)
 
     def handle_home(self, user: User, screen: telebot.types.Message) -> None:
-        if not self.leave_screen(user, screen):
-            return
-        navigation = self._services.storage.navigation
-        while navigation.depth(user.id) > 1:
-            navigation.pop(user.id)
-        root = navigation.top(user.id)
-        if root is None:
-            self.send_core(user, "menu_closed")
-            return
-        self.rebuild(user, screen, root)
+        self.step_out(user, screen, True)
 
     def handle_close(self, user: User, screen: telebot.types.Message) -> None:
-        if not self.leave_screen(user, screen):
+        if self.leave_screen(user, screen) is None:
             return
-        self._services.storage.navigation.clear(user.id)
+        self.close_screen(user)
         self.send_core(user, "menu_closed")
 
     def accept_consent(self, user: User) -> None:

@@ -82,8 +82,7 @@ def search(ctx: AdvancedCtx) -> View:
 @module.state("search", role=Role.ADMIN)
 def found_by_id(ctx: AdvancedCtx) -> View:
     if not ctx.text.strip().isdigit() or not ctx.users.exists(int(ctx.text.strip())):
-        return View(text=ctx.t("users_search_missing"))
-    ctx.close_screen()
+        return ctx.retry(ctx.t("users_search_missing"))
     return details(ctx, int(ctx.text.strip()))
 
 
@@ -101,8 +100,7 @@ def forward(ctx: AdvancedCtx) -> View:
 def found_by_forward(ctx: AdvancedCtx) -> View:
     sender = ctx.forwarded_from
     if sender is None:
-        return View(text=ctx.t("users_forward_missing"))
-    ctx.close_screen()
+        return ctx.retry(ctx.t("users_forward_missing"))
     return details(ctx, sender)
 
 
@@ -162,7 +160,6 @@ def confirm_role(ctx: AdvancedCtx) -> View:
     user_id, role = wanted_change(ctx)
     if role is None:
         return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
-    ctx.close_screen()
     return apply_role(ctx, user_id, role)
 
 
@@ -175,6 +172,7 @@ def wanted_change(ctx: AdvancedCtx) -> tuple[int, Role | None]:
 
 
 def apply_role(ctx: AdvancedCtx, user_id: int, role: Role) -> View:
+    ctx.close_screen()
     ctx.users.set_role(user_id, role)
     ctx.log("Role of " + str(user_id) + " changed to " + role.name)
     ctx.notify(user_id, ctx.text_for(user_id, "role_changed",

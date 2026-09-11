@@ -22,7 +22,7 @@ def test_contact_names_the_administrator(app, bot):
 def test_report_opens_a_screen_that_waits_for_the_message(app, bot):
     app.router.handle_message(make_message("/report"))
     assert bot.last.text.startswith("*☎️ Contact > 📨 Report:*")
-    assert app.storage.navigation.depth(1) == 1
+    assert app.storage.navigation.current(1) is not None
 
 
 def test_the_contact_button_opens_the_same_screen(app, bot):
@@ -46,7 +46,7 @@ def test_the_sender_is_told_it_went_through(app, bot, admin):
     app.router.handle_message(make_message("/report"))
     app.router.handle_message(make_message("value1"))
     assert bot.last.text == "Your report-message has been sent successfully 😁"
-    assert app.storage.navigation.depth(1) == 0
+    assert app.storage.navigation.current(1) is None
 
 
 def test_a_report_reaches_every_admin(app, bot, admin):

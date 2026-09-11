@@ -93,7 +93,7 @@ def test_a_guest_may_start(app, bot):
 def test_neither_screen_goes_on_the_navigation_stack(app):
     app.router.handle_message(make_message("/start"))
     app.router.handle_message(make_message("/features"))
-    assert app.storage.navigation.depth(1) == 0
+    assert app.storage.navigation.current(1) is None
 
 
 def test_the_commands_are_published_to_telegram(app, bot):

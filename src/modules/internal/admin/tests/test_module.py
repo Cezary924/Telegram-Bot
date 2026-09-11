@@ -84,6 +84,16 @@ def test_searching_for_nonsense(boss, bot):
     assert "has not been found" in bot.last.text
 
 
+def test_a_search_that_found_nobody_asks_again(boss, bot):
+    open_menu(boss)
+    press(boss, "admin:users")
+    press(boss, "admin:search")
+    boss.router.handle_message(make_message("999"))
+    assert "has not been found" in bot.last.text
+    assert "Enter the User ID" in bot.last.text
+    assert boss.storage.navigation.current(1)['view'] == "search"
+
+
 def test_a_forwarded_message_reveals_the_sender(boss, bot):
     add_people(boss, 1)
     open_menu(boss)
@@ -247,7 +257,7 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     open_menu(boss)
     press(boss, "admin:users")
     press(boss, "admin:list:0")
-    assert boss.storage.navigation.depth(1) == 3
+    assert boss.storage.navigation.current(1) is not None
     press(boss, "core:back")
     assert bot.last.text.startswith("*🛠️ Admin > 🙋 Users:*")
     press(boss, "core:back")

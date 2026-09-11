@@ -132,7 +132,7 @@ def command_topspotifyartist(ctx: Ctx) -> View:
 
 @module.view("game")
 def game(ctx: Ctx) -> View:
-    return View(text=ctx.t("how", chances=str(chances)))
+    return View(text=ctx.t("how", chances=ctx.state.get("left") or str(chances)))
 
 
 @module.state("game", role=Role.USER, is_background=True)
@@ -145,7 +145,7 @@ def guess(ctx: Ctx) -> View:
         return View(text=ctx.t("core:error"))
     found = find(artists, ctx.text)
     if found is None:
-        return View(text=ctx.t("unknown"))
+        return ctx.retry(ctx.t("unknown"))
     guessed: int = found
     try:
         detail(artists, guessed, target)

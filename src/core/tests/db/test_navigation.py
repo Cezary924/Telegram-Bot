@@ -1,65 +1,69 @@
 from core.testing import not_none
 
 
-def test_empty_stack(storage, user):
-    assert storage.navigation.depth(user) == 0
-    assert storage.navigation.top(user) is None
-    assert storage.navigation.pop(user) is None
+def test_nobody_is_on_a_screen_to_begin_with(storage, user):
+    assert storage.navigation.current(user) is None
 
 
-def test_push_and_top(storage, user):
-    storage.navigation.push(user, "module1", "view1")
-    row = not_none(storage.navigation.top(user))
-    assert row['module'] == "module1"
-    assert row['view'] == "view1"
-    assert row['argument'] is None
-    assert storage.navigation.depth(user) == 1
+def test_the_current_screen_is_kept(storage, user):
+    storage.navigation.set_current(user, "module1", "view1", "argument1", 500)
+    current = not_none(storage.navigation.current(user))
+    assert current['module'] == "module1"
+    assert current['view'] == "view1"
+    assert current['argument'] == "argument1"
+    assert current['message_id'] == 500
 
 
-def test_stack_order(storage, user):
-    storage.navigation.push(user, "module1", "view1")
-    storage.navigation.push(user, "module1", "view2")
-    storage.navigation.push(user, "module1", "view3", "argument1")
-    assert storage.navigation.depth(user) == 3
-    assert not_none(storage.navigation.top(user))['view'] == "view3"
-    assert not_none(storage.navigation.pop(user))['argument'] == "argument1"
-    assert not_none(storage.navigation.pop(user))['view'] == "view2"
-    assert not_none(storage.navigation.top(user))['view'] == "view1"
-    assert storage.navigation.depth(user) == 1
+def test_moving_on_replaces_the_current_screen(storage, user):
+    storage.navigation.set_current(user, "module1", "view1", None, 500)
+    storage.navigation.set_current(user, "module1", "view2", "argument1", 500)
+    current = not_none(storage.navigation.current(user))
+    assert (current['view'], current['argument']) == ("view2", "argument1")
 
 
-def test_positions_are_reused_after_pop(storage, user):
-    storage.navigation.push(user, "module1", "view1")
-    storage.navigation.push(user, "module1", "view2")
-    storage.navigation.pop(user)
-    assert storage.navigation.push(user, "module1", "view3") == 1
-    assert not_none(storage.navigation.top(user))['view'] == "view3"
-
-
-def test_message_id(storage, user):
-    storage.navigation.push(user, "module1", "view1", message_id=500)
-    assert not_none(storage.navigation.top(user))['message_id'] == 500
-    storage.navigation.set_message_id(user, 600)
-    assert not_none(storage.navigation.top(user))['message_id'] == 600
-
-
-def test_set_message_id_on_empty_stack_does_nothing(storage, user):
-    storage.navigation.set_message_id(user, 600)
-    assert storage.navigation.top(user) is None
-
-
-def test_clear(storage, user):
-    storage.navigation.push(user, "module1", "view1")
-    storage.navigation.push(user, "module1", "view2")
+def test_clearing_leaves_no_screen(storage, user):
+    storage.navigation.set_current(user, "module1", "view1", None, 500)
     storage.navigation.clear(user)
-    assert storage.navigation.depth(user) == 0
+    assert storage.navigation.current(user) is None
 
 
-def test_stacks_are_per_user(storage, user):
-    storage.users.save(2)
-    storage.navigation.push(user, "module1", "view1")
-    storage.navigation.push(2, "module2", "view1")
-    assert not_none(storage.navigation.top(user))['module'] == "module1"
-    assert not_none(storage.navigation.top(2))['module'] == "module2"
+def test_a_screen_belongs_to_one_user(storage, user):
+    storage.users.save(2, "Second", "", "someone")
+    storage.navigation.set_current(user, "module1", "view1", None, 500)
+    assert storage.navigation.current(2) is None
+
+
+def test_a_screen_remembers_what_it_was_opened_with(storage, user):
+    storage.navigation.remember(user, "module1", "list", "3")
+    assert storage.navigation.remembered(user, "module1", "list") == "3"
+
+
+def test_a_screen_never_opened_remembers_nothing(storage, user):
+    assert storage.navigation.remembered(user, "module1", "list") is None
+
+
+def test_what_a_screen_remembers_is_replaced_rather_than_doubled(storage, user):
+    storage.navigation.remember(user, "module1", "list", "3")
+    storage.navigation.remember(user, "module1", "list", "7")
+    assert storage.navigation.remembered(user, "module1", "list") == "7"
+
+
+def test_screens_remember_apart_from_one_another(storage, user):
+    storage.navigation.remember(user, "module1", "list", "3")
+    storage.navigation.remember(user, "module1", "people", "9")
+    storage.navigation.remember(user, "module2", "list", "1")
+    assert storage.navigation.remembered(user, "module1", "list") == "3"
+    assert storage.navigation.remembered(user, "module1", "people") == "9"
+    assert storage.navigation.remembered(user, "module2", "list") == "1"
+
+
+def test_what_is_remembered_outlives_leaving_the_screen(storage, user):
+    storage.navigation.remember(user, "module1", "list", "3")
     storage.navigation.clear(user)
-    assert storage.navigation.depth(2) == 1
+    assert storage.navigation.remembered(user, "module1", "list") == "3"
+
+
+def test_forgetting_wipes_what_every_screen_remembered(storage, user):
+    storage.navigation.remember(user, "module1", "list", "3")
+    storage.navigation.forget(user)
+    assert storage.navigation.remembered(user, "module1", "list") is None

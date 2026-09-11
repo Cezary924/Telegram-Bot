@@ -72,4 +72,4 @@ def test_help_speaks_polish(app, bot):
 
 def test_help_is_not_a_screen(app):
     app.router.handle_message(make_message("/help"))
-    assert app.storage.navigation.depth(1) == 0
+    assert app.storage.navigation.current(1) is None

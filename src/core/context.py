@@ -81,20 +81,11 @@ class UserNavigation:
         self._module_name = module_name
         self._user_id = user_id
 
-    def push(self, view: str, argument: str | None = None, message_id: int | None = None) -> int:
-        return self._navigation.push(self._user_id, self._module_name, view, argument, message_id)
+    def current(self) -> sqlite3.Row | None:
+        return self._navigation.current(self._user_id)
 
-    def pop(self) -> sqlite3.Row | None:
-        return self._navigation.pop(self._user_id)
-
-    def top(self) -> sqlite3.Row | None:
-        return self._navigation.top(self._user_id)
-
-    def depth(self) -> int:
-        return self._navigation.depth(self._user_id)
-
-    def set_message_id(self, message_id: int) -> None:
-        self._navigation.set_message_id(self._user_id, message_id)
+    def remembered(self, view: str) -> str | None:
+        return self._navigation.remembered(self._user_id, self._module_name, view)
 
     def clear(self) -> None:
         self._navigation.clear(self._user_id)
@@ -196,10 +187,21 @@ class Ctx:
     def file_limit(self) -> int:
         return file_limit
 
+    def retry(self, problem: str) -> View:
+        current = self.nav.current()
+        if current is None or current['module'] != self.module.name:
+            return View(problem)
+        found = self._services.registry.view(self.module.name, current['view'])
+        if found is None:
+            return View(problem)
+        view = found[1].handler(self)
+        return replace(view, text=problem + "\n\n" + view.text)
+
     def close_screen(self) -> None:
-        top = self.nav.pop()
-        if top is not None and self._services.bot is not None:
-            delete_message(self._services.bot, self.user.id, top['message_id'])
+        current = self.nav.current()
+        if current is not None and self._services.bot is not None:
+            delete_message(self._services.bot, self.user.id, current['message_id'])
+        self.nav.clear()
 
     def log(self, info: str, message_text: str = "") -> None:
         print_log(info + ": " + self.user.label + ".", message_text)

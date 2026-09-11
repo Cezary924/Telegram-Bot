@@ -78,12 +78,11 @@ def content_screen(ctx: Ctx) -> View:
 def take_content(ctx: Ctx) -> View:
     text = ctx.text.strip()
     if not text or len(text) > content_limit:
-        return View(text=ctx.t("wrong_content", limit=str(content_limit)))
+        return ctx.retry(ctx.t("wrong_content", limit=str(content_limit)))
     reminder_id = wanted_id(ctx)
     if reminder_id:
         return save_content(ctx, reminder_id, text)
     ctx.state.set(content_key, text)
-    ctx.close_screen()
     return date_screen(ctx)
 
 
@@ -118,9 +117,9 @@ def example_date() -> str:
 def take_date(ctx: Ctx) -> View:
     moment = parse_date(ctx.text)
     if moment is None:
-        return View(text=ctx.t("wrong_date", example=example_date()))
+        return ctx.retry(ctx.t("wrong_date", example=example_date()))
     if moment < datetime.now().replace(second=0, microsecond=0):
-        return View(text=ctx.t("past_date"))
+        return ctx.retry(ctx.t("past_date"))
     date = moment.strftime(date_format)
     reminder_id = wanted_id(ctx)
     if reminder_id:
