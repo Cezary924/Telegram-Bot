@@ -3,8 +3,8 @@ from typing import TypeVar
 
 Value = TypeVar("Value")
 
-token_pattern = re.compile(r"bot\d+:[A-Za-z0-9_-]+")
-hidden_token = "bot<hidden>"
+token_pattern = re.compile(r"\d{6,12}:[A-Za-z0-9_-]{30,}")
+hidden_token = "<hidden>"
 
 
 def without_secrets(text: str) -> str:

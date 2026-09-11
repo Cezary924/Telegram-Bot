@@ -165,11 +165,21 @@ def test_released_lines_reach_the_file_at_once(tmp_path, monkeypatch):
     logger.close()
 
 
+pretend_token = "1234567890:" + "x" * 35
+
+
 def test_a_token_never_reaches_the_log(capsys):
     log.print_error("Could not notify the admin - ConnectionError.",
                     "HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries "
-                    "exceeded with url: /bot1234567890:not-a-real-token"
-                    "/sendMessage?chat_id=1")
+                    "exceeded with url: /bot" + pretend_token + "/sendMessage?chat_id=1")
     out = capsys.readouterr().out
-    assert "not-a-real-token" not in out
+    assert pretend_token not in out
     assert "bot<hidden>/sendMessage" in out
+
+
+def test_a_bare_token_never_reaches_the_log(capsys):
+    log.print_error("Polling stopped - ApiException.",
+                    "A request to the Telegram API was unsuccessful. Token is " + pretend_token)
+    out = capsys.readouterr().out
+    assert pretend_token not in out
+    assert "Token is <hidden>" in out
