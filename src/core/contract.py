@@ -208,6 +208,25 @@ def check_requirements(module: Module) -> list[str]:
             if not distributions_of(name) & declared]
 
 
+def loops(module: Module, name: str) -> bool:
+    seen: set[str] = set()
+    current = name
+    while current:
+        if current in seen:
+            return True
+        seen.add(current)
+        current = module.parent_of(current)
+    return False
+
+
+def check_views(module: Module) -> list[str]:
+    names = {view.name for view in module.views}
+    problems = ["'" + view.name + "' has no parent named '" + view.parent + "'"
+                for view in module.views if view.parent and view.parent not in names]
+    return problems + ["'" + view.name + "' sits in a loop of parents"
+                       for view in module.views if loops(module, view.name)]
+
+
 def check_tests(module: Module) -> list[str]:
     if os.path.isdir(os.path.join(module.path, tests_name)):
         return []
@@ -215,7 +234,7 @@ def check_tests(module: Module) -> list[str]:
 
 
 checks = [check_manifest, check_locales, check_yaml_traps, check_callbacks, check_schema,
-          check_imports, check_requirements, check_tests]
+          check_imports, check_requirements, check_views, check_tests]
 
 
 def check(module: Module) -> list[str]:

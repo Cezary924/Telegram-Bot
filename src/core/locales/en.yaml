@@ -3,6 +3,8 @@ error: Error. Please, try again later.
 yes_button: ✅ Yes
 no_button: ❌ No
 return_button: 🔙 Back
+home_button: 🏠 Menu
+close_button: ✖️ Close
 
 role_banned: Banned
 role_guest: Guest

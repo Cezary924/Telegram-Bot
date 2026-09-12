@@ -11,13 +11,13 @@ def command_start(ctx: AdvancedCtx) -> View:
         text="*👋 " + ctx.t("greeting") + "!*\n\n" + ctx.t("welcome") + " " + ctx.config.bot_name + "! 🤖",
         buttons=[Button.command(ctx.t(name + ":name"), main_command(ctx, name))
                  for name in linked_modules if main_command(ctx, name)]
-        + [Button.command(ctx.t("features_button"), "features")])
+        + [Button.command(ctx.t("features_button"), "features")], heading=None)
 
 
 @module.command("features")
 def command_features(ctx: AdvancedCtx) -> View:
     listed = [entry(ctx, found) for found in ctx.registry.modules() if not found.is_internal]
-    return View(text="\n".join(listed) or ctx.t("nothing"), path=[ctx.t("features_title")])
+    return View(text="\n".join(listed) or ctx.t("nothing"), heading=ctx.t("features_title"))
 
 
 def main_command(ctx: AdvancedCtx, name: str) -> str:

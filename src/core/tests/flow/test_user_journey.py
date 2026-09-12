@@ -67,26 +67,28 @@ class TestUserJourney:
     def test_05_a_guest_still_cannot_run_a_user_command(self, app):
         app.router.handle_message(make_message("/demo"))
         assert app.services.bot.last.text == core_text(app, "permission_denied")
-        assert app.storage.navigation.depth(1) == 0
+        assert app.storage.navigation.current(1) is None
 
     def test_06_a_promoted_user_gets_the_menu(self, app):
         app.storage.users.set_role(1, Role.USER)
         app.router.handle_message(make_message("/demo"))
         assert app.services.bot.last.text == "*Demo:*\n\n" + module_text(app, "menu.text")
-        assert app.storage.navigation.depth(1) == 1
-        assert not_none(app.storage.navigation.top(1))['view'] == "menu"
+        assert app.storage.navigation.current(1) is not None
+        assert not_none(app.storage.navigation.current(1))['view'] == "menu"
 
-    def test_07_the_screen_carries_a_back_button(self, app):
+    def test_07_the_first_screen_only_offers_a_way_out(self, app):
         assert app.services.bot.last.buttons == [
             (module_text(app, "menu.open"), "demo:open"),
-            (core_text(app, "return_button"), "core:back")]
+            (core_text(app, "close_button"), "core:close")]
 
-    def test_08_going_deeper_replaces_the_message(self, app):
+    def test_08_going_deeper_rewrites_the_same_message(self, app):
         screen = app.services.bot.last.message_id
         app.router.handle_callback(make_callback("demo:open", message_id=screen))
-        assert (1, screen) in app.services.bot.deleted
-        assert app.storage.navigation.depth(1) == 2
-        assert not_none(app.storage.navigation.top(1))['view'] == "details"
+        assert app.services.bot.deleted == []
+        assert app.services.bot.last.message_id == screen
+        assert not_none(app.storage.navigation.current(1))['message_id'] == screen
+        assert app.storage.navigation.current(1) is not None
+        assert not_none(app.storage.navigation.current(1))['view'] == "details"
 
     def test_09_a_message_on_that_screen_reaches_its_state_handler(self, app):
         app.router.handle_message(make_message("first note"))
@@ -96,16 +98,16 @@ class TestUserJourney:
         assert [row['note'] for row in rows] == ["first note"]
 
     def test_10_going_back_rebuilds_the_parent_screen(self, app):
-        top = not_none(app.storage.navigation.top(1))
-        app.router.handle_callback(make_callback("core:back", message_id=top['message_id']))
+        anchor = not_none(not_none(app.storage.navigation.current(1))['message_id'])
+        app.router.handle_callback(make_callback("core:back", message_id=anchor))
         assert app.services.bot.last.text == "*Demo:*\n\n" + module_text(app, "menu.text")
-        assert app.storage.navigation.depth(1) == 1
+        assert app.storage.navigation.current(1) is not None
 
     def test_11_going_back_again_closes_the_menu(self, app):
-        top = not_none(app.storage.navigation.top(1))
-        app.router.handle_callback(make_callback("core:back", message_id=top['message_id']))
+        anchor = not_none(not_none(app.storage.navigation.current(1))['message_id'])
+        app.router.handle_callback(make_callback("core:back", message_id=anchor))
         assert app.services.bot.last.text == core_text(app, "menu_closed")
-        assert app.storage.navigation.depth(1) == 0
+        assert app.storage.navigation.current(1) is None
 
     def test_12_a_ban_stops_everything_the_user_does(self, app):
         app.storage.users.set_role(1, Role.BANNED)
@@ -122,6 +124,6 @@ class TestUserJourney:
     def test_14_deleting_the_user_clears_every_trace(self, app):
         app.storage.users.delete(1)
         assert not app.storage.users.exists(1)
-        assert app.storage.navigation.depth(1) == 0
+        assert app.storage.navigation.current(1) is None
         assert app.storage.module_state.get(1, "demo", "note") is None
         assert app.storage.for_module("demo").query_all("SELECT * FROM module_demo_notes;") == []

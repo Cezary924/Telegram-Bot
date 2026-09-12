@@ -61,20 +61,20 @@ def download(url: str, path: str, limit: int) -> str | None:
 
 @module.command("downloader", role=Role.USER)
 def command_downloader(ctx: Ctx) -> View:
-    return View(text=ctx.t("how"), path=[mark + ctx.t("title")])
+    return View(text=ctx.t("how"))
 
 
 @module.match(is_link, priority=priority, role=Role.USER, is_background=True)
 def take_link(ctx: Ctx) -> View | None:
-    ctx.reply(View(text=ctx.t("working"), path=[mark + ctx.t("title")]))
+    ctx.reply(View(text=ctx.t("working")))
     with ctx.workspace() as path:
         try:
             file_path = download(ctx.text.strip(), path, ctx.file_limit)
         except Exception as error:
             ctx.error("Could not download - " + type(error).__name__ + "." + hint(), str(error))
-            return View(text=ctx.t("failed"), path=[mark + ctx.t("title")])
+            return View(text=ctx.t("failed"))
         if file_path is None:
-            return View(text=ctx.t("too_big"), path=[mark + ctx.t("title")])
+            return View(text=ctx.t("too_big"))
         ctx.send_file(file_path, "video")
         ctx.log("Downloaded a video")
     return None

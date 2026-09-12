@@ -4,7 +4,6 @@ description: Reaching the Administrator
 commands.contact: Ways to contact the Administrator
 commands.report: Send a report to the Administrator
 
-title: ☎️ Contact Us
 contact: To contact the Admin, write to them directly at {username} or send a non-returnable report-message 📨
 report: 📨 Report to the Admin
 

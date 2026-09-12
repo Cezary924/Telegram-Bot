@@ -48,7 +48,7 @@ def test_a_guest_may_not_ask(app, bot):
 
 def test_it_is_not_a_screen(app):
     app.router.handle_message(make_message("/crystalball"))
-    assert app.storage.navigation.depth(1) == 0
+    assert app.storage.navigation.current(1) is None
 
 
 def test_every_verdict_shows_up_eventually(app, bot, monkeypatch):
