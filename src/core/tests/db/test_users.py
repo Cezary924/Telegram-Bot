@@ -74,11 +74,13 @@ def test_delete_removes_the_user(storage, user):
 
 def test_delete_cascades_to_every_user_table(storage, user):
     storage.settings.set_language(user, "pl")
-    storage.navigation.push(user, "module1", "view1")
+    storage.navigation.set_current(user, "module1", "view1", None, 500)
+    storage.navigation.remember(user, "module1", "view1", "argument1")
     storage.module_state.set(user, "module1", "key1", "value1")
     storage.users.delete(user)
     assert storage.settings.get(user) is None
-    assert storage.navigation.top(user) is None
+    assert storage.navigation.current(user) is None
+    assert storage.navigation.remembered(user, "module1", "view1") is None
     assert storage.module_state.get(user, "module1", "key1") is None
 
 

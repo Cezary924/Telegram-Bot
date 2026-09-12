@@ -94,7 +94,7 @@ def test_about_is_not_a_screen(known_version, monkeypatch):
     use_published(monkeypatch, 100)
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
-    assert known_version.storage.navigation.depth(1) == 0
+    assert known_version.storage.navigation.current(1) is None
 
 
 class Answer:

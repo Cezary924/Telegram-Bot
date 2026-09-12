@@ -124,7 +124,7 @@ def command_topspotifyartist(ctx: Ctx) -> View:
         artists = ready_chart()
     except Exception as error:
         ctx.error("Could not read the chart - " + type(error).__name__ + ".", str(error))
-        return View(text=ctx.t("core:error"), path=[ctx.t("title")])
+        return View(text=ctx.t("core:error"))
     ctx.state.set("target", str(random.randrange(len(artists))))
     ctx.state.set("left", str(chances))
     return game(ctx)
@@ -132,7 +132,7 @@ def command_topspotifyartist(ctx: Ctx) -> View:
 
 @module.view("game")
 def game(ctx: Ctx) -> View:
-    return View(text=ctx.t("how", chances=str(chances)), path=[ctx.t("title")])
+    return View(text=ctx.t("how", chances=ctx.state.get("left") or str(chances)))
 
 
 @module.state("game", role=Role.USER, is_background=True)
@@ -142,29 +142,27 @@ def guess(ctx: Ctx) -> View:
     artists = chart.artists
     if not artists or not 0 <= target < len(artists) or left <= 0:
         ctx.close_screen()
-        return View(text=ctx.t("core:error"), path=[ctx.t("title")])
+        return View(text=ctx.t("core:error"))
     found = find(artists, ctx.text)
     if found is None:
-        return View(text=ctx.t("unknown"), path=[ctx.t("title")])
+        return ctx.retry(ctx.t("unknown"))
     guessed: int = found
     try:
         detail(artists, guessed, target)
     except Exception as error:
         ctx.error("Could not read the artist - " + type(error).__name__ + ".", str(error))
-        return View(text=ctx.t("core:error"), path=[ctx.t("title")])
+        return View(text=ctx.t("core:error"))
     if guessed == target:
         ctx.close_screen()
         return View(text=ctx.t("correct") + "\n" + compare(ctx, artists, guessed, target)
-                    + "\n" + song_line(ctx, artists[target]) + "\n" + ctx.t("victory"),
-                    path=[ctx.t("title")])
+                    + "\n" + song_line(ctx, artists[target]) + "\n" + ctx.t("victory"))
     left -= 1
     ctx.state.set("left", str(left))
     if left > 0:
-        return View(text=ctx.t("wrong", left=str(left)) + "\n" + compare(ctx, artists, guessed, target),
-                    path=[ctx.t("title")])
+        return View(text=ctx.t("wrong", left=str(left)) + "\n" + compare(ctx, artists, guessed, target))
     ctx.close_screen()
     return View(text=ctx.t("defeat") + "\n" + describe(ctx, artists, target)
-                + "\n" + song_line(ctx, artists[target]), path=[ctx.t("title")])
+                + "\n" + song_line(ctx, artists[target]))
 
 
 def find(artists: list[Artist], text: str) -> int | None:

@@ -14,7 +14,7 @@ def menu(ctx: AdvancedCtx) -> View:
                Button(ctx.t("deletedata"), "deletedata")]
     if ctx.user.role >= Role.USER:
         buttons.insert(0, Button(ctx.t("notifications"), "notifications"))
-    return View(text=ctx.t("menu"), path=[ctx.t("title")], buttons=buttons)
+    return View(text=ctx.t("menu"), buttons=buttons)
 
 
 @module.callback("notifications", role=Role.USER)
@@ -22,10 +22,9 @@ def open_notifications(ctx: AdvancedCtx) -> View:
     return notifications(ctx)
 
 
-@module.view("notifications")
+@module.view("notifications", parent="menu", title="notifications")
 def notifications(ctx: AdvancedCtx) -> View:
     return View(text=ctx.t("notifications_question"),
-                path=[ctx.t("title"), ctx.t("notifications")],
                 buttons=[Button(ctx.t("core:yes_button"), "notifications_set", "1"),
                          Button(ctx.t("core:no_button"), "notifications_set", "0")],
                 columns=2)
@@ -33,12 +32,11 @@ def notifications(ctx: AdvancedCtx) -> View:
 
 @module.callback("notifications_set", role=Role.USER)
 def set_notifications(ctx: AdvancedCtx) -> View:
-    wanted = ctx.arguments and ctx.arguments[0] == "1"
+    wanted = bool(ctx.arguments) and ctx.arguments[0] == "1"
     ctx.settings.set_notifications(ctx.user.id, wanted)
     ctx.log("Notifications turned " + ("on" if wanted else "off"))
     ctx.close_screen()
-    return View(text=ctx.t("notifications_on" if wanted else "notifications_off"),
-                path=[ctx.t("title"), ctx.t("notifications")])
+    return View(text=ctx.t("notifications_on" if wanted else "notifications_off"))
 
 
 @module.callback("language")
@@ -46,10 +44,9 @@ def open_language(ctx: AdvancedCtx) -> View:
     return language(ctx)
 
 
-@module.view("language")
+@module.view("language", parent="menu", title="language")
 def language(ctx: AdvancedCtx) -> View:
     return View(text=ctx.t("language_question"),
-                path=[ctx.t("title"), ctx.t("language")],
                 buttons=[Button(label, "language_set", code) for code, label in ctx.languages])
 
 
@@ -57,11 +54,11 @@ def language(ctx: AdvancedCtx) -> View:
 def set_language(ctx: AdvancedCtx) -> View:
     wanted = ctx.arguments[0] if ctx.arguments else ""
     if wanted not in [code for code, _ in ctx.languages]:
-        return View(ctx.t("core:not_working_buttons"), parse_mode=None)
+        return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
     ctx.use_language(wanted)
     ctx.log("Language changed to " + wanted)
     ctx.close_screen()
-    return View(text=ctx.t("language_changed"), path=[ctx.t("title"), ctx.t("language")])
+    return View(text=ctx.t("language_changed"))
 
 
 @module.callback("deletedata")
@@ -69,10 +66,9 @@ def open_deletedata(ctx: AdvancedCtx) -> View:
     return deletedata(ctx)
 
 
-@module.view("deletedata")
+@module.view("deletedata", parent="menu", title="deletedata")
 def deletedata(ctx: AdvancedCtx) -> View:
     return View(text=ctx.t("deletedata_question"),
-                path=[ctx.t("title"), ctx.t("deletedata")],
                 buttons=[Button(ctx.t("core:yes_button"), "deletedata_confirmed")])
 
 
@@ -81,4 +77,4 @@ def delete_data(ctx: AdvancedCtx) -> View:
     ctx.close_screen()
     ctx.users.delete(ctx.user.id)
     ctx.log("Data deleted")
-    return View(text=ctx.t("deletedata_done"), path=[ctx.t("title"), ctx.t("deletedata")])
+    return View(text=ctx.t("deletedata_done"))

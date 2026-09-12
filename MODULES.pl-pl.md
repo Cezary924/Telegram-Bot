@@ -73,7 +73,7 @@ module = Module(
 |---------------------------------------------------------------------|---------------------------------------------------------------------------|
 | ```@module.command("nazwa", role=, description=, is_background=)``` | rejestruje ```/nazwa``` i dodaje ją do menu komend w Telegramie           |
 | ```@module.callback("akcja", role=, is_background=)```              | obsługuje przycisk ```moduł:akcja:argumenty```                            |
-| ```@module.view("nazwa")```                                         | buduje ekran, który rdzeń umie odtworzyć przy cofaniu                     |
+| ```@module.view("nazwa", parent=, title=)```                        | buduje ekran, umieszczony pod ```parent``` w drzewie modułu               |
 | ```@module.state("nazwa", role=, is_background=)```                 | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
 | ```@module.match(predykat, priority=, role=, is_background=)```     | przejmuje wiadomości pasujące do ```predykat(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                    | uruchamia się co ```interval``` sekund we własnym wątku                   |
@@ -89,8 +89,10 @@ module = Module(
 
 ## 🖥️ Ekrany
 
-Widok z nazwą jest ekranem: trafia na stos nawigacji użytkownika, dostaje przycisk powrotu i da się go odtworzyć, gdy
-użytkownik go naciśnie.
+Widok z nazwą jest ekranem. Każdy mówi, gdzie stoi, przy pomocy pola ```parent```, i jak go nazwać, dzięki ```title```
+
+- to klucz tekstu, jak wszystko, co czyta użytkownik. Ekrany modułu tworzą drzewo, a rdzeń po nim chodzi:
+  przycisk powrotu i to, gdzie powrót ląduje, biorą się z drzewa, nigdy z tego, co użytkownik naciskał wcześniej.
 
 ```python
 @module.command("reminder", role=Role.USER)
@@ -102,9 +104,13 @@ def command_reminder(ctx: Ctx) -> View:
 def menu(ctx: Ctx) -> View:
     return View(
         text=ctx.t("menu.text"),
-        path=[ctx.t("menu.title")],
         buttons=[Button(ctx.t("menu.set"), "set"),
                  Button(ctx.t("menu.manage"), "manage")])
+
+
+@module.view("set", parent="menu", title="menu.set")
+def ask_content(ctx: Ctx) -> View:
+    return View(text=ctx.t("set.question"))
 ```
 
 Handler zwraca to, co ma się pokazać:
@@ -113,12 +119,28 @@ Handler zwraca to, co ma się pokazać:
 - ```View``` zwrócony przez funkcję z ```@module.view``` - ekran,
 - ```None``` - handler zrobił już wszystko, co chciał.
 
-Komenda zaczyna nawigację od nowa, callback schodzi o poziom niżej. Dwukrotne uruchomienie tej samej komendy otwiera
-więc jej ekran ponownie, zamiast układać go na stosie. Przycisk uruchamiający komendę to
-```Button.command(tekst, "help")``` - obsługuje go rdzeń, więc żaden moduł nie musi znać akcji innego modułu.
+Ekran niesie jedną wiadomość naraz. Naciśnięcie przycisku przepisuje ją w miejscu, więc chodzenie po module nic nie
+dokłada do czatu. Wpisana wiadomość - komenda, odpowiedź na pytanie - to co innego: użytkownik coś napisał, więc ekran
+znika i zostaje napisany od nowa pod tym, co napisał, i zostaje ostatnią rzeczą w czacie. Dwukrotne uruchomienie tej
+samej komendy otwiera jej ekran na dole, zamiast zostawiać dwa.
 
-> Przycisk powrotu należy do rdzenia: kasuje bieżący ekran, zdejmuje go ze stosu i odtwarza rodzica. Moduły nie piszą
-> kodu nawigacji.
+Przycisk uruchamiający komendę to ```Button.command(tekst, "help")``` - obsługuje go rdzeń, więc żaden moduł nie musi
+znać akcji innego modułu.
+
+> Wstecz, Menu i Zamknij należą do rdzenia. Rysuje je według głębokości, odtwarza rodzica z drzewa i pamięta argument,
+> z jakim każdy ekran był ostatnio otwarty, więc powrót do trzeciej strony listy wraca na trzecią stronę. Moduły nie
+> piszą kodu nawigacji.
+
+Odpowiedź, z której moduł nie umie skorzystać, nie jest osobną wiadomością - ```ctx.retry``` pyta tym samym ekranem
+jeszcze raz, ale tym razem uwzględnia problem:
+
+```python
+@module.state("set", role=Role.USER)
+def take_content(ctx: Ctx) -> View:
+    if not ctx.text.strip():
+        return ctx.retry(ctx.t("set.empty"))
+    return save(ctx)
+```
 
 ## 🎒 Kontekst
 
@@ -132,11 +154,12 @@ ctx.text  # treść przychodzącej wiadomości
 ctx.forwarded_from  # kto napisał przesłaną wiadomość, o ile użytkownik na to pozwolił
 ctx.arguments  # argumenty z danych callbacku
 ctx.state["step"] = "2"  # na użytkownika i moduł, trzymane w bazie
-ctx.nav  # stos nawigacji, ograniczony do tego modułu
+ctx.nav  # gdzie jest użytkownik i co zapamiętał każdy ekran tego modułu
 ctx.db  # własne tabele tego modułu
 ctx.token("service_key")  # tylko sekrety zadeklarowane w manifeście
 ctx.log("Reminder set")  # "Reminder set: First (1)."
-ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął
+ctx.retry(problem)  # ten sam ekran jeszcze raz
+ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc przepływ
 ctx.send_file(path, "video")  # audio, document, photo, video albo voice
 ctx.file_limit  # największy plik, jaki Telegram pozwala wysłać botowi
 with ctx.workspace() as path:  # katalog tymczasowy, kasowany także po błędzie
