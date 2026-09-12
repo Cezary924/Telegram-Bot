@@ -49,7 +49,7 @@ def test_starting_a_round_opens_a_screen(playing, bot):
     start(playing)
     assert bot.last.text.startswith("*ᯤ Guess the Spotify artist:*")
     assert "You have 5 chances" in bot.last.text
-    assert playing.storage.navigation.depth(1) == 1
+    assert playing.storage.navigation.current(1) is not None
     assert playing.storage.module_state.get(1, "topspotifyartist", "target") == "1"
 
 
@@ -58,6 +58,15 @@ def test_an_unknown_name_costs_nothing(playing, bot):
     say(playing, "Nobody At All")
     assert "I do not know this artist" in bot.last.text
     assert playing.storage.module_state.get(1, "topspotifyartist", "left") == "5"
+
+
+def test_an_unknown_name_keeps_the_board_asking(playing, bot):
+    start(playing)
+    say(playing, "Ariana Grande")
+    say(playing, "Nobody At All")
+    assert "I do not know this artist" in bot.last.text
+    assert "You have 4 chances" in bot.last.text
+    assert playing.storage.navigation.current(1)['view'] == "game"
 
 
 def test_a_wrong_guess_shows_the_hints(playing, bot):
@@ -90,7 +99,7 @@ def test_guessing_right_ends_the_round(playing, bot):
     assert "Nickname: _Demi Lovato_ 🆗" in text
     assert "Most streamed song: _A song (https://open.spotify.com/DemiLovato)_" in text
     assert "You have guessed the artist" in text
-    assert playing.storage.navigation.depth(1) == 0
+    assert playing.storage.navigation.current(1) is None
 
 
 def test_the_name_is_matched_without_case(playing, bot):
@@ -107,7 +116,7 @@ def test_running_out_of_chances_reveals_the_artist(playing, bot):
     assert "you have not guessed the artist" in text
     assert "Nickname: _Demi Lovato_" in text
     assert "Most streamed song: _A song" in text
-    assert playing.storage.navigation.depth(1) == 0
+    assert playing.storage.navigation.current(1) is None
 
 
 def test_a_broken_chart_says_so(app, bot, monkeypatch):

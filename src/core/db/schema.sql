@@ -21,15 +21,24 @@ CREATE TABLE IF NOT EXISTS user_settings (
     has_admin_alerts INTEGER NOT NULL DEFAULT 1
 );
 
-CREATE TABLE IF NOT EXISTS user_navigation_stacks (
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    position INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS user_screens (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     module TEXT NOT NULL,
     view TEXT NOT NULL,
     argument TEXT,
-    message_id INTEGER,
-    PRIMARY KEY (user_id, position)
+    message_id INTEGER NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS user_screen_arguments (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    module TEXT NOT NULL,
+    view TEXT NOT NULL,
+    argument TEXT,
+    PRIMARY KEY (user_id, module, view)
+);
+
+DROP TABLE IF EXISTS user_navigation_stacks;
+DROP TABLE IF EXISTS user_anchors;
 
 CREATE TABLE IF NOT EXISTS user_module_state (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

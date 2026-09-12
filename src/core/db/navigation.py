@@ -7,40 +7,34 @@ class Navigation:
     def __init__(self, database: Database) -> None:
         self._db = database
 
-    def depth(self, user_id: int) -> int:
-        row = self._db.query_one(
-            "SELECT COUNT(1) AS total FROM user_navigation_stacks WHERE user_id = ?;", (user_id, ))
-        return row['total'] if row else 0
+    def current(self, user_id: int) -> sqlite3.Row | None:
+        return self._db.query_one("SELECT * FROM user_screens WHERE user_id = ?;", (user_id, ))
 
-    def push(self, user_id: int, module: str, view: str,
-             argument: str | None = None, message_id: int | None = None) -> int:
-        position = self.depth(user_id)
+    def set_current(self, user_id: int, module: str, view: str,
+                    argument: str | None, message_id: int) -> None:
         self._db.execute("""
-            INSERT INTO user_navigation_stacks (user_id, position, module, view, argument, message_id)
-            VALUES (?, ?, ?, ?, ?, ?); """,
-                         (user_id, position, module, view, argument, message_id))
-        return position
-
-    def top(self, user_id: int) -> sqlite3.Row | None:
-        return self._db.query_one("""
-            SELECT * FROM user_navigation_stacks WHERE user_id = ?
-            ORDER BY position DESC LIMIT 1; """, (user_id, ))
-
-    def pop(self, user_id: int) -> sqlite3.Row | None:
-        row = self.top(user_id)
-        if row is None:
-            return None
-        self._db.execute("DELETE FROM user_navigation_stacks WHERE user_id = ? AND position = ?;",
-                         (user_id, row['position']))
-        return row
-
-    def set_message_id(self, user_id: int, message_id: int) -> None:
-        row = self.top(user_id)
-        if row is None:
-            return
-        self._db.execute(
-            "UPDATE user_navigation_stacks SET message_id = ? WHERE user_id = ? AND position = ?;",
-            (message_id, user_id, row['position']))
+            INSERT INTO user_screens (user_id, module, view, argument, message_id)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+                module = excluded.module, view = excluded.view,
+                argument = excluded.argument, message_id = excluded.message_id; """,
+                         (user_id, module, view, argument, message_id))
 
     def clear(self, user_id: int) -> None:
-        self._db.execute("DELETE FROM user_navigation_stacks WHERE user_id = ?;", (user_id, ))
+        self._db.execute("DELETE FROM user_screens WHERE user_id = ?;", (user_id, ))
+
+    def remember(self, user_id: int, module: str, view: str, argument: str | None) -> None:
+        self._db.execute("""
+            INSERT INTO user_screen_arguments (user_id, module, view, argument)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(user_id, module, view) DO UPDATE SET argument = excluded.argument; """,
+                         (user_id, module, view, argument))
+
+    def remembered(self, user_id: int, module: str, view: str) -> str | None:
+        row = self._db.query_one("""
+            SELECT argument FROM user_screen_arguments
+            WHERE user_id = ? AND module = ? AND view = ?; """, (user_id, module, view))
+        return row['argument'] if row else None
+
+    def forget(self, user_id: int) -> None:
+        self._db.execute("DELETE FROM user_screen_arguments WHERE user_id = ?;", (user_id, ))

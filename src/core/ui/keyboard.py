@@ -5,6 +5,8 @@ from core import callbacks
 
 core_module_name = "core"
 back_action = "back"
+home_action = "home"
+close_action = "close"
 command_action = "command"
 
 
@@ -26,6 +28,14 @@ class Button:
     @classmethod
     def back(cls, text: str) -> "Button":
         return cls(text, back_action, module=core_module_name)
+
+    @classmethod
+    def home(cls, text: str) -> "Button":
+        return cls(text, home_action, module=core_module_name)
+
+    @classmethod
+    def close(cls, text: str) -> "Button":
+        return cls(text, close_action, module=core_module_name)
 
     @classmethod
     def command(cls, text: str, name: str) -> "Button":

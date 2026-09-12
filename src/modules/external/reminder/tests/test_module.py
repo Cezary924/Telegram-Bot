@@ -101,6 +101,18 @@ def test_a_date_in_the_past_is_refused(app, bot):
     assert rows(app) == []
 
 
+def test_a_refused_date_is_written_into_the_screen_that_asked(app, bot):
+    send(app, "/reminder")
+    click(app, bot, "reminder:set")
+    send(app, content1)
+    asked = bot.last.message_id
+    send(app, "next tuesday")
+    assert "I do not understand this date" in bot.last.text
+    assert "Write when I should remind you" in bot.last.text
+    assert bot.last.buttons[-1][1] == "core:close"
+    assert (1, asked) in bot.deleted
+
+
 def test_the_date_screen_survives_a_wrong_answer(app, bot):
     send(app, "/reminder")
     click(app, bot, "reminder:set")

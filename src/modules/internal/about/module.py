@@ -22,7 +22,7 @@ def command_about(ctx: AdvancedCtx) -> View:
              + line(ctx, "labels.status", version_status(ctx))
              + "GitHub Repo: " + repository_url(ctx) + "\n"
              + "© _" + str(first_year) + " - " + str(datetime.now().year) + "_",
-        path=[ctx.t("title")])
+        heading=ctx.t("title"))
 
 
 def line(ctx: AdvancedCtx, key: str, value: str) -> str:

@@ -92,6 +92,7 @@ class FakeBot:
         self.sent: list[SentMessage] = []
         self.files: list[SentFile] = []
         self.edited: list[SentMessage] = []
+        self.shown: list[SentMessage] = []
         self.deleted: list[tuple[int, int]] = []
         self.answered: list[tuple[str, str | None]] = []
         self.commands: dict[str, list[str]] = {}
@@ -101,13 +102,17 @@ class FakeBot:
     def send_message(self, chat_id: int, text: str, parse_mode: str | None = None,
                      reply_markup=None, disable_notification: bool = False) -> telebot.types.Message:
         self._message_id += 1
-        self.sent.append(SentMessage(chat_id, text, self._message_id, parse_mode, reply_markup,
-                                     disable_notification))
+        message = SentMessage(chat_id, text, self._message_id, parse_mode, reply_markup,
+                              disable_notification)
+        self.sent.append(message)
+        self.shown.append(message)
         return make_message(text, chat_id, self._message_id)
 
     def edit_message_text(self, text: str, chat_id: int, message_id: int,
                           parse_mode: str | None = None, reply_markup=None) -> None:
-        self.edited.append(SentMessage(chat_id, text, message_id, parse_mode, reply_markup))
+        message = SentMessage(chat_id, text, message_id, parse_mode, reply_markup)
+        self.edited.append(message)
+        self.shown.append(message)
 
     def delete_message(self, chat_id: int, message_id: int) -> None:
         self.deleted.append((chat_id, message_id))
@@ -123,13 +128,14 @@ class FakeBot:
 
     @property
     def last(self) -> SentMessage:
-        return self.sent[-1]
+        return self.shown[-1]
 
     def texts(self) -> list[str]:
         return [message.text for message in self.sent]
 
     def clear(self) -> None:
         self.sent.clear()
+        self.shown.clear()
         self.files.clear()
         self.edited.clear()
         self.deleted.clear()
