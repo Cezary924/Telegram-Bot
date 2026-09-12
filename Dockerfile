@@ -3,7 +3,8 @@ FROM python:3.13-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
-    && ffmpeg -version > /dev/null
+    && ffmpeg -version > /dev/null \
+    && git config --global --add safe.directory /app
 
 WORKDIR /app
 
