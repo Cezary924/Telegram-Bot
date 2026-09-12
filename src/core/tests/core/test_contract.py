@@ -201,6 +201,31 @@ def test_a_comment_or_a_flag_is_not_a_package(tmp_path):
     assert contract.declared_packages(module) == {"requests"}
 
 
+def test_a_view_may_name_a_parent_that_is_there():
+    module = Module(name="module1")
+    module.view("menu")(lambda ctx: None)
+    module.view("users", parent="menu")(lambda ctx: None)
+    assert contract.check_views(module) == []
+
+
+def test_a_view_cannot_name_a_parent_that_is_missing():
+    module = Module(name="module1")
+    module.view("users", parent="nope")(lambda ctx: None)
+    assert contract.check_views(module) == ["'users' has no parent named 'nope'"]
+
+
+def test_parents_cannot_form_a_loop():
+    module = Module(name="module1")
+    module.view("one", parent="two")(lambda ctx: None)
+    module.view("two", parent="one")(lambda ctx: None)
+    assert contract.check_views(module) == ["'one' sits in a loop of parents",
+                                            "'two' sits in a loop of parents"]
+
+
+def test_a_module_without_views_passes():
+    assert contract.check_views(Module(name="module1")) == []
+
+
 def test_a_module_needs_tests(tmp_path):
     module = Module(name="module1")
     module.path = str(tmp_path)

@@ -55,7 +55,7 @@ def menu(ctx: Ctx) -> View:
     buttons = [Button(ctx.t("set"), "set")]
     if rows:
         buttons.append(Button(ctx.t("manage"), "manage"))
-    return View(text=ctx.t("menu", count=str(len(rows))), path=[mark + ctx.t("title")],
+    return View(text=ctx.t("menu", count=str(len(rows))),
                 buttons=buttons)
 
 
@@ -67,10 +67,10 @@ def open_content(ctx: Ctx) -> View:
     return content_screen(ctx)
 
 
-@module.view("content")
+@module.view("content", parent="menu", title="content")
 def content_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
-    return View(text=ctx.t("ask_content"), path=[mark + ctx.t("title"), ctx.t("content")],
+    return View(text=ctx.t("ask_content"),
                 argument=str(reminder_id) if reminder_id else None)
 
 
@@ -78,13 +78,11 @@ def content_screen(ctx: Ctx) -> View:
 def take_content(ctx: Ctx) -> View:
     text = ctx.text.strip()
     if not text or len(text) > content_limit:
-        return View(text=ctx.t("wrong_content", limit=str(content_limit)),
-                    path=[mark + ctx.t("title"), ctx.t("content")])
+        return ctx.retry(ctx.t("wrong_content", limit=str(content_limit)))
     reminder_id = wanted_id(ctx)
     if reminder_id:
         return save_content(ctx, reminder_id, text)
     ctx.state.set(content_key, text)
-    ctx.close_screen()
     return date_screen(ctx)
 
 
@@ -96,8 +94,7 @@ def save_content(ctx: Ctx, reminder_id: int, text: str) -> View:
                    (text, reminder_id, ctx.user.id))
     ctx.close_screen()
     ctx.log("Reminder " + str(reminder_id) + " content changed")
-    return View(text=ctx.t("changed") + "\n" + details(ctx, text, row['date']),
-                path=[mark + ctx.t("title"), ctx.t("content")])
+    return View(text=ctx.t("changed") + "\n" + details(ctx, text, row['date']))
 
 
 @module.callback("date", role=Role.USER)
@@ -105,11 +102,10 @@ def open_date(ctx: Ctx) -> View:
     return date_screen(ctx)
 
 
-@module.view("date")
+@module.view("date", parent="menu", title="date")
 def date_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     return View(text=ctx.t("ask_date", example=example_date()),
-                path=[mark + ctx.t("title"), ctx.t("date")],
                 argument=str(reminder_id) if reminder_id else None)
 
 
@@ -121,10 +117,9 @@ def example_date() -> str:
 def take_date(ctx: Ctx) -> View:
     moment = parse_date(ctx.text)
     if moment is None:
-        return View(text=ctx.t("wrong_date", example=example_date()),
-                    path=[mark + ctx.t("title"), ctx.t("date")])
+        return ctx.retry(ctx.t("wrong_date", example=example_date()))
     if moment < datetime.now().replace(second=0, microsecond=0):
-        return View(text=ctx.t("past_date"), path=[mark + ctx.t("title"), ctx.t("date")])
+        return ctx.retry(ctx.t("past_date"))
     date = moment.strftime(date_format)
     reminder_id = wanted_id(ctx)
     if reminder_id:
@@ -141,8 +136,7 @@ def save_date(ctx: Ctx, reminder_id: int, date: str) -> View:
                    (date, reminder_id, ctx.user.id))
     ctx.close_screen()
     ctx.log("Reminder " + str(reminder_id) + " date changed")
-    return View(text=ctx.t("changed") + "\n" + details(ctx, row['content'], date),
-                path=[mark + ctx.t("title"), ctx.t("date")])
+    return View(text=ctx.t("changed") + "\n" + details(ctx, row['content'], date))
 
 
 def save_new(ctx: Ctx, date: str) -> View:
@@ -154,8 +148,7 @@ def save_new(ctx: Ctx, date: str) -> View:
     ctx.state.delete(content_key)
     ctx.close_screen()
     ctx.log("Reminder set for " + date)
-    return View(text=ctx.t("done") + "\n" + details(ctx, content, date),
-                path=[mark + ctx.t("title")])
+    return View(text=ctx.t("done") + "\n" + details(ctx, content, date))
 
 
 # ----- managing -----
@@ -165,11 +158,11 @@ def open_manage(ctx: Ctx) -> View:
     return manage(ctx)
 
 
-@module.view("manage")
+@module.view("manage", parent="menu", title="manage")
 def manage(ctx: Ctx) -> View:
     rows = reminders_of(ctx)
     if not rows:
-        return View(text=ctx.t("empty"), path=[mark + ctx.t("title"), ctx.t("manage")])
+        return View(text=ctx.t("empty"))
     pages = max(1, -(-len(rows) // page_size))
     page = min(wanted_page(ctx), pages - 1)
     buttons = [Button(label(row), "one", row['id'])
@@ -178,7 +171,6 @@ def manage(ctx: Ctx) -> View:
         buttons.append(Button(ctx.t("previous"), "manage", max(0, page - 1)))
         buttons.append(Button(ctx.t("next"), "manage", min(pages - 1, page + 1)))
     return View(text=ctx.t("pick", page=str(page + 1), pages=str(pages), total=str(len(rows))),
-                path=[mark + ctx.t("title"), ctx.t("manage")],
                 buttons=buttons, argument=str(page))
 
 
@@ -195,14 +187,13 @@ def open_one(ctx: Ctx) -> View:
     return one(ctx)
 
 
-@module.view("one")
+@module.view("one", parent="manage")
 def one(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     row = reminder_of(ctx, reminder_id)
     if row is None:
         return gone(ctx)
     return View(text=label(row) + "\n" + details(ctx, row['content'], row['date']),
-                path=[mark + ctx.t("title"), ctx.t("manage")],
                 buttons=[Button(ctx.t("edit_content"), "set", reminder_id),
                          Button(ctx.t("edit_date"), "date", reminder_id),
                          Button(ctx.t("delete"), "delete", reminder_id)],
@@ -214,14 +205,13 @@ def open_delete(ctx: Ctx) -> View:
     return removal(ctx)
 
 
-@module.view("delete")
+@module.view("delete", parent="menu", title="delete")
 def removal(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     row = reminder_of(ctx, reminder_id)
     if row is None:
         return gone(ctx)
     return View(text=ctx.t("sure") + "\n" + details(ctx, row['content'], row['date']),
-                path=[mark + ctx.t("title"), ctx.t("delete")],
                 buttons=[Button(ctx.t("core:yes_button"), "delete_confirmed", reminder_id)],
                 argument=str(reminder_id))
 
@@ -235,12 +225,12 @@ def confirm_delete(ctx: Ctx) -> View:
                    (reminder_id, ctx.user.id))
     ctx.close_screen()
     ctx.log("Reminder " + str(reminder_id) + " deleted")
-    return View(text=ctx.t("deleted"), path=[mark + ctx.t("title"), ctx.t("delete")])
+    return View(text=ctx.t("deleted"))
 
 
 def gone(ctx: Ctx) -> View:
     ctx.close_screen()
-    return View(text=ctx.t("gone"), path=[mark + ctx.t("title")])
+    return View(text=ctx.t("gone"))
 
 
 # ----- notifying -----

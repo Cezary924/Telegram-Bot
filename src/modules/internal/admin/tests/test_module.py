@@ -35,7 +35,7 @@ def test_the_menu_lists_every_section(boss, bot):
     assert bot.last.text == "*🛠️ Admin:*\n\nSelect the task of the following:"
     assert [data for _, data in bot.last.buttons] == [
         "admin:users", "admin:statistics", "admin:announcement",
-        "admin:alerts", "admin:modules", "admin:bot", "core:back"]
+        "admin:alerts", "admin:modules", "admin:bot", "core:close"]
 
 
 def test_the_user_list_pages_through_people(boss, bot):
@@ -82,6 +82,16 @@ def test_searching_for_nonsense(boss, bot):
     press(boss, "admin:search")
     boss.router.handle_message(make_message("not a number"))
     assert "has not been found" in bot.last.text
+
+
+def test_a_search_that_found_nobody_asks_again(boss, bot):
+    open_menu(boss)
+    press(boss, "admin:users")
+    press(boss, "admin:search")
+    boss.router.handle_message(make_message("999"))
+    assert "has not been found" in bot.last.text
+    assert "Enter the User ID" in bot.last.text
+    assert boss.storage.navigation.current(1)['view'] == "search"
 
 
 def test_a_forwarded_message_reveals_the_sender(boss, bot):
@@ -208,7 +218,8 @@ def test_the_bot_screen_shows_the_version(boss, bot):
     open_menu(boss)
     press(boss, "admin:bot")
     assert "Version: _" in bot.last.text
-    assert [data for _, data in bot.last.buttons] == ["admin:log", "admin:restart", "core:back"]
+    assert [data for _, data in bot.last.buttons] == ["admin:log", "admin:restart",
+                                                      "core:back", "core:home", "core:close"]
 
 
 def test_the_log_screen_reads_the_newest_file(boss, bot, tmp_path, monkeypatch):
@@ -246,7 +257,7 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     open_menu(boss)
     press(boss, "admin:users")
     press(boss, "admin:list:0")
-    assert boss.storage.navigation.depth(1) == 3
+    assert boss.storage.navigation.current(1) is not None
     press(boss, "core:back")
     assert bot.last.text.startswith("*🛠️ Admin > 🙋 Users:*")
     press(boss, "core:back")

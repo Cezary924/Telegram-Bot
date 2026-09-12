@@ -6,7 +6,6 @@ module = Module(name="contact")
 @module.command("contact")
 def command_contact(ctx: AdvancedCtx) -> View:
     return View(text=ctx.t("contact", username="@" + ctx.config.telegram_username),
-                path=[ctx.t("title")],
                 buttons=[Button(ctx.t("report"), "report")])
 
 
@@ -20,9 +19,9 @@ def command_report(ctx: AdvancedCtx) -> View:
     return report(ctx)
 
 
-@module.view("report")
+@module.view("report", title="report_title")
 def report(ctx: AdvancedCtx) -> View:
-    return View(text=ctx.t("report_question"), path=[ctx.t("report_title")])
+    return View(text=ctx.t("report_question"))
 
 
 @module.state("report")

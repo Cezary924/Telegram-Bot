@@ -4,7 +4,6 @@ description: Kontakt z Administratorem
 commands.contact: Sposoby kontaktu z Administratorem
 commands.report: Wyślij zgłoszenie do Administratora
 
-title: ☎️ Kontakt
 contact: Aby skontaktować się z Administratorem, napisz bezpośrednio do {username} lub wyślij bezzwrotną wiadomość-zgłoszenie 📨
 report: 📨 Zgłoszenie do Administratora
 

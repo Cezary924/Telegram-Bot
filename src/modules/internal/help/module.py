@@ -7,7 +7,7 @@ module = Module(name="help")
 def command_help(ctx: AdvancedCtx) -> View:
     listed = [entry(ctx, found) for found in ctx.registry.modules()
               if found.is_internal and is_listed(found)]
-    return View(text=ctx.t("intro") + "\n\n" + "\n".join(listed), path=[ctx.t("title")])
+    return View(text=ctx.t("intro") + "\n\n" + "\n".join(listed))
 
 
 def open_command(found: Module) -> str:

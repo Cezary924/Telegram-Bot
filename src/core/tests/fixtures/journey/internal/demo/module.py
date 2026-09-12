@@ -10,7 +10,7 @@ def command_demo(ctx: Ctx) -> View:
 
 @module.view("menu")
 def menu(ctx: Ctx) -> View:
-    return View(ctx.t("menu.text"), path=[ctx.t("menu.title")],
+    return View(ctx.t("menu.text"),
                 buttons=[Button(ctx.t("menu.open"), "open")])
 
 
@@ -19,9 +19,9 @@ def open_details(ctx: Ctx) -> View:
     return details(ctx)
 
 
-@module.view("details")
+@module.view("details", parent="menu", title="details.title")
 def details(ctx: Ctx) -> View:
-    return View(ctx.t("details.text"), path=[ctx.t("menu.title"), ctx.t("details.title")])
+    return View(ctx.t("details.text"))
 
 
 @module.state("details")

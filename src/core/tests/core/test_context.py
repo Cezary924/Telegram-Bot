@@ -6,6 +6,7 @@ from core.context import AdvancedCtx, Ctx, User, create_context, user_from_row
 from core.module import Module
 from core.roles import Role
 from core.testing import FakeBot, make_message, not_none
+from core.ui.view import View
 from core.version import Version
 
 
@@ -90,24 +91,24 @@ def test_state_all_and_clear(ctx):
     assert ctx.state.all() == {}
 
 
-def test_navigation_is_scoped_to_the_module(ctx):
-    ctx.nav.push("view1", "argument1", 500)
-    top = not_none(ctx.nav.top())
-    assert top['module'] == "module1"
-    assert top['view'] == "view1"
-    assert top['argument'] == "argument1"
-    assert top['message_id'] == 500
-    assert ctx.nav.depth() == 1
+def test_navigation_reads_the_screen_the_user_is_on(ctx, services):
+    services.storage.navigation.set_current(1, "module1", "view1", "argument1", 500)
+    current = not_none(ctx.nav.current())
+    assert current['module'] == "module1"
+    assert current['view'] == "view1"
+    assert current['argument'] == "argument1"
 
 
-def test_navigation_pop_and_clear(ctx):
-    ctx.nav.push("view1")
-    ctx.nav.push("view2")
-    assert not_none(ctx.nav.pop())['view'] == "view2"
-    ctx.nav.set_message_id(600)
-    assert not_none(ctx.nav.top())['message_id'] == 600
+def test_navigation_reads_what_a_screen_of_this_module_remembers(ctx, services):
+    services.storage.navigation.remember(1, "module1", "list", "3")
+    services.storage.navigation.remember(1, "module2", "list", "9")
+    assert ctx.nav.remembered("list") == "3"
+
+
+def test_navigation_clears_the_screen(ctx, services):
+    services.storage.navigation.set_current(1, "module1", "view1", None, 500)
     ctx.nav.clear()
-    assert ctx.nav.depth() == 0
+    assert ctx.nav.current() is None
 
 
 def test_database_is_prefixed(ctx):
@@ -211,15 +212,51 @@ def test_external_module_gets_the_basic_context(services, module, person):
         assert not hasattr(ctx, name)
 
 
-def test_closing_a_screen_pops_it_and_deletes_the_message(services, module, person, user):
+def test_retrying_asks_the_same_screen_again_with_the_problem(services, module, person, user):
+    @module.view("view1")
+    def view1(_ctx):
+        return View("What is your name?")
+
+    services.registry.add(module)
+    services.storage.navigation.set_current(1, "module1", "view1", None, 501)
+    view = Ctx(services, module, person).retry("That is not a name")
+    assert view.text == "That is not a name\n\nWhat is your name?"
+    assert view.name == "view1"
+
+
+def test_retrying_keeps_what_the_screen_remembered(services, module, person, user):
+    @module.view("view1")
+    def view1(ctx):
+        return View("Page " + (ctx.arguments[0] if ctx.arguments else "?"))
+
+    services.registry.add(module)
+    services.storage.navigation.set_current(1, "module1", "view1", "3", 501)
+    view = Ctx(services, module, person, arguments=("3",)).retry("Nope")
+    assert view.text == "Nope\n\nPage 3"
+
+
+def test_retrying_without_a_screen_only_says_the_problem(services, module, person, user):
+    services.registry.add(module)
+    view = Ctx(services, module, person).retry("Nope")
+    assert view.text == "Nope"
+    assert not view.is_screen
+
+
+def test_retrying_a_screen_that_is_gone_only_says_the_problem(services, module, person, user):
+    services.registry.add(module)
+    services.storage.navigation.set_current(1, "module1", "view9", None, 501)
+    view = Ctx(services, module, person).retry("Nope")
+    assert view.text == "Nope"
+    assert not view.is_screen
+
+
+def test_closing_a_screen_takes_its_message_away(services, module, person, user):
     services.bot = FakeBot()
     ctx = Ctx(services, module, person)
-    ctx.nav.push("view1", message_id=500)
-    ctx.nav.push("view2", message_id=501)
+    services.storage.navigation.set_current(1, "module1", "view1", None, 501)
     ctx.close_screen()
     assert services.bot.deleted == [(1, 501)]
-    assert ctx.nav.depth() == 1
-    assert not_none(ctx.nav.top())['view'] == "view1"
+    assert ctx.nav.current() is None
 
 
 def test_closing_an_empty_screen_does_nothing(services, module, person, user):

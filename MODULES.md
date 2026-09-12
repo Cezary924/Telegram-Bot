@@ -74,7 +74,7 @@ module = Module(
 |--------------------------------------------------------------------|-------------------------------------------------------------------|
 | ```@module.command("name", role=, description=, is_background=)``` | registers ```/name``` and adds it to the Telegram command menu    |
 | ```@module.callback("action", role=, is_background=)```            | handles the button ```module:action:arguments```                  |
-| ```@module.view("name")```                                         | builds a screen the core can rebuild when going back              |
+| ```@module.view("name", parent=, title=)```                        | builds a screen, placed under ```parent``` in the module tree      |
 | ```@module.state("name", role=, is_background=)```                 | takes plain messages while the user sits on the screen ```name``` |
 | ```@module.match(predicate, priority=, role=, is_background=)```   | takes messages matching ```predicate(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                   | runs every ```interval``` seconds in its own thread               |
@@ -91,8 +91,10 @@ module = Module(
 
 ## 🖥️ Screens
 
-A view with a name is a screen: it goes on the user's navigation stack, gets a back button and can be rebuilt when the
-user presses it.
+A view with a name is a screen. Each one says where it sits with ```parent```, and what to call it in the breadcrumb
+with ```title``` - a text key, like everything else the user reads. The screens of a module make a tree, and the core
+walks it: the breadcrumb, the back button and where back lands all come from the tree, never from what the user pressed
+before.
 
 ```python
 @module.command("reminder", role=Role.USER)
@@ -104,9 +106,13 @@ def command_reminder(ctx: Ctx) -> View:
 def menu(ctx: Ctx) -> View:
     return View(
         text=ctx.t("menu.text"),
-        path=[ctx.t("menu.title")],
         buttons=[Button(ctx.t("menu.set"), "set"),
                  Button(ctx.t("menu.manage"), "manage")])
+
+
+@module.view("set", parent="menu", title="menu.set")
+def ask_content(ctx: Ctx) -> View:
+    return View(text=ctx.t("set.question"))
 ```
 
 A handler returns what should appear:
@@ -115,12 +121,28 @@ A handler returns what should appear:
 - ```View``` returned by a ```@module.view``` function - a screen,
 - ```None``` - the handler already did everything it wanted.
 
-A command starts a fresh navigation, a callback goes one level deeper. Running the same command twice therefore reopens
-its screen instead of stacking it. Use ```Button.command(text, "help")``` for a button that runs a command - the core
-routes it, so one module never needs to know another module's actions.
+One message at a time carries the screen. A button press rewrites that message where it is, so moving around a module
+adds nothing to the chat. A typed message - a command, an answer to a question - is different: the user has written
+something, so the screen is taken away and written again below what they said, and it stays the last thing in the
+chat. Running the same command twice reopens its screen at the bottom instead of leaving two of them around.
 
-> The back button belongs to the core: it deletes the current screen, pops it off the stack and rebuilds the parent.
-> Modules write no navigation code.
+Use ```Button.command(text, "help")``` for a button that runs a command - the core routes it, so one module never needs
+to know another module's actions.
+
+> Back, Menu and Close belong to the core. It draws them by depth, rebuilds the parent from the tree and remembers the
+> argument each screen was last opened with, so going back to page 3 of a list returns to page 3. Modules write no
+> navigation code.
+
+An answer the module cannot use is not a message of its own - ```ctx.retry``` asks the same screen again with the
+problem written above the question:
+
+```python
+@module.state("set", role=Role.USER)
+def take_content(ctx: Ctx) -> View:
+    if not ctx.text.strip():
+        return ctx.retry(ctx.t("set.empty"))
+    return save(ctx)
+```
 
 ## 🎒 Context
 
@@ -134,11 +156,12 @@ ctx.text  # the incoming message text
 ctx.forwarded_from  # who wrote a forwarded message, if they let it show
 ctx.arguments  # arguments from the callback data
 ctx.state["step"] = "2"  # per user and module, kept in the database
-ctx.nav  # the navigation stack, scoped to this module
+ctx.nav  # where the user is, and what each screen of this module remembered
 ctx.db  # this module's own tables
 ctx.token("service_key")  # only the secrets declared in the manifest
 ctx.log("Reminder set")  # "Reminder set: First (1)."
-ctx.close_screen()  # closes the screen the user acted on
+ctx.retry(problem)  # the same screen again, with the problem above the question
+ctx.close_screen()  # closes the screen the user acted on, ending the flow
 ctx.send_file(path, "video")  # audio, document, photo, video or voice
 ctx.file_limit  # the largest file Telegram lets a bot upload
 with ctx.workspace() as path:  # a temporary directory, removed even after a failure

@@ -50,6 +50,8 @@ class State:
 class ViewHandler:
     name: str
     handler: Callable
+    parent: str = ""
+    title: str = ""
 
 
 @dataclass(frozen=True)
@@ -97,6 +99,7 @@ class Module:
             self.commands.append(Command(name, handler, role, description or "commands." + name,
                                          is_background))
             return handler
+
         return decorator
 
     def callback(self, action: str, role: Role = Role.GUEST, is_background: bool = False) -> Callable:
@@ -111,6 +114,7 @@ class Module:
         def decorator(handler: Callable) -> Callable:
             self.callbacks.append(Callback(action, handler, role, is_background))
             return handler
+
         return decorator
 
     def match(self, predicate: Callable, priority: int = 0, role: Role = Role.GUEST,
@@ -119,6 +123,7 @@ class Module:
             self.matchers.append(Matcher(predicate, handler, role, priority, len(self.matchers),
                                          is_background))
             return handler
+
         return decorator
 
     def state(self, name: str, role: Role = Role.GUEST, is_background: bool = False) -> Callable:
@@ -128,19 +133,44 @@ class Module:
         def decorator(handler: Callable) -> Callable:
             self.states.append(State(name, handler, role, is_background))
             return handler
+
         return decorator
 
-    def view(self, name: str) -> Callable:
+    def view(self, name: str, parent: str = "", title: str = "") -> Callable:
         if any(view.name == name for view in self.views):
             raise ValueError("Module '" + self.name + "' declares view '" + name + "' twice")
+        if parent == name:
+            raise ValueError("View '" + name + "' in '" + self.name + "' is its own parent")
 
         def decorator(handler: Callable) -> Callable:
             def stamped(*arguments, **values) -> View:
                 result = handler(*arguments, **values)
                 return replace(result, name=name) if isinstance(result, View) else result
-            self.views.append(ViewHandler(name, stamped))
+
+            self.views.append(ViewHandler(name, stamped, parent, title))
             return stamped
+
         return decorator
+
+    def view_named(self, name: str) -> ViewHandler | None:
+        return next((view for view in self.views if view.name == name), None)
+
+    def parent_of(self, name: str) -> str:
+        found = self.view_named(name)
+        return found.parent if found else ""
+
+    def branch(self, name: str) -> list[ViewHandler]:
+        walked: list[ViewHandler] = []
+        seen: set[str] = set()
+        current = name
+        while current and current not in seen:
+            found = self.view_named(current)
+            if found is None:
+                break
+            seen.add(current)
+            walked.append(found)
+            current = found.parent
+        return list(reversed(walked))
 
     def job(self, interval: int, name: str | None = None, is_aligned: bool = False) -> Callable:
         if interval <= 0:
@@ -149,6 +179,7 @@ class Module:
         def decorator(handler: Callable) -> Callable:
             self.jobs.append(Job(name or handler.__name__, handler, interval, is_aligned))
             return handler
+
         return decorator
 
     def callback_data(self, action: str, *arguments: str | int) -> str:

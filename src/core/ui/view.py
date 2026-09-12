@@ -8,7 +8,7 @@ from core.ui.keyboard import Button, render_button, render_markup
 class View:
     text: str
     buttons: list[Button] = field(default_factory=list)
-    path: list[str] = field(default_factory=list)
+    heading: str | None = ""
     name: str = ""
     argument: str | None = None
     columns: int = 1
@@ -19,16 +19,19 @@ class View:
         return bool(self.name)
 
 
-def render_text(view: View) -> str:
-    if not view.path:
+def render_text(view: View, heading: list[str]) -> str:
+    if view.heading is None:
         return view.text
-    return "*" + " > ".join(view.path) + ":*\n\n" + view.text
+    parts = [view.heading] if view.heading else heading
+    if not parts:
+        return view.text
+    return "*" + " > ".join(parts) + ":*\n\n" + view.text
 
 
-def render(view: View, module_name: str,
-           return_text: str = "") -> tuple[str, telebot.types.InlineKeyboardMarkup | None]:
+def render(view: View, module_name: str, controls: list[Button] | None = None,
+           heading: list[str] | None = None) -> tuple[str, telebot.types.InlineKeyboardMarkup | None]:
     markup = render_markup(view.buttons, module_name, view.columns)
-    if view.is_screen:
+    if view.is_screen and controls:
         markup = markup or telebot.types.InlineKeyboardMarkup()
-        markup.row(render_button(Button.back(return_text), module_name))
-    return render_text(view), markup
+        markup.row(*[render_button(one, module_name) for one in controls])
+    return render_text(view, heading or []), markup

@@ -12,4 +12,4 @@ answers_per_verdict = 5
 def command_crystalball(ctx: Ctx) -> View:
     verdict, mark = random.choice(verdicts)
     answer = random.randint(1, answers_per_verdict)
-    return View(text=ctx.t(verdict + "." + str(answer)) + " " + mark, path=["🔮 " + ctx.t("title")])
+    return View(text=ctx.t(verdict + "." + str(answer)) + " " + mark)
