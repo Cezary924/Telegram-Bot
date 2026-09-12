@@ -6,6 +6,7 @@ import time
 from contextlib import contextmanager
 
 from core import paths
+from core.utils import without_secrets
 
 line_length = 146
 
@@ -13,9 +14,9 @@ line_length = 146
 def print_log(info: str, message_text: str = "") -> None:
     print(datetime.datetime.now().strftime(" %Y-%m-%d %H:%M:%S "))
     print(" " + "-" * (line_length - 2) + " ")
-    print(" " + info + " ")
+    print(" " + without_secrets(info) + " ")
     if message_text and message_text.isascii():
-        print(" - '" + message_text + "' ")
+        print(" - '" + without_secrets(message_text) + "' ")
     print("|" + "=" * (line_length - 2) + "|")
 
 
