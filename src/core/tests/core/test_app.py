@@ -195,7 +195,7 @@ def test_a_restart_nobody_was_told_about_stays_quiet(app, bot, capsys):
     app.storage.state.set(told_key, "0")
     app.announce_start()
     assert bot.sent == []
-    assert "so nobody is told it is back" in capsys.readouterr().out
+    assert "so nobody is told the Bot is back" in capsys.readouterr().out
 
 
 def test_a_shutdown_the_admin_heard_about_is_paired_with_its_return(app, bot):
