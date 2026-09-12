@@ -1,10 +1,12 @@
 import os
 import sqlite3
+from datetime import datetime, timedelta
 
 import pytest
 
 from core import loader, paths
-from core.app import App
+from core.app import App, quiet_restart, stopped_key, told_key
+from core.db.storage import Storage
 from core.module import Module
 from core.roles import Role
 from core.testing import FakeBot, make_message
@@ -162,6 +164,106 @@ def test_stopping_closes_everything(app):
         app.stop()
     assert exit_code.value.code == 0
     assert not app.services.bot.is_polling
+
+
+def an_admin(app, user_id: int = 2):
+    app.storage.users.save(user_id, "Other", "Person", "other")
+    app.storage.users.set_role(user_id, Role.ADMIN)
+    return user_id
+
+
+def test_a_failure_carries_what_broke(app, bot):
+    an_admin(app)
+    assert app.notify_admins("bot_failed", "ReadTimeout: the line went quiet")
+    assert bot.last.text == (app.catalog.text("core", "bot_failed", "en")
+                             + "\nReadTimeout: the line went quiet")
+
+
+def test_a_notification_nobody_received_says_so(app):
+    an_admin(app)
+
+    def refuse(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    app.services.bot.send_message = refuse
+    assert app.notify_admins("bot_stopped") is False
+
+
+def test_a_restart_nobody_was_told_about_stays_quiet(app, bot, capsys):
+    an_admin(app)
+    app.storage.state.set(stopped_key, datetime.now().isoformat(timespec="seconds"))
+    app.storage.state.set(told_key, "0")
+    app.announce_start()
+    assert bot.sent == []
+    assert "so nobody is told the Bot is back" in capsys.readouterr().out
+
+
+def test_a_shutdown_the_admin_heard_about_is_paired_with_its_return(app, bot):
+    an_admin(app)
+    app.storage.state.set(stopped_key, datetime.now().isoformat(timespec="seconds"))
+    app.storage.state.set(told_key, "1")
+    app.announce_start()
+    assert bot.last.text == app.catalog.text("core", "bot_started", "en")
+
+
+def test_a_long_silence_is_announced_even_if_nobody_was_told(app, bot):
+    an_admin(app)
+    away = datetime.now() - timedelta(seconds=quiet_restart + 60)
+    app.storage.state.set(stopped_key, away.isoformat(timespec="seconds"))
+    app.storage.state.set(told_key, "0")
+    app.announce_start()
+    assert bot.last.text == app.catalog.text("core", "bot_started", "en")
+
+
+def test_the_very_first_start_is_announced(app, bot):
+    an_admin(app)
+    app.announce_start()
+    assert bot.last.text == app.catalog.text("core", "bot_started", "en")
+
+
+def test_a_start_forgets_that_anybody_was_told(app, bot):
+    an_admin(app)
+    app.storage.state.set(stopped_key, datetime.now().isoformat(timespec="seconds"))
+    app.storage.state.set(told_key, "1")
+    app.announce_start()
+    assert app.storage.state.get(told_key) == "0"
+
+
+def test_a_stop_writes_down_where_it_stands_before_it_speaks(app, bot):
+    an_admin(app)
+    database_file = app.config.database_file
+    with pytest.raises(SystemExit):
+        app.stop()
+    assert bot.last.text == app.catalog.text("core", "bot_stopped", "en")
+    written = Storage(database_file)
+    assert written.state.get(stopped_key) is not None
+    assert written.state.get(told_key) == "1"
+    written.close()
+
+
+def test_a_stop_nobody_heard_is_remembered_as_untold(app):
+    an_admin(app)
+    database_file = app.config.database_file
+
+    def refuse(*_args, **_kwargs):
+        raise RuntimeError("boom")
+
+    app.services.bot.send_message = refuse
+    with pytest.raises(SystemExit):
+        app.stop()
+    written = Storage(database_file)
+    assert written.state.get(told_key) == "0"
+    written.close()
+
+
+def test_a_failing_stop_says_what_broke_and_not_that_it_stopped(app, bot):
+    an_admin(app)
+    with pytest.raises(SystemExit) as exit_code:
+        app.stop(1, "ReadTimeout: the line went quiet")
+    assert exit_code.value.code == 1
+    assert len(bot.sent) == 1
+    assert bot.last.text.startswith(app.catalog.text("core", "bot_failed", "en"))
+    assert "ReadTimeout" in bot.last.text
 
 
 def test_the_first_run_only_remembers_the_version(app, bot):
