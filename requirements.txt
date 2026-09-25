@@ -1,4 +1,4 @@
-pyTelegramBotAPI==4.36.1
+pyTelegramBotAPI==4.37.0
 requests==2.34.2
 PyYAML==6.0.3
 beautifulsoup4==4.15.0
