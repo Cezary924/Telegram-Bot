@@ -76,7 +76,7 @@ def test_about_survives_a_missing_network(known_version, offline, capsys):
     text = known_version.services.bot.last.text
     assert "Version status: _Error. Please, try again later._" in text
     assert "Version: _v1.2 (100)_" in text
-    assert "Could not read the published version - ConnectionError." in capsys.readouterr().out
+    assert "Could not read the published version - ConnectionError in 'about'." in capsys.readouterr().out
 
 
 def test_about_speaks_polish(known_version, monkeypatch):

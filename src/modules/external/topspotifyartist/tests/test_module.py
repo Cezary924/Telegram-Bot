@@ -170,7 +170,7 @@ def test_a_failing_refresh_keeps_the_old_chart(app, monkeypatch, capsys):
     monkeypatch.setattr(game, "fetch_chart", refuse)
     not_none(app.scheduler.find("topspotifyartist.refresh")).handler()
     assert len(game.chart.artists) == 1
-    assert "Could not refresh the chart - ConnectionError." in capsys.readouterr().out
+    assert "Could not refresh the chart - ConnectionError in 'topspotifyartist'." in capsys.readouterr().out
 
 
 class Answer:

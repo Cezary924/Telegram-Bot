@@ -60,7 +60,7 @@ def version_status(ctx: AdvancedCtx) -> str:
             return ctx.t("up_to_date")
         newest = Version(published_tag(ctx), published)
     except Exception as error:
-        ctx.error("Could not read the published version - " + type(error).__name__ + ".", str(error))
+        ctx.error("Could not read the published version - " + type(error).__name__, str(error))
         return ctx.t("core:error")
     key = "ahead" if ctx.version.commits > published else "behind"
     return ctx.t(key, version=str(newest))

@@ -88,7 +88,7 @@ def test_without_an_admin_the_sender_is_told(app, bot, capsys):
     app.router.handle_message(make_message("/report"))
     app.router.handle_message(make_message("value1"))
     assert bot.last.text == "Sorry, your report-message could not be sent... Please, try again later 😞"
-    assert "A report could not be sent - there are no admins." in capsys.readouterr().out
+    assert "A report could not be sent - there are no admins in 'contact'." in capsys.readouterr().out
 
 
 def test_a_message_outside_the_report_screen_is_not_forwarded(app, bot, admin):
