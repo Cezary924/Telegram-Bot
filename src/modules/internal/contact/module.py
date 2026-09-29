@@ -29,7 +29,7 @@ def forward_report(ctx: AdvancedCtx) -> str:
     admins = ctx.users.get_by_role(Role.ADMIN)
     ctx.close_screen()
     if not admins:
-        ctx.error("A report could not be sent - there are no admins.")
+        ctx.error("A report could not be sent - there are no admins")
         return ctx.t("no_admin")
     for admin in admins:
         ctx.notify(admin['id'], ctx.text_for(admin['id'], "forwarded_to_admin",

@@ -32,7 +32,7 @@ def has_ffmpeg() -> bool:
 
 
 def hint() -> str:
-    return "" if has_ffmpeg() else " ffmpeg is not installed, so only ready-made files can be taken."
+    return "" if has_ffmpeg() else " (ffmpeg is not installed, so only ready-made files can be taken)"
 
 
 def downloaded_file(path: str, limit: int) -> str | None:
@@ -71,7 +71,7 @@ def take_link(ctx: Ctx) -> View | None:
         try:
             file_path = download(ctx.text.strip(), path, ctx.file_limit)
         except Exception as error:
-            ctx.error("Could not download - " + type(error).__name__ + "." + hint(), str(error))
+            ctx.error("Could not download - " + type(error).__name__ + hint(), str(error))
             return View(text=ctx.t("failed"))
         if file_path is None:
             return View(text=ctx.t("too_big"))
