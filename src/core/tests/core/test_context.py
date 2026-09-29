@@ -327,3 +327,30 @@ def test_a_hidden_sender_stays_hidden(services, module, person):
 def test_an_ordinary_message_was_not_forwarded(services, module, person):
     assert Ctx(services, module, person, make_message("hello")).forwarded_from is None
     assert Ctx(services, module, person).forwarded_from is None
+
+
+def refusing(bot: FakeBot, refused: int):
+    sending = bot.send_message
+
+    def send_message(chat_id, *arguments, **values):
+        if chat_id == refused:
+            raise RuntimeError("Forbidden: bot was blocked by the user")
+        return sending(chat_id, *arguments, **values)
+
+    return send_message
+
+
+def test_a_message_that_cannot_be_delivered_is_reported_not_raised(services, module, person, user, capsys):
+    services.bot = FakeBot()
+    services.bot.send_message = refusing(services.bot, 2)
+    module.is_internal = True
+    services.storage.users.save(2, "Other", "Person", "other")
+    assert AdvancedCtx(services, module, person).notify(2, "text1") is False
+    assert "Could not deliver a message to 2 - RuntimeError." in capsys.readouterr().out
+
+
+def test_a_delivered_message_says_so(services, module, person, user):
+    services.bot = FakeBot()
+    module.is_internal = True
+    services.storage.users.save(2, "Other", "Person", "other")
+    assert AdvancedCtx(services, module, person).notify(2, "text1") is True

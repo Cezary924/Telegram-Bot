@@ -257,7 +257,8 @@ def notify(ctx: JobCtx, row, key: str) -> None:
     text = (mark + "<b>" + ctx.t("title", language) + ":</b>\n\n" + ctx.t(key, language) + "\n"
             + ctx.t("content", language) + ": " + italic(row['content']) + "\n"
             + ctx.t("date", language) + ": " + italic(row['date']))
-    ctx.send(row['user_id'], View(text=text))
+    if not ctx.send(row['user_id'], View(text=text)):
+        return
     ctx.db.execute("UPDATE " + ctx.db.table("reminders") + " SET is_notified = 1 WHERE id = ?;",
                    (row['id'],))
     ctx.log("Reminder " + str(row['id']) + " sent")

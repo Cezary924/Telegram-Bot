@@ -201,6 +201,25 @@ def test_statistics_count_everyone(boss, bot):
     assert "Running for: <i>0d 0h 0m</i>" in bot.last.text
 
 
+def test_an_announcement_goes_past_somebody_who_blocked_the_bot(boss, bot):
+    add_people(boss, 3)
+    sending = bot.send_message
+
+    def send_message(chat_id, *arguments, **values):
+        if chat_id == 2:
+            raise RuntimeError("Forbidden: bot was blocked by the user")
+        return sending(chat_id, *arguments, **values)
+
+    bot.send_message = send_message
+    open_menu(boss)
+    press(boss, "admin:announcement")
+    bot.clear()
+    boss.router.handle_message(make_message("The Bot will rest tonight"))
+    boss.router.wait_for_tasks()
+    assert [message.chat_id for message in bot.sent if message.chat_id != 1] == [3, 4]
+    assert "reached <i>2</i> users" in bot.last.text
+
+
 def test_an_announcement_reaches_the_others(boss, bot):
     add_people(boss, 2)
     boss.storage.settings.set_notifications(3, False)

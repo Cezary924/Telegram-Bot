@@ -246,8 +246,8 @@ def send_announcement(ctx: AdvancedCtx) -> View:
     for row in ctx.users.get_all():
         if row['id'] == ctx.user.id or not ctx.settings.has_notifications(row['id']):
             continue
-        ctx.notify(row['id'], View(ctx.text, parse_mode=None))
-        reached += 1
+        if ctx.notify(row['id'], View(ctx.text, parse_mode=None)):
+            reached += 1
     ctx.log("Announcement sent to " + str(reached) + " users", ctx.text)
     ctx.close_screen()
     return View(text=ctx.t("announcement_done", reached=italic(reached)))

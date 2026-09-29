@@ -44,6 +44,18 @@ def table_of(app) -> str:
     return app.storage.for_module("reminder").table("reminders")
 
 
+def refuse(app, refused: int) -> None:
+    bot = app.services.bot
+    sending = bot.send_message
+
+    def send_message(chat_id, *arguments, **values):
+        if chat_id == refused:
+            raise RuntimeError("Forbidden: bot was blocked by the user")
+        return sending(chat_id, *arguments, **values)
+
+    bot.send_message = send_message
+
+
 def run_job(app):
     reminder.check_reminders(JobCtx(app.services, app.registry.get("reminder")))
 
@@ -311,3 +323,17 @@ def test_the_furthest_away_comes_first(app, bot):
     open_list(app, bot)
     shown = [text for text, _ in bot.last.buttons if text.startswith(("🔔", "🔕"))]
     assert shown == ["🔔 Latest", "🔔 Middle", "🔔 Soonest"]
+
+
+def test_a_reminder_that_cannot_be_delivered_does_not_hold_up_the_others(app, bot):
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.storage.settings.set_language(2, "en")
+    set_one(app, bot, content1)
+    app.storage.database.execute("INSERT INTO " + table_of(app) + " (user_id, date, content) VALUES (?, ?, ?);",
+                                 (2, later(), content2))
+    make_due(app)
+    refuse(app, 1)
+    bot.clear()
+    run_job(app)
+    assert [message.chat_id for message in bot.sent] == [2]
+    assert [row['is_notified'] for row in rows(app)] == [0, 1]
