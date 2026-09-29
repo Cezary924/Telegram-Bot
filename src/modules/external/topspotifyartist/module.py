@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import requests
 from bs4 import BeautifulSoup
 
-from core.api import Ctx, JobCtx, Module, Role, View, italic
+from core.api import Ctx, JobCtx, Module, Role, View, labelled
 
 module = Module(name="topspotifyartist")
 
@@ -159,9 +159,10 @@ def guess(ctx: Ctx) -> View:
     left -= 1
     ctx.state.set("left", str(left))
     if left > 0:
-        return View(text=ctx.t("wrong", left=str(left)) + "\n" + compare(ctx, artists, guessed, target))
+        return View(text=ctx.t("wrong") + " " + ctx.t("chances_left") + ": " + str(left) + "\n"
+                    + compare(ctx, artists, guessed, target))
     ctx.close_screen()
-    return View(text=ctx.t("defeat") + "\n" + describe(ctx, artists, target)
+    return View(text=ctx.t("defeat") + "\n" + ctx.t("details") + ":\n" + describe(ctx, artists, target)
                 + "\n" + song_line(ctx, artists[target]))
 
 
@@ -191,21 +192,21 @@ def top_down_mark(guessed, wanted) -> str:
 
 def describe(ctx: Ctx, artists: list[Artist], index: int) -> str:
     artist = artists[index]
-    return (ctx.t("nickname") + ": " + italic(artist.name) + "\n"
-            + ctx.t("streams") + ": " + italic(compact(artist.streams)) + "\n"
-            + ctx.t("tracks") + ": " + italic(artist.tracks) + "\n"
-            + ctx.t("listeners") + ": " + italic("#" + str(index + 1)))
+    return (labelled(ctx.t("nickname"), artist.name) + "\n"
+            + labelled(ctx.t("streams"), compact(artist.streams)) + "\n"
+            + labelled(ctx.t("tracks"), artist.tracks) + "\n"
+            + labelled(ctx.t("listeners"), "#" + str(index + 1)))
 
 
 def compare(ctx: Ctx, artists: list[Artist], guessed: int, wanted: int) -> str:
     one, other = artists[guessed], artists[wanted]
-    return (ctx.t("nickname") + ": " + italic(one.name) + top_down_mark(one.name, other.name) + "\n"
-            + ctx.t("streams") + ": " + italic(compact(one.streams)) + mark(one.streams, other.streams) + "\n"
-            + ctx.t("tracks") + ": " + italic(one.tracks) + mark(one.tracks, other.tracks) + "\n"
-            + ctx.t("listeners") + ": " + italic("#" + str(guessed + 1)) + top_down_mark(guessed, wanted))
+    return (labelled(ctx.t("nickname"), one.name) + top_down_mark(one.name, other.name) + "\n"
+            + labelled(ctx.t("streams"), compact(one.streams)) + mark(one.streams, other.streams) + "\n"
+            + labelled(ctx.t("tracks"), one.tracks) + mark(one.tracks, other.tracks) + "\n"
+            + labelled(ctx.t("listeners"), "#" + str(guessed + 1)) + top_down_mark(guessed, wanted))
 
 
 def song_line(ctx: Ctx, artist: Artist) -> str:
     if not artist.song:
         return ""
-    return ctx.t("song") + ": " + italic(artist.song + (" (" + artist.song_link + ")" if artist.song_link else ""))
+    return labelled(ctx.t("song"), artist.song + (" (" + artist.song_link + ")" if artist.song_link else ""))

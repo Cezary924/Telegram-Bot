@@ -4,7 +4,7 @@ description: Użytkownicy, statystyki i sterowanie Botem
 commands.admin: Wyświetl menu Administratora
 
 title: 🛠️ Admin
-menu: 'Wybierz zadanie z podanych:'
+menu: Wybierz zadanie z podanych
 
 has_consent: tak
 no_consent: nie
@@ -14,9 +14,9 @@ previous: ⬅️ Poprzednia
 next: ➡️ Następna
 
 users: 🙋 Użytkownicy
-users_menu: 'Znajdź użytkownika, którym chcesz zarządzać:'
+users_menu: Znajdź użytkownika, którym chcesz zarządzać
 users_list: 📋 Lista
-users_list_text: 'Strona {page} z {pages}, łącznie {total} użytkowników:'
+users_list_text: Strona {page} z {pages}, łącznie {total} użytkowników
 users_search: 🔍 Szukaj po ID
 users_search_text: Podaj ID użytkownika
 users_search_missing: Użytkownik o podanym ID nie został znaleziony w bazie 😞
@@ -24,36 +24,45 @@ users_forward: ↪️ Znajdź po wiadomości
 users_forward_text: Prześlij mi wiadomość napisaną przez użytkownika, którego ID chcesz poznać 😁
 users_forward_missing: Ta wiadomość nie ma nadawcy - użytkownik ukrywa konto przy przesyłaniu 😐
 
-user_text: '{name}\nNazwa: {username}\nRanga: {role}\nZgoda: {consent}\nJęzyk: {language}\nPierwszy raz: {created}\nOstatnio: {seen}'
+labels:
+  username: Nazwa
+  rank: Ranga
+  agreement: Zgoda
+  language: Język
+  created: Pierwszy raz
+  seen: Ostatnio
+  total: Użytkowników łącznie
+  consent: Ze zgodą
+  modules: Załadowanych modułów
+  version: Wersja
+  uptime: Działa od
 user_role: 🎖️ Zmień rangę
 user_wipe: 🗑️ Usuń dane
 
-role_text: 'Obecna ranga to {role}. Wybierz nową:'
+role_text: Obecna ranga to {role}. Wybierz nową
 role_confirm: Czy na pewno chcesz obniżyć rangę do {role}? Użytkownik straci uprawnienia, które ma teraz.
 role_done: Ranga została zmieniona na {role} ✅
-role_changed: 'Zmieniono Twoją rangę na: {role}'
+role_changed: Zmieniono Twoją rangę na
 
 wipe_text: Czy na pewno chcesz usunąć wszystkie dane, które Bot zgromadził o tym użytkowniku? Operacji nie da się cofnąć.
 wipe_done: Dane użytkownika zostały usunięte ✅
 
 statistics: 📊 Statystyki
-statistics_text: '{people}\n\nUżytkowników łącznie: {total}\nZe zgodą: {consent}\nZaładowanych modułów: {modules}\nWersja: {version}\nDziała od: {uptime}'
 
 announcement: 📢 Ogłoszenie
 announcement_text: Napisz wiadomość, którą mają przeczytać wszyscy użytkownicy. Trafi do każdego, kto ma włączone powiadomienia.
 announcement_done: Ogłoszenie dotarło do {reached} użytkowników ✅
 
 alerts: 🔔 Powiadomienia o nowych użytkownikach
-alerts_text: 'Powiadomienia o nowych użytkownikach są {state}. Chcesz je włączyć?'
+alerts_text: Powiadomienia o nowych użytkownikach są {state}. Chcesz je włączyć?
 alerts_done: Powiadomienia o nowych użytkownikach są teraz {state} ✅
 
 modules: 🧩 Moduły
-modules_text: 'Dotknij modułu, aby go włączyć lub wyłączyć. Zmiana zadziała po następnym starcie:'
+modules_text: Dotknij modułu, aby go włączyć lub wyłączyć. Zmiana zadziała po następnym starcie
 modules_none: Nie ma żadnych modułów zewnętrznych do zarządzania.
 modules_done: Moduł {module} jest teraz {state}. Zrestartuj Bota, aby to zastosować ✅
 
 bot: 🤖 Bot
-bot_text: 'Wersja: {version}\nDziała od: {uptime}'
 bot_log: 📃 Log
 bot_log_none: W logu nic jeszcze nie ma.
 bot_restart: 🔄 Restart

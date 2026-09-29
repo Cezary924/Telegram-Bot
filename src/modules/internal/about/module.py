@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from core.api import AdvancedCtx, Module, View, bold, escape, italic
+from core.api import AdvancedCtx, Module, View, bold, escape, italic, labelled
 from core.version import Version
 
 module = Module(name="about")
@@ -26,7 +26,7 @@ def command_about(ctx: AdvancedCtx) -> View:
 
 
 def line(ctx: AdvancedCtx, key: str, value: str) -> str:
-    return ctx.t(key) + ": " + italic(value) + "\n"
+    return labelled(ctx.t(key), value) + "\n"
 
 
 def repository_url(ctx: AdvancedCtx) -> str:

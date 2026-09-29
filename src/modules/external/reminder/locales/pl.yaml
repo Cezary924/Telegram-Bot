@@ -4,16 +4,16 @@ description: Przypomina Ci o czymkolwiek o wyznaczonej porze
 commands.reminder: Ustaw i zarządzaj swoimi przypomnieniami
 
 title: Przypomnienia
-menu: "Ustawione przez Ciebie przypomnienia: {count}"
+menu: Ustawione przez Ciebie przypomnienia
 set: Ustaw przypomnienie
 manage: Zarządzaj przypomnieniami
 
 content: Treść
 date: Data
 ask_content: Napisz, o czym mam Ci przypomnieć
-ask_date: "Napisz, kiedy mam Ci przypomnieć, na przykład: {example}"
+ask_date: Napisz, kiedy mam Ci przypomnieć, na przykład
 wrong_content: Treść musi mieć od 1 do {limit} znaków
-wrong_date: "Nie rozumiem tej daty, zapisz ją tak: {example}"
+wrong_date: Nie rozumiem tej daty, zapisz ją tak
 past_date: Nie przypomnę Ci o czymś, co już minęło
 
 done: Przypomnienie zostało ustawione ✅
@@ -21,7 +21,8 @@ changed: Przypomnienie zostało zmienione ✅
 deleted: Przypomnienie zostało usunięte ✅
 gone: Tego przypomnienia już nie ma 💔
 empty: Nie masz jeszcze żadnych przypomnień
-pick: "Wybierz przypomnienie, którym chcesz zarządzać.\nStrona {page} z {pages}, łącznie {total}"
+pick: Wybierz przypomnienie, którym chcesz zarządzać.
+page: Strona {page} z {pages}, łącznie {total}
 previous: ⬅️ Poprzednia
 next: ➡️ Następna
 

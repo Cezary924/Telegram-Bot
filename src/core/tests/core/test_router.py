@@ -120,6 +120,19 @@ def core_text(services, key, language="en") -> str:
     return services.catalog.text("core", key, language)
 
 
+def accepted(services, language="en") -> str:
+    return core_text(services, "consent.accepted", language) + "\n" + core_text(services, "consent.ready", language)
+
+
+def declined(services, language="en") -> str:
+    return core_text(services, "consent.declined", language) + "\n" + core_text(services, "consent.goodbye", language)
+
+
+def denied(services, language="en") -> str:
+    return (core_text(services, "permission_denied", language) + "\n\n"
+            + core_text(services, "permission_hint", language))
+
+
 def agreement(services, language="en") -> str:
     return middleware.consent_view(services, language).text
 
@@ -141,7 +154,7 @@ def test_command_with_a_bot_mention_runs(router, bot, settled):
 
 def test_command_above_the_user_role_is_refused(router, bot, services, settled):
     router.handle_message(make_message("/command2"))
-    assert bot.last.text == core_text(services, "permission_denied")
+    assert bot.last.text == denied(services)
 
 
 def test_command_runs_for_an_admin(router, bot, services, settled):
@@ -171,7 +184,7 @@ def test_accepting_consent_unlocks_the_bot(router, bot, services):
     router.handle_message(make_message("/command1"))
     router.handle_callback(make_callback("core:consent_accept"))
     assert services.storage.users.has_consent(1)
-    assert bot.last.text == core_text(services, "consent.accepted")
+    assert bot.last.text == accepted(services)
     bot.clear()
     router.handle_message(make_message("/command1"))
     assert bot.last.text == "text1"
@@ -181,7 +194,7 @@ def test_declining_consent_keeps_the_bot_locked(router, bot, services):
     router.handle_message(make_message("/command1"))
     router.handle_callback(make_callback("core:consent_decline"))
     assert not services.storage.users.has_consent(1)
-    assert bot.last.text == core_text(services, "consent.declined")
+    assert bot.last.text == declined(services)
 
 
 def test_switching_the_consent_language_edits_the_message(router, bot, services):
@@ -196,14 +209,14 @@ def test_switching_the_consent_language_is_remembered(router, bot, services):
     router.handle_callback(make_callback("core:consent_language:pl", message_id=bot.last.message_id))
     assert services.storage.settings.get_language(1) == "pl"
     router.handle_callback(make_callback("core:consent_accept"))
-    assert bot.last.text == core_text(services, "consent.accepted", "pl")
+    assert bot.last.text == accepted(services, "pl")
 
 
 def test_consent_in_the_telegram_language_is_remembered(router, bot, services):
     router.handle_message(make_message("/command1", language_code="pl"))
     router.handle_callback(make_callback("core:consent_accept", language_code="pl"))
     assert services.storage.settings.get_language(1) == "pl"
-    assert bot.last.text == core_text(services, "consent.accepted", "pl")
+    assert bot.last.text == accepted(services, "pl")
 
 
 def test_a_banned_user_is_stopped(router, bot, services, settled):
@@ -407,7 +420,7 @@ def test_a_user_without_consent_can_still_answer_the_consent(router, bot, servic
     router.handle_message(make_message("/command1"))
     bot.clear()
     router.handle_callback(make_callback("core:consent_accept"))
-    assert bot.last.text == core_text(services, "consent.accepted")
+    assert bot.last.text == accepted(services)
 
 
 @module1.view("view3")

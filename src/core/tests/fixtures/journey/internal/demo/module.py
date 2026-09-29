@@ -1,4 +1,4 @@
-from core.api import Button, Ctx, Module, Role, View
+from core.api import Button, Ctx, Module, Role, View, labelled
 
 module = Module(name="demo")
 
@@ -29,4 +29,4 @@ def save_note(ctx: Ctx) -> str:
     ctx.state["note"] = ctx.text
     ctx.db.execute("INSERT INTO module_demo_notes (user_id, note) VALUES (?, ?);",
                    (ctx.user.id, ctx.text))
-    return ctx.t("details.saved", note=ctx.text)
+    return labelled(ctx.t("details.saved"), ctx.text)

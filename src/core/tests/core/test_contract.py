@@ -253,32 +253,50 @@ def test_a_value_yaml_reads_as_a_boolean_is_refused(tmp_path):
     assert "has the value of 'key1' read as a boolean" in contract.check_yaml_traps(module)[0]
 
 
-@pytest.mark.parametrize("text", ["'<b>{name}</b>'", "'Rank: <i>{role}</i>'", "'*Title:*'",
-                                  "'Rank: _{role}_'"])
+def texts_module(tmp_path, body: str) -> Module:
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    write_locales(tmp_path, body)
+    return module
+
+
+@pytest.mark.parametrize("text", ["<b>{name}</b>", "The rank is <i>{role}</i>", "A *bold* word",
+                                  "Rank _{role}_", "_bold_ word"])
 def test_markup_in_a_text_is_refused(tmp_path, text):
+    problems = contract.check_texts(texts_module(tmp_path, "key1: " + text + "\n"))
+    assert "has markup in 'key1' - format it in the code" in problems[0]
+
+
+@pytest.mark.parametrize("body", ["key1: 'quoted'\n", 'key1: "quoted"\n', "key1: |\n  a block\n"])
+def test_a_quoted_text_is_refused(tmp_path, body):
+    problems = contract.check_texts(texts_module(tmp_path, body))
+    assert "quotes 'key1' - write it bare" in problems[0]
+
+
+def test_a_quoted_text_is_named_by_its_full_key(tmp_path):
+    problems = contract.check_texts(texts_module(tmp_path, "group:\n  key1: 'quoted'\n"))
+    assert "quotes 'group.key1'" in problems[0]
+
+
+def test_a_text_broken_into_lines_is_refused(tmp_path):
+    problems = contract.check_texts(texts_module(tmp_path, "key1: one\\ntwo\n"))
+    assert "breaks 'key1' into lines - split it into keys" in problems[0]
+
+
+@pytest.mark.parametrize("text", ["Weight & Height", "5 < 6 > 4", "Seen {user_id} and {first_seen}",
+                                  "snake_case", "Fields with * are required"])
+def test_a_bare_line_of_text_is_fine(tmp_path, text):
+    assert contract.check_texts(texts_module(tmp_path, "key1: " + text + "\n")) == []
+
+
+def test_the_core_texts_are_bare_single_lines():
+    assert contract.text_problems(core_locales_dir) == []
+
+
+def test_other_words_are_fine(tmp_path):
     module = Module(name="module1")
     module.path = str(tmp_path)
-    write_locales(tmp_path, "key1: " + text + "\n")
-    assert "has markup in 'key1'" in contract.check_markup(module)[0]
-
-
-@pytest.mark.parametrize("text", ["Weight & Height", "'5 < 6 > 4'", "'{user_id} and {first_seen}'",
-                                  "snake_case", "'* required'"])
-def test_plain_text_is_fine(tmp_path, text):
-    module = Module(name="module1")
-    module.path = str(tmp_path)
-    write_locales(tmp_path, "key1: " + text + "\n")
-    assert contract.check_markup(module) == []
-
-
-def test_the_core_texts_carry_no_markup():
-    assert contract.markup_problems(core_locales_dir) == []
-
-
-def test_quoted_words_are_fine(tmp_path):
-    module = Module(name="module1")
-    module.path = str(tmp_path)
-    write_locales(tmp_path, "'yes': 'no'\nkey1: 'off'\n")
+    write_locales(tmp_path, "key1: given\nkey2: turned off\n")
     assert contract.check_yaml_traps(module) == []
 
 

@@ -22,7 +22,7 @@ def core_button(services: Services, key: str, language: str, action: str, *argum
 def consent_view(services: Services, language: str) -> View:
     other_language = "en" if language == "pl" else "pl"
     return View(
-        text=(bold(core_text(services, "consent.title", language)) + "\n\n"
+        text=(bold(core_text(services, "consent.title", language), ":") + "\n\n"
               + core_text(services, "consent.question", language)),
         buttons=[
             core_button(services, "consent.language_switch", language,
@@ -46,7 +46,8 @@ def check_consent(services: Services, user: User) -> View | None:
 def check_role(services: Services, user: User, required_role: Role) -> View | None:
     if user.role >= required_role:
         return None
-    return View(core_text(services, "permission_denied", user.language))
+    return View(core_text(services, "permission_denied", user.language) + "\n\n"
+                + core_text(services, "permission_hint", user.language))
 
 
 def check(services: Services, user: User, required_role: Role) -> View | None:

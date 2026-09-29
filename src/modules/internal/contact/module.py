@@ -1,4 +1,4 @@
-from core.api import AdvancedCtx, Button, Module, Role, View
+from core.api import AdvancedCtx, Button, Module, Role, View, escape
 
 module = Module(name="contact")
 
@@ -21,7 +21,7 @@ def command_report(ctx: AdvancedCtx) -> View:
 
 @module.view("report", title="report_title")
 def report(ctx: AdvancedCtx) -> View:
-    return View(text=ctx.t("report_question"))
+    return View(text=ctx.t("report_question") + "\n" + ctx.t("report_hint"))
 
 
 @module.state("report")
@@ -33,7 +33,7 @@ def forward_report(ctx: AdvancedCtx) -> str:
         return ctx.t("no_admin")
     for admin in admins:
         ctx.notify(admin['id'], ctx.text_for(admin['id'], "forwarded_to_admin",
-                                             name=ctx.user.first_name, id=str(ctx.user.id),
-                                             text=ctx.text))
+                                             name=ctx.user.first_name, id=str(ctx.user.id))
+                   + ":\n\n" + escape(ctx.text))
     ctx.log("Report forwarded to the Admin", ctx.text)
     return ctx.t("report_sent")

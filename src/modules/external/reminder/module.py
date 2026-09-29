@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from core.api import Button, Ctx, JobCtx, Module, Role, View, escape, italic
+from core.api import Button, Ctx, JobCtx, Module, Role, View, escape, labelled, italic
 
 module = Module(name="reminder")
 
@@ -41,7 +41,7 @@ def wanted_id(ctx: Ctx) -> int:
 
 
 def details(ctx: Ctx, content: str, date: str) -> str:
-    return ctx.t("content") + ": " + italic(content) + "\n" + ctx.t("date") + ": " + italic(date)
+    return labelled(ctx.t("content"), content) + "\n" + labelled(ctx.t("date"), date)
 
 
 @module.command("reminder", role=Role.USER)
@@ -55,7 +55,7 @@ def menu(ctx: Ctx) -> View:
     buttons = [Button(ctx.t("set"), "set")]
     if rows:
         buttons.append(Button(ctx.t("manage"), "manage"))
-    return View(text=ctx.t("menu", count=italic(len(rows))),
+    return View(text=labelled(ctx.t("menu"), len(rows)),
                 buttons=buttons)
 
 
@@ -105,7 +105,7 @@ def open_date(ctx: Ctx) -> View:
 @module.view("date", parent="menu", title="date")
 def date_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
-    return View(text=ctx.t("ask_date", example=italic(example_date())),
+    return View(text=labelled(ctx.t("ask_date"), example_date()),
                 argument=str(reminder_id) if reminder_id else None)
 
 
@@ -117,7 +117,7 @@ def example_date() -> str:
 def take_date(ctx: Ctx) -> View:
     moment = parse_date(ctx.text)
     if moment is None:
-        return ctx.retry(ctx.t("wrong_date", example=italic(example_date())))
+        return ctx.retry(labelled(ctx.t("wrong_date"), example_date()))
     if moment < datetime.now().replace(second=0, microsecond=0):
         return ctx.retry(ctx.t("past_date"))
     date = moment.strftime(date_format)
@@ -170,7 +170,8 @@ def manage(ctx: Ctx) -> View:
     if pages > 1:
         buttons.append(Button(ctx.t("previous"), "manage", max(0, page - 1)))
         buttons.append(Button(ctx.t("next"), "manage", min(pages - 1, page + 1)))
-    return View(text=ctx.t("pick", page=italic(page + 1), pages=italic(pages), total=italic(len(rows))),
+    return View(text=ctx.t("pick") + "\n"
+                + ctx.t("page", page=italic(page + 1), pages=italic(pages), total=italic(len(rows))),
                 buttons=buttons, argument=str(page))
 
 
@@ -255,8 +256,8 @@ def due_reminders(ctx: JobCtx, now: datetime) -> list:
 def notify(ctx: JobCtx, row, key: str) -> None:
     language = ctx.language_of(row['user_id'])
     text = (mark + "<b>" + ctx.t("title", language) + ":</b>\n\n" + ctx.t(key, language) + "\n"
-            + ctx.t("content", language) + ": " + italic(row['content']) + "\n"
-            + ctx.t("date", language) + ": " + italic(row['date']))
+            + labelled(ctx.t("content", language), row['content']) + "\n"
+            + labelled(ctx.t("date", language), row['date']))
     if not ctx.send(row['user_id'], View(text=text)):
         return
     ctx.db.execute("UPDATE " + ctx.db.table("reminders") + " SET is_notified = 1 WHERE id = ?;",

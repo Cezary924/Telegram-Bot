@@ -12,7 +12,8 @@ role_user: User
 role_admin: Admin
 
 banned_info: Sorry, you are not allowed to communicate with me 😐
-permission_denied: Sorry, you cannot use this command... 😭\n\nPlease, contact the Administrator for a higher permission level 🧑‍🔬
+permission_denied: Sorry, you cannot use this command... 😭
+permission_hint: Please, contact the Administrator for a higher permission level 🧑‍🔬
 menu_closed: The menu has been closed
 not_working_buttons: Sorry, this button does not work anymore... 😥
 unknown_command: Sorry, I do not understand this command... 💔
@@ -22,14 +23,19 @@ bot_started: The Bot has been started successfully!
 bot_stopped: The Bot has been stopped!
 bot_failed: The Bot has encountered an error!
 
-new_user: 'A new user has met the Bot:\nName: {name}\nID: {id}'
+new_user:
+  title: A new user has met the Bot
+  name: Name
+  id: ID
 bot_updated: The Bot has been updated to the latest version. There may be temporary difficulties in the stable operation of the Bot. We ask for little patience and understanding 🙏
 
 consent:
-  title: '✋ Data Processing Agreement:'
+  title: ✋ Data Processing Agreement
   question: This is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose 💝
   yes_button: ✅ Yes, I agree
   no_button: ❌ No, I do not agree
-  accepted: I am glad it is not the end of our journey 💞 \nI can follow your instructions from now on 🫡
-  declined: Ok... 😞 \nNice to meet you 😄
+  accepted: I am glad it is not the end of our journey 💞
+  ready: I can follow your instructions from now on 🫡
+  declined: Ok... 😞
+  goodbye: Nice to meet you 😄
   language_switch: 🇵🇱 Polski

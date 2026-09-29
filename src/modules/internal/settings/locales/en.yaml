@@ -4,7 +4,7 @@ description: Language, notifications and data deletion
 commands.settings: Show the settings menu
 
 title: ⚙️ Settings
-menu: 'Select the setting of the following:'
+menu: Select the setting of the following
 
 notifications: 🛎️ Notifications
 notifications_question: Do you want notifications to be turned on?
@@ -12,7 +12,7 @@ notifications_on: Notifications have been enabled ✅
 notifications_off: Notifications have been disabled ❌
 
 language: 🌐 Language
-language_question: 'Select a language:'
+language_question: Select a language
 language_changed: The displayed language has been changed ✅
 
 deletedata: 🗑️ Data Deletion

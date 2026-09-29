@@ -205,16 +205,27 @@ jest awaryjnym źródłem dla każdego innego języka. Każdy język nazywa sam 
 
 ### Formatowanie
 
-Tekst to zwykły tekst - bez tagów i bez Markdownu, a kontrakt odrzuca tekst, który ma jedno albo drugie. O tym, jak
-tekst wygląda, decyduje kod, w miejscu użycia:
+Tekst to jedna goła linijka słów, więc tłumaczenie wymaga wyłącznie słów. Kontrakt odrzuca tekst w cudzysłowie,
+tekst połamany na linie oraz tekst z tagami albo Markdownem. Cała reszta należy do kodu - składa linie, dokleja
+dwukropek wprowadzający wartość i decyduje, jak wygląda każda część:
+
+```yaml
+menu: Ustawione przez Ciebie przypomnienia
+pick: Wybierz przypomnienie, którym chcesz zarządzać.
+page: Strona {page} z {pages}, łącznie {total}
+```
 
 ```python
-from core.api import bold, escape, italic
+from core.api import bold, escape, italic, labelled
 
+labelled(ctx.t("menu"), len(rows))  # "Ustawione przez Ciebie przypomnienia: <i>3</i>"
+ctx.t("pick") + "\n" + ctx.t("page", page=italic(page), pages=italic(pages), total=italic(total))
 ctx.t("done", role=italic(role))  # "Ranga została zmieniona na {role}", z rangą kursywą
-bold(ctx.config.bot_name) + "\n" + ctx.t("labels.version") + ": " + italic(version)
 Button(escape(row['content']), "one", row['id'])  # to, co napisał użytkownik, jako bezpieczny tekst
 ```
+
+> Tekst nigdy nie kończy się dwukropkiem ani nie zawiera dwukropka ze spacją, a same słowa ```yes```, ```no```, ```on```
+> i ```off``` YAML czyta jako prawdę i fałsz. Gdy zdanie ich potrzebuje, zostaje sformułowane inaczej albo podzielone.
 
 Wiadomości wychodzą jako HTML. Wszystko, co trafia do ```ctx.t``` jako wartość, jest escapowane po drodze, więc imię
 w rodzaju ```<Eve> & co``` albo nazwa użytkownika ```john_doe``` nie zepsują wiadomości. ```bold``` i ```italic```
@@ -278,7 +289,7 @@ youtube: false
 - nazwa w manifeście zgadza się z katalogiem, nic nie wymaga samego siebie,
 - jest jeden plik językowy na każdy język Bota, każdy z tymi samymi kluczami co ```en.yaml```, w tym ```name```,
   ```description``` oraz klucz opisu każdej komendy,
-- żaden tekst nie zawiera tagów ani Markdownu, bo formatowanie należy do kodu,
+- każdy tekst to jedna goła linijka, bez cudzysłowów, łamania linii, tagów i Markdownu,
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
 - moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w

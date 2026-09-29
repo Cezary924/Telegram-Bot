@@ -5,6 +5,7 @@ from core import loader, middleware, paths
 from core.app import App
 from core.roles import Role
 from core.testing import FakeBot, make_callback, make_message
+from core.ui.html import labelled
 from core.tests.conftest import fixtures_dir, fixtures_package
 from core.utils import not_none
 
@@ -62,11 +63,12 @@ class TestUserJourney:
     def test_04_accepting_unlocks_the_bot(self, app):
         app.router.handle_callback(make_callback("core:consent_accept"))
         assert app.storage.users.has_consent(1)
-        assert app.services.bot.last.text == core_text(app, "consent.accepted")
+        assert app.services.bot.last.text == core_text(app, "consent.accepted") + "\n" + core_text(app, "consent.ready")
 
     def test_05_a_guest_still_cannot_run_a_user_command(self, app):
         app.router.handle_message(make_message("/demo"))
-        assert app.services.bot.last.text == core_text(app, "permission_denied")
+        assert app.services.bot.last.text == (core_text(app, "permission_denied") + "\n\n"
+                                              + core_text(app, "permission_hint"))
         assert app.storage.navigation.current(1) is None
 
     def test_06_a_promoted_user_gets_the_menu(self, app):
@@ -92,7 +94,7 @@ class TestUserJourney:
 
     def test_09_a_message_on_that_screen_reaches_its_state_handler(self, app):
         app.router.handle_message(make_message("first note"))
-        assert app.services.bot.last.text == module_text(app, "details.saved", note="first note")
+        assert app.services.bot.last.text == labelled(module_text(app, "details.saved"), "first note")
         assert app.storage.module_state.get(1, "demo", "note") == "first note"
         rows = app.storage.for_module("demo").query_all("SELECT * FROM module_demo_notes;")
         assert [row['note'] for row in rows] == ["first note"]

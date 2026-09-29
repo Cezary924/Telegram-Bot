@@ -206,16 +206,27 @@ less, and ```en.yaml``` is the fallback for every other language. Each language 
 
 ### Formatting
 
-A text is plain text - no tags and no Markdown, and the contract refuses a text that has either. How a text looks is
-decided in the code, where it is used:
+A text is one bare line of words, so translating it takes nothing but words. The contract refuses a text in quotes,
+a text broken into lines and a text with tags or Markdown. Everything else is the code's job - it puts lines
+together, adds the colon that introduces a value and decides how each part looks:
+
+```yaml
+menu: Reminders you have set
+pick: Pick the reminder you want to manage.
+page: Page {page} of {pages}, {total} in total
+```
 
 ```python
-from core.api import bold, escape, italic
+from core.api import bold, escape, italic, labelled
 
+labelled(ctx.t("menu"), len(rows))  # "Reminders you have set: <i>3</i>"
+ctx.t("pick") + "\n" + ctx.t("page", page=italic(page), pages=italic(pages), total=italic(total))
 ctx.t("done", role=italic(role))  # "The rank has been changed to {role}" with the role in italics
-bold(ctx.config.bot_name) + "\n" + ctx.t("labels.version") + ": " + italic(version)
 Button(escape(row['content']), "one", row['id'])  # anything the user wrote, turned into safe text
 ```
+
+> A text never ends with a colon or contains one followed by a space, and ```yes```, ```no```, ```on``` and ```off```
+> alone are words YAML reads as true and false. Where a sentence needs them, it is worded differently or split.
 
 Messages go out as HTML. Whatever reaches ```ctx.t``` as a value is escaped on the way in, so a name like
 ```<Eve> & co``` or a username like ```john_doe``` cannot break a message. ```bold``` and ```italic``` escape what they
@@ -279,7 +290,7 @@ youtube: false
 - the manifest name matches the directory and nothing requires itself,
 - there is one language file per language the Bot supports, each with the same keys as ```en.yaml```, including
   ```name```, ```description``` and a description key for every command,
-- no text carries tags or Markdown, because formatting belongs to the code,
+- every text is one bare line, with no quotes, line breaks, tags or Markdown,
 - callback names leave room for arguments within Telegram's 64 byte limit,
 - ```schema.sql``` creates objects carrying the module prefix only,
 - an external module imports only ```core.api``` and ```core.testing``` from the core, and from other modules only those

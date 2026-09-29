@@ -12,12 +12,16 @@ def escape(text) -> str:
     return text if isinstance(text, Html) else html.escape(str(text), quote=False)
 
 
-def bold(text) -> Html:
-    return Html("<b>" + escape(text) + "</b>")
+def bold(*parts) -> Html:
+    return Html("<b>" + "".join(escape(part) for part in parts) + "</b>")
 
 
-def italic(text) -> Html:
-    return Html("<i>" + escape(text) + "</i>")
+def italic(*parts) -> Html:
+    return Html("<i>" + "".join(escape(part) for part in parts) + "</i>")
+
+
+def labelled(label, value) -> Html:
+    return Html(escape(label) + ": " + italic(value))
 
 
 def plain(text: str) -> str:

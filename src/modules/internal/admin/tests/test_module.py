@@ -237,10 +237,10 @@ def test_an_announcement_reaches_the_others(boss, bot):
 def test_alerts_can_be_turned_off(boss, bot):
     open_menu(boss)
     press(boss, "admin:alerts")
-    assert "Alerts about new Users are on" in bot.last.text
+    assert "Alerts about new Users are turned on" in bot.last.text
     press(boss, "admin:alerts_set:0")
     assert not boss.storage.settings.has_admin_alerts(1)
-    assert "are now off" in bot.last.text
+    assert "are now turned off" in bot.last.text
 
 
 def test_the_bot_screen_shows_the_version(boss, bot):
