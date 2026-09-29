@@ -38,7 +38,7 @@ def test_send_reaches_the_user(job_ctx, services, user):
 
 def test_send_renders_a_view(job_ctx, services, user):
     job_ctx.send(user, View("text1", heading="one"))
-    assert services.bot.last.text == "*one:*\n\ntext1"
+    assert services.bot.last.text == "<b>one:</b>\n\ntext1"
 
 
 def test_send_respects_the_notification_setting(job_ctx, services, user):

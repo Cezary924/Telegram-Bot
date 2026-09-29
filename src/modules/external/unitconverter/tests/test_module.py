@@ -35,27 +35,27 @@ def test_a_bare_number_does_not_reach_the_converter(app, bot):
 def test_a_length_is_converted_into_every_length(app, bot):
     app.router.handle_message(make_message("5 km"))
     text = bot.last.text
-    assert text.startswith("*🧮 Unit converter:*\n\n*5 km*\n")
-    assert "_m_: 5000" in text
-    assert "_mm_: 5e+06" in text
-    assert "_mi_: 3.10685" in text
+    assert text.startswith("<b>🧮 Unit converter:</b>\n\n<b>5 km</b>\n")
+    assert "<i>m</i>: 5000" in text
+    assert "<i>mm</i>: 5e+06" in text
+    assert "<i>mi</i>: 3.10685" in text
 
 
 def test_a_mass_is_converted(app, bot):
     app.router.handle_message(make_message("1 kg"))
-    assert "_g_: 1000" in bot.last.text
-    assert "_t_: 0.001" in bot.last.text
+    assert "<i>g</i>: 1000" in bot.last.text
+    assert "<i>t</i>: 0.001" in bot.last.text
 
 
 def test_a_time_is_converted(app, bot):
     app.router.handle_message(make_message("1 h"))
-    assert "_min_: 60" in bot.last.text
-    assert "_s_: 3600" in bot.last.text
+    assert "<i>min</i>: 60" in bot.last.text
+    assert "<i>s</i>: 3600" in bot.last.text
 
 
 def test_the_command_explains_how(app, bot):
     app.router.handle_message(make_message("/unitconverter"))
-    assert bot.last.text.startswith("*🧮 Unit converter:*")
+    assert bot.last.text.startswith("<b>🧮 Unit converter:</b>")
     assert "send me your number with its current unit" in bot.last.text
 
 
@@ -68,7 +68,7 @@ def test_a_guest_gets_no_conversion(app, bot):
 def test_it_speaks_polish(app, bot):
     app.storage.settings.set_language(1, "pl")
     app.router.handle_message(make_message("5 km"))
-    assert bot.last.text.startswith("*🧮 Konwerter jednostek:*")
+    assert bot.last.text.startswith("<b>🧮 Konwerter jednostek:</b>")
 
 
 def test_a_screen_takes_the_message_before_the_converter(app, bot):

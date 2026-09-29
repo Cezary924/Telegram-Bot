@@ -3,6 +3,7 @@ import yaml
 
 from core import paths
 from core.log import print_error
+from core.ui.html import Html, escape
 
 core_namespace = "core"
 core_locales_dir: str = os.path.join(paths.core_dir, "locales")
@@ -69,16 +70,17 @@ class Catalog:
     def has(self, namespace: str, key: str, language: str) -> bool:
         return full_key(namespace, key) in self._texts.get(language, {})
 
-    def text(self, namespace: str, key: str, language: str, /, **values) -> str:
+    def text(self, namespace: str, key: str, language: str, /, **values) -> Html:
         wanted = full_key(namespace, key)
         for candidate in [language, default_language]:
             text = self._texts.get(candidate, {}).get(wanted)
             if text is not None:
-                return text.format(**values) if values else text
+                safe = escape(text)
+                return Html(safe.format(**{name: escape(value) for name, value in values.items()}) if values else safe)
         if wanted not in self._reported:
             self._reported.add(wanted)
             print_error("Missing translation - " + wanted + " (" + language + ").")
-        return wanted
+        return Html(wanted)
 
     def label(self, language: str) -> str:
         return self.text(core_namespace, language_label_key, language)

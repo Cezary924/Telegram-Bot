@@ -14,7 +14,7 @@ def add_module(app, name: str, command: str, title: str, description: str, is_in
 def test_help_lists_every_internal_module_a_user_can_reach(app, bot):
     app.router.handle_message(make_message("/help"))
     text = bot.last.text
-    assert text.startswith("*📃 Help:*\n\nHere is what I can do for you:\n\n")
+    assert text.startswith("<b>📃 Help:</b>\n\nHere is what I can do for you:\n\n")
     for found in app.registry.modules():
         open_commands = [one for one in found.commands if one.role <= Role.USER]
         if found.is_internal and open_commands:
@@ -48,7 +48,7 @@ def test_a_module_names_the_first_command_a_user_can_run(app, bot):
 
 def test_an_entry_names_the_command_the_module_and_what_it_does(app, bot):
     app.router.handle_message(make_message("/help"))
-    assert "/help - 📃 Help - _The list of the Bot commands_" in bot.last.text
+    assert "/help - 📃 Help - <i>The list of the Bot commands</i>" in bot.last.text
 
 
 def test_help_leaves_out_external_modules(app, bot):
@@ -60,14 +60,14 @@ def test_help_leaves_out_external_modules(app, bot):
 def test_help_picks_up_a_new_internal_module(app, bot):
     add_module(app, "something", "something", "Something", "Does something", True)
     app.router.handle_message(make_message("/help"))
-    assert "/something - Something - _Does something_" in bot.last.text
+    assert "/something - Something - <i>Does something</i>" in bot.last.text
 
 
 def test_help_speaks_polish(app, bot):
     app.storage.settings.set_language(1, "pl")
     app.router.handle_message(make_message("/help"))
-    assert bot.last.text.startswith("*📃 Pomoc:*\n\nOto co mogę dla Ciebie zrobić:")
-    assert "/help - 📃 Pomoc - _Lista komend Bota_" in bot.last.text
+    assert bot.last.text.startswith("<b>📃 Pomoc:</b>\n\nOto co mogę dla Ciebie zrobić:")
+    assert "/help - 📃 Pomoc - <i>Lista komend Bota</i>" in bot.last.text
 
 
 def test_help_is_not_a_screen(app):

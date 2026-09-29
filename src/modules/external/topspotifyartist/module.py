@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import requests
 from bs4 import BeautifulSoup
 
-from core.api import Ctx, JobCtx, Module, Role, View
+from core.api import Ctx, JobCtx, Module, Role, View, italic
 
 module = Module(name="topspotifyartist")
 
@@ -191,21 +191,21 @@ def top_down_mark(guessed, wanted) -> str:
 
 def describe(ctx: Ctx, artists: list[Artist], index: int) -> str:
     artist = artists[index]
-    return (ctx.t("nickname") + ": _" + artist.name + "_\n"
-            + ctx.t("streams") + ": _" + compact(artist.streams) + "_\n"
-            + ctx.t("tracks") + ": _" + str(artist.tracks) + "_\n"
-            + ctx.t("listeners") + ": _#" + str(index + 1) + "_")
+    return (ctx.t("nickname") + ": " + italic(artist.name) + "\n"
+            + ctx.t("streams") + ": " + italic(compact(artist.streams)) + "\n"
+            + ctx.t("tracks") + ": " + italic(artist.tracks) + "\n"
+            + ctx.t("listeners") + ": " + italic("#" + str(index + 1)))
 
 
 def compare(ctx: Ctx, artists: list[Artist], guessed: int, wanted: int) -> str:
     one, other = artists[guessed], artists[wanted]
-    return (ctx.t("nickname") + ": _" + one.name + "_" + top_down_mark(one.name, other.name) + "\n"
-            + ctx.t("streams") + ": _" + compact(one.streams) + "_" + mark(one.streams, other.streams) + "\n"
-            + ctx.t("tracks") + ": _" + str(one.tracks) + "_" + mark(one.tracks, other.tracks) + "\n"
-            + ctx.t("listeners") + ": _#" + str(guessed + 1) + "_" + top_down_mark(guessed, wanted))
+    return (ctx.t("nickname") + ": " + italic(one.name) + top_down_mark(one.name, other.name) + "\n"
+            + ctx.t("streams") + ": " + italic(compact(one.streams)) + mark(one.streams, other.streams) + "\n"
+            + ctx.t("tracks") + ": " + italic(one.tracks) + mark(one.tracks, other.tracks) + "\n"
+            + ctx.t("listeners") + ": " + italic("#" + str(guessed + 1)) + top_down_mark(guessed, wanted))
 
 
 def song_line(ctx: Ctx, artist: Artist) -> str:
     if not artist.song:
         return ""
-    return ctx.t("song") + ": _" + artist.song + (" (" + artist.song_link + ")" if artist.song_link else "") + "_"
+    return ctx.t("song") + ": " + italic(artist.song + (" (" + artist.song_link + ")" if artist.song_link else ""))

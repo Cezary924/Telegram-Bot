@@ -18,6 +18,11 @@ def test_button_takes_arguments_positionally():
     assert button.arguments == (42, "value1")
 
 
+def test_a_button_shows_its_text_without_markup():
+    rendered = render_button(Button("<b>Weight &amp; Height</b>", "action1"), "module1")
+    assert rendered.text == "Weight & Height"
+
+
 def test_buttons_compare_by_value():
     assert Button("text1", "action1") == Button("text1", "action1")
     assert Button("text1", "action1") != Button("text1", "action2")

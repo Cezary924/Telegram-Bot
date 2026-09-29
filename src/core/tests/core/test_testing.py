@@ -39,10 +39,10 @@ def test_make_callback():
 
 def test_send_message_is_recorded():
     bot = FakeBot()
-    bot.send_message(1, "text1", parse_mode="Markdown")
+    bot.send_message(1, "text1", parse_mode="HTML")
     assert bot.last.chat_id == 1
     assert bot.last.text == "text1"
-    assert bot.last.parse_mode == "Markdown"
+    assert bot.last.parse_mode == "HTML"
 
 
 def test_message_ids_grow():

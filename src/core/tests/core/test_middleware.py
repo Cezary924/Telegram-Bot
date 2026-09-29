@@ -37,9 +37,14 @@ def test_ban_wins_over_a_missing_consent(loaded):
     assert blocked.text == loaded.catalog.text("core", "banned_info", "en")
 
 
+def agreement(loaded, language="en") -> str:
+    return ("<b>" + loaded.catalog.text("core", "consent.title", language) + "</b>\n\n"
+            + loaded.catalog.text("core", "consent.question", language))
+
+
 def test_missing_consent_shows_the_agreement(loaded):
     blocked = not_none(middleware.check(loaded, person(has_consent=False), Role.GUEST))
-    assert blocked.text == loaded.catalog.text("core", "consent.question", "en")
+    assert blocked.text == agreement(loaded)
     _, markup = render(blocked, "core")
     assert [button[0].callback_data for button in not_none(markup).keyboard] == [
         "core:consent_language:pl", "core:consent_accept", "core:consent_decline"]
@@ -60,7 +65,7 @@ def test_consent_is_not_a_screen(loaded):
 
 def test_missing_consent_wins_over_a_missing_role(loaded):
     blocked = not_none(middleware.check(loaded, person(Role.GUEST, has_consent=False), Role.ADMIN))
-    assert blocked.text == loaded.catalog.text("core", "consent.question", "en")
+    assert blocked.text == agreement(loaded)
 
 
 def test_too_low_role_is_stopped(loaded):

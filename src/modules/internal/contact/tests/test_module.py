@@ -14,21 +14,21 @@ def admin(app):
 
 def test_contact_names_the_administrator(app, bot):
     app.router.handle_message(make_message("/contact"))
-    assert bot.last.text.startswith("*☎️ Contact:*")
+    assert bot.last.text.startswith("<b>☎️ Contact:</b>")
     assert "@" in bot.last.text
     assert [data for _, data in bot.last.buttons] == ["contact:report"]
 
 
 def test_report_opens_a_screen_that_waits_for_the_message(app, bot):
     app.router.handle_message(make_message("/report"))
-    assert bot.last.text.startswith("*☎️ Contact > 📨 Report:*")
+    assert bot.last.text.startswith("<b>☎️ Contact &gt; 📨 Report:</b>")
     assert app.storage.navigation.current(1) is not None
 
 
 def test_the_contact_button_opens_the_same_screen(app, bot):
     app.router.handle_message(make_message("/contact"))
     app.router.handle_callback(make_callback("contact:report", message_id=bot.last.message_id))
-    assert bot.last.text.startswith("*☎️ Contact > 📨 Report:*")
+    assert bot.last.text.startswith("<b>☎️ Contact &gt; 📨 Report:</b>")
 
 
 def test_a_report_reaches_the_admin(app, bot, admin):
@@ -39,7 +39,7 @@ def test_a_report_reaches_the_admin(app, bot, admin):
     assert len(forwarded) == 1
     assert forwarded[0].text == ("Hi, First (1) would like to send you this report-message:\n\n"
                                  "The downloader is broken")
-    assert forwarded[0].parse_mode is None
+    assert forwarded[0].parse_mode == "HTML"
 
 
 def test_the_sender_is_told_it_went_through(app, bot, admin):
@@ -67,12 +67,12 @@ def test_each_admin_reads_it_in_their_own_language(app, bot, admin):
     assert forwarded[0].text.startswith("Cześć, First (1) chce przekazać Ci")
 
 
-def test_a_report_with_markdown_characters_survives(app, bot, admin):
+def test_a_report_with_markup_characters_survives(app, bot, admin):
     app.router.handle_message(make_message("/report"))
     bot.clear()
-    app.router.handle_message(make_message("the *_weird_* thing {broken}"))
+    app.router.handle_message(make_message("the *_weird_* <thing> & {broken}"))
     forwarded = [message for message in bot.sent if message.chat_id == admin]
-    assert forwarded[0].text.endswith("the *_weird_* thing {broken}")
+    assert forwarded[0].text.endswith("the *_weird_* &lt;thing&gt; &amp; {broken}")
 
 
 def test_a_silent_admin_gets_a_silent_message(app, bot, admin):

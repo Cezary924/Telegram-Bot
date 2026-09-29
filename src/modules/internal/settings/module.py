@@ -54,7 +54,7 @@ def language(ctx: AdvancedCtx) -> View:
 def set_language(ctx: AdvancedCtx) -> View:
     wanted = ctx.arguments[0] if ctx.arguments else ""
     if wanted not in [code for code, _ in ctx.languages]:
-        return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
+        return View(ctx.t("core:not_working_buttons"), heading=None)
     ctx.use_language(wanted)
     ctx.log("Language changed to " + wanted)
     ctx.close_screen()

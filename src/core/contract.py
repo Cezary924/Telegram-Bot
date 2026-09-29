@@ -107,6 +107,26 @@ def flat_pairs(data: dict):
             yield from flat_pairs(value)
 
 
+markup_pattern = re.compile(r"</?[a-zA-Z][^>]*>|\*[^*\s][^*]*\*|(?<!\w)_[^_\s][^_]*_(?!\w)")
+
+
+def markup_problems(directory: str) -> list[str]:
+    if not os.path.isdir(directory):
+        return []
+    problems = []
+    for name in sorted(os.listdir(directory)):
+        if not name.endswith(".yaml"):
+            continue
+        for key, text in load_locale_file(os.path.join(directory, name)).items():
+            if markup_pattern.search(text):
+                problems.append("'" + name + "' has markup in '" + key + "' - format it in the code")
+    return problems
+
+
+def check_markup(module: Module) -> list[str]:
+    return markup_problems(os.path.join(module.path, locales_name))
+
+
 def check_callbacks(module: Module) -> list[str]:
     return ["callback '" + callback.action + "' leaves no room for arguments"
             for callback in module.callbacks
@@ -233,7 +253,7 @@ def check_tests(module: Module) -> list[str]:
     return ["there is no '" + tests_name + "' directory"]
 
 
-checks = [check_manifest, check_locales, check_yaml_traps, check_callbacks, check_schema,
+checks = [check_manifest, check_locales, check_yaml_traps, check_markup, check_callbacks, check_schema,
           check_imports, check_requirements, check_views, check_tests]
 
 

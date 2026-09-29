@@ -12,6 +12,7 @@ from core.log import print_error, print_log
 from core.module import Module
 from core.roles import Role
 from core.services import Services
+from core.ui.html import italic
 from core.ui.keyboard import back_action, close_action, command_action, delete_message, home_action
 from core.ui.view import View, render
 from core.utils import not_none
@@ -67,7 +68,7 @@ class Router:
                 continue
             text = self._services.catalog.text(core_namespace, "new_user",
                                                settings.get_language(admin['id']),
-                                               name=user.first_name, id=str(user.id))
+                                               name=italic(user.first_name), id=italic(user.id))
             send_to(self._services, core_namespace, admin['id'], View(text))
 
     def send(self, user: User, module_name: str, view: View) -> telebot.types.Message:
@@ -78,7 +79,7 @@ class Router:
                                       reply_markup=markup)
 
     def send_core(self, user: User, key: str) -> None:
-        self.send(user, core_namespace, View(self.core_text(key, user.language), parse_mode=None))
+        self.send(user, core_namespace, View(self.core_text(key, user.language)))
 
     def close_screen(self, user: User) -> None:
         navigation = self._services.storage.navigation

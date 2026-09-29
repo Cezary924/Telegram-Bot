@@ -16,6 +16,7 @@ from core.roles import Role
 from core.router import Router
 from core.scheduler import Scheduler
 from core.services import Services
+from core.ui.html import escape, plain
 from core.ui.view import View
 from core.utils import not_none, without_secrets
 from core.version import read as read_version
@@ -64,7 +65,7 @@ class App:
     def publish_commands(self) -> None:
         for language in self.catalog.languages():
             commands = [telebot.types.BotCommand(command.name,
-                                                 self.catalog.text(module.name, command.description, language))
+                                                 plain(self.catalog.text(module.name, command.description, language)))
                         for module, command in self.registry.commands()
                         if command.role <= Role.USER]
             if not commands:
@@ -105,7 +106,8 @@ class App:
             language = self.storage.settings.get_language(row['id'])
             text = self.catalog.text(core_namespace, key, language)
             try:
-                self.bot.send_message(row['id'], text + ("\n" + detail if detail else ""))
+                self.bot.send_message(row['id'], text + ("\n" + escape(detail) if detail else ""),
+                                      parse_mode="HTML")
                 reached = True
             except Exception as error:
                 print_error("Could not notify the admin - " + type(error).__name__ + ".", str(error))

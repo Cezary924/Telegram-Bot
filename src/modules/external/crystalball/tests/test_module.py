@@ -31,13 +31,13 @@ def test_every_answer_carries_its_mark(app, bot):
 
 def test_the_heading_names_the_oracle(app, bot):
     app.router.handle_message(make_message("/crystalball"))
-    assert bot.last.text.startswith("*🔮 Crystal ball:*\n\n")
+    assert bot.last.text.startswith("<b>🔮 Crystal ball:</b>\n\n")
 
 
 def test_it_speaks_polish(app, bot):
     app.storage.settings.set_language(1, "pl")
     app.router.handle_message(make_message("/crystalball"))
-    assert bot.last.text.startswith("*🔮 Kryształowa kula:*")
+    assert bot.last.text.startswith("<b>🔮 Kryształowa kula:</b>")
 
 
 def test_a_guest_may_not_ask(app, bot):

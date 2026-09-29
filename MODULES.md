@@ -204,6 +204,25 @@ less, and ```en.yaml``` is the fallback for every other language. Each language 
 
 > A missing key is not an error. The user sees ```reminder:menu.title```.
 
+### Formatting
+
+A text is plain text - no tags and no Markdown, and the contract refuses a text that has either. How a text looks is
+decided in the code, where it is used:
+
+```python
+from core.api import bold, escape, italic
+
+ctx.t("done", role=italic(role))  # "The rank has been changed to {role}" with the role in italics
+bold(ctx.config.bot_name) + "\n" + ctx.t("labels.version") + ": " + italic(version)
+Button(escape(row['content']), "one", row['id'])  # anything the user wrote, turned into safe text
+```
+
+Messages go out as HTML. Whatever reaches ```ctx.t``` as a value is escaped on the way in, so a name like
+```<Eve> & co``` or a username like ```john_doe``` cannot break a message. ```bold``` and ```italic``` escape what they
+wrap too; ```escape``` is for the rest of what a module glues together by hand. A text from ```ctx.t``` is markup
+already and is never escaped twice. Buttons and the Telegram command menu take plain text, and the core strips the
+markup from them itself.
+
 ## 🗄️ Tables
 
 A module owns tables prefixed with ```module_<name>_```. Put them in ```schema.sql``` next to ```module.py``` and the
@@ -260,6 +279,7 @@ youtube: false
 - the manifest name matches the directory and nothing requires itself,
 - there is one language file per language the Bot supports, each with the same keys as ```en.yaml```, including
   ```name```, ```description``` and a description key for every command,
+- no text carries tags or Markdown, because formatting belongs to the code,
 - callback names leave room for arguments within Telegram's 64 byte limit,
 - ```schema.sql``` creates objects carrying the module prefix only,
 - an external module imports only ```core.api``` and ```core.testing``` from the core, and from other modules only those

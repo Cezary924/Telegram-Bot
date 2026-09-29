@@ -1,6 +1,7 @@
 import telebot
 from dataclasses import dataclass, field
 
+from core.ui.html import escape
 from core.ui.keyboard import Button, render_button, render_markup
 
 
@@ -12,7 +13,7 @@ class View:
     name: str = ""
     argument: str | None = None
     columns: int = 1
-    parse_mode: str | None = "Markdown"
+    parse_mode: str | None = "HTML"
 
     @property
     def is_screen(self) -> bool:
@@ -25,7 +26,7 @@ def render_text(view: View, heading: list[str]) -> str:
     parts = [view.heading] if view.heading else heading
     if not parts:
         return view.text
-    return "*" + " > ".join(parts) + ":*\n\n" + view.text
+    return "<b>" + escape(" > ").join(parts) + ":</b>\n\n" + view.text
 
 
 def render(view: View, module_name: str, controls: list[Button] | None = None,

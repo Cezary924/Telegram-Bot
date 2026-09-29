@@ -1,4 +1,4 @@
-from core.api import AdvancedCtx, Module, Role, View
+from core.api import AdvancedCtx, Module, Role, View, italic
 
 module = Module(name="help")
 
@@ -24,4 +24,4 @@ def is_listed(found: Module) -> bool:
 def entry(ctx: AdvancedCtx, found: Module) -> str:
     command = open_command(found)
     return ("/" + command + " - " if command else "") + \
-        ctx.t(found.name + ":" + found.title) + " - _" + ctx.t(found.name + ":" + found.description) + "_"
+        ctx.t(found.name + ":" + found.title) + " - " + italic(ctx.t(found.name + ":" + found.description))

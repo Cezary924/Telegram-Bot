@@ -18,6 +18,7 @@ from core.module import Module
 from core.registry import Registry
 from core.roles import Role
 from core.services import Services
+from core.ui.html import Html
 from core.ui.keyboard import Button, delete_message
 from core.ui.view import View
 from core.utils import not_none
@@ -117,7 +118,7 @@ def send_to(services: Services, module_name: str, user_id: int, view,
             heading: list[str] | None = None) -> None:
     from core.ui.view import View, render
     if isinstance(view, str):
-        view = View(view, parse_mode=None)
+        view = View(view)
     language = services.storage.settings.get_language(user_id)
 
     text, markup = render(view, module_name, controls_for(services, module_name, view, language),
@@ -167,7 +168,7 @@ class Ctx:
     def text(self) -> str:
         return (self.message.text or "") if self.message is not None else ""
 
-    def t(self, key: str, /, **values) -> str:
+    def t(self, key: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, self.user.language, **values)
 
     def token(self, name: str) -> str:
@@ -236,7 +237,7 @@ class JobCtx:
     def language_of(self, user_id: int) -> str:
         return self._services.storage.settings.get_language(user_id)
 
-    def t(self, key: str, language: str, /, **values) -> str:
+    def t(self, key: str, language: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, language, **values)
 
     def send(self, user_id: int, view) -> None:
@@ -282,7 +283,7 @@ class AdvancedCtx(Ctx):
     def language_of(self, user_id: int) -> str:
         return self._services.storage.settings.get_language(user_id)
 
-    def text_for(self, user_id: int, key: str, /, **values) -> str:
+    def text_for(self, user_id: int, key: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, self.language_of(user_id), **values)
 
     def notify(self, user_id: int, view) -> None:

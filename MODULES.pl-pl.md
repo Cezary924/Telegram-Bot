@@ -203,6 +203,25 @@ jest awaryjnym źródłem dla każdego innego języka. Każdy język nazywa sam 
 
 > Brakujący klucz nie jest błędem. Użytkownik zobaczy ```reminder:menu.title```.
 
+### Formatowanie
+
+Tekst to zwykły tekst - bez tagów i bez Markdownu, a kontrakt odrzuca tekst, który ma jedno albo drugie. O tym, jak
+tekst wygląda, decyduje kod, w miejscu użycia:
+
+```python
+from core.api import bold, escape, italic
+
+ctx.t("done", role=italic(role))  # "Ranga została zmieniona na {role}", z rangą kursywą
+bold(ctx.config.bot_name) + "\n" + ctx.t("labels.version") + ": " + italic(version)
+Button(escape(row['content']), "one", row['id'])  # to, co napisał użytkownik, jako bezpieczny tekst
+```
+
+Wiadomości wychodzą jako HTML. Wszystko, co trafia do ```ctx.t``` jako wartość, jest escapowane po drodze, więc imię
+w rodzaju ```<Eve> & co``` albo nazwa użytkownika ```john_doe``` nie zepsują wiadomości. ```bold``` i ```italic```
+escapują to, co owijają; ```escape``` służy do reszty, którą moduł skleja ręcznie. Tekst z ```ctx.t``` jest już
+znacznikiem i nigdy nie jest escapowany drugi raz. Przyciski i menu komend Telegrama przyjmują czysty tekst - rdzeń
+sam zdejmuje z nich znaczniki.
+
 ## 🗄️ Tabele
 
 Moduł jest właścicielem tabel z prefiksem ```module_<nazwa>_```. Umieść je w ```schema.sql``` obok ```module.py```, a
@@ -259,6 +278,7 @@ youtube: false
 - nazwa w manifeście zgadza się z katalogiem, nic nie wymaga samego siebie,
 - jest jeden plik językowy na każdy język Bota, każdy z tymi samymi kluczami co ```en.yaml```, w tym ```name```,
   ```description``` oraz klucz opisu każdej komendy,
+- żaden tekst nie zawiera tagów ani Markdownu, bo formatowanie należy do kodu,
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
 - moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w

@@ -2,6 +2,7 @@ from core.context import User
 from core.i18n import core_namespace
 from core.roles import Role
 from core.services import Services
+from core.ui.html import bold
 from core.ui.keyboard import Button
 from core.ui.view import View
 
@@ -21,7 +22,8 @@ def core_button(services: Services, key: str, language: str, action: str, *argum
 def consent_view(services: Services, language: str) -> View:
     other_language = "en" if language == "pl" else "pl"
     return View(
-        text=core_text(services, "consent.question", language),
+        text=(bold(core_text(services, "consent.title", language)) + "\n\n"
+              + core_text(services, "consent.question", language)),
         buttons=[
             core_button(services, "consent.language_switch", language,
                         consent_language_action, other_language),
@@ -32,7 +34,7 @@ def consent_view(services: Services, language: str) -> View:
 def check_banned(services: Services, user: User) -> View | None:
     if user.role != Role.BANNED:
         return None
-    return View(core_text(services, "banned_info", user.language), parse_mode=None)
+    return View(core_text(services, "banned_info", user.language))
 
 
 def check_consent(services: Services, user: User) -> View | None:

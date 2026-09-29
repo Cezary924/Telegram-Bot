@@ -4,7 +4,7 @@ import pytest
 
 from core import contract
 from core.contract import tests_name
-from core.i18n import supported_languages
+from core.i18n import core_locales_dir, supported_languages
 from core.module import Callback, Module
 from core.roles import Role
 from core.tests.conftest import fixtures_dir
@@ -251,6 +251,28 @@ def test_a_value_yaml_reads_as_a_boolean_is_refused(tmp_path):
     module.path = str(tmp_path)
     write_locales(tmp_path, "key1: off\n")
     assert "has the value of 'key1' read as a boolean" in contract.check_yaml_traps(module)[0]
+
+
+@pytest.mark.parametrize("text", ["'<b>{name}</b>'", "'Rank: <i>{role}</i>'", "'*Title:*'",
+                                  "'Rank: _{role}_'"])
+def test_markup_in_a_text_is_refused(tmp_path, text):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    write_locales(tmp_path, "key1: " + text + "\n")
+    assert "has markup in 'key1'" in contract.check_markup(module)[0]
+
+
+@pytest.mark.parametrize("text", ["Weight & Height", "'5 < 6 > 4'", "'{user_id} and {first_seen}'",
+                                  "snake_case", "'* required'"])
+def test_plain_text_is_fine(tmp_path, text):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    write_locales(tmp_path, "key1: " + text + "\n")
+    assert contract.check_markup(module) == []
+
+
+def test_the_core_texts_carry_no_markup():
+    assert contract.markup_problems(core_locales_dir) == []
 
 
 def test_quoted_words_are_fine(tmp_path):

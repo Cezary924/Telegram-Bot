@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from core import loader, paths
+from core import loader, middleware, paths
 from core.app import App
 from core.roles import Role
 from core.testing import FakeBot, make_callback, make_message
@@ -48,7 +48,7 @@ class TestUserJourney:
 
     def test_02_a_stranger_is_asked_for_consent_in_their_own_language(self, app):
         app.router.handle_message(make_message("/demo", language_code="pl"))
-        assert app.services.bot.last.text == core_text(app, "consent.question")
+        assert app.services.bot.last.text == middleware.consent_view(app.services, "pl").text
         assert app.storage.users.exists(1)
         assert not app.storage.users.has_consent(1)
 
@@ -72,7 +72,7 @@ class TestUserJourney:
     def test_06_a_promoted_user_gets_the_menu(self, app):
         app.storage.users.set_role(1, Role.USER)
         app.router.handle_message(make_message("/demo"))
-        assert app.services.bot.last.text == "*Demo:*\n\n" + module_text(app, "menu.text")
+        assert app.services.bot.last.text == "<b>Demo:</b>\n\n" + module_text(app, "menu.text")
         assert app.storage.navigation.current(1) is not None
         assert not_none(app.storage.navigation.current(1))['view'] == "menu"
 
@@ -100,7 +100,7 @@ class TestUserJourney:
     def test_10_going_back_rebuilds_the_parent_screen(self, app):
         anchor = not_none(not_none(app.storage.navigation.current(1))['message_id'])
         app.router.handle_callback(make_callback("core:back", message_id=anchor))
-        assert app.services.bot.last.text == "*Demo:*\n\n" + module_text(app, "menu.text")
+        assert app.services.bot.last.text == "<b>Demo:</b>\n\n" + module_text(app, "menu.text")
         assert app.storage.navigation.current(1) is not None
 
     def test_11_going_back_again_closes_the_menu(self, app):
@@ -119,7 +119,7 @@ class TestUserJourney:
     def test_13_lifting_the_ban_restores_the_menu(self, app):
         app.storage.users.set_role(1, Role.USER)
         app.router.handle_message(make_message("/demo"))
-        assert app.services.bot.last.text == "*Demo:*\n\n" + module_text(app, "menu.text")
+        assert app.services.bot.last.text == "<b>Demo:</b>\n\n" + module_text(app, "menu.text")
 
     def test_14_deleting_the_user_clears_every_trace(self, app):
         app.storage.users.delete(1)

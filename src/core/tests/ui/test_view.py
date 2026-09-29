@@ -8,7 +8,7 @@ def test_view_defaults():
     assert view.buttons == [] and view.heading == ""
     assert view.name == "" and view.argument is None
     assert not view.is_screen
-    assert view.columns == 1 and view.parse_mode == "Markdown"
+    assert view.columns == 1 and view.parse_mode == "HTML"
 
 
 def test_a_named_view_is_a_screen():
@@ -25,11 +25,11 @@ def test_text_without_a_heading():
 
 
 def test_text_with_a_heading():
-    assert render_text(View("text1"), ["one"]) == "*one:*\n\ntext1"
+    assert render_text(View("text1"), ["one"]) == "<b>one:</b>\n\ntext1"
 
 
 def test_text_joins_a_longer_heading():
-    assert render_text(View("text1"), ["one", "two", "three"]) == "*one > two > three:*\n\ntext1"
+    assert render_text(View("text1"), ["one", "two", "three"]) == "<b>one &gt; two &gt; three:</b>\n\ntext1"
 
 
 def test_a_view_may_ask_for_no_heading_at_all():

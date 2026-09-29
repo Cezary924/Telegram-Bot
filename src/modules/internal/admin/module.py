@@ -1,7 +1,7 @@
 import os
 import signal
 
-from core.api import AdvancedCtx, Button, Module, Role, View
+from core.api import AdvancedCtx, Button, Html, Module, Role, View, bold, escape, italic
 from core import paths
 from core.loader import discover
 
@@ -56,7 +56,7 @@ def listing(ctx: AdvancedCtx) -> View:
     pages = max(1, -(-len(people) // page_size))
     page = min(page, pages - 1)
     shown = people[page * page_size:(page + 1) * page_size]
-    buttons = [Button(label(row), "user", row['id']) for row in shown]
+    buttons = [Button(escape(label(row)), "user", row['id']) for row in shown]
     if pages > 1:
         buttons.append(Button(ctx.t("previous"), "list", max(0, page - 1)))
         buttons.append(Button(ctx.t("next"), "list", min(pages - 1, page + 1)))
@@ -117,9 +117,11 @@ def details(ctx: AdvancedCtx, user_id: int = 0) -> View:
         return View(text=ctx.t("users_search_missing"))
     role = Role.from_value(row['role'])
     return View(
-        text=ctx.t("user_text", name=label(row), username="@" + (row['username'] or "?"),
-                   role=ctx.t("core:" + role.key), consent=ctx.t("has_consent" if row['has_consent'] else "no_consent"),
-                   language=ctx.language_of(user_id), seen=row['seen_at'], created=row['created_at']),
+        text=ctx.t("user_text", name=bold(label(row)), username=italic("@" + (row['username'] or "?")),
+                   role=italic(ctx.t("core:" + role.key)),
+                   consent=italic(ctx.t("has_consent" if row['has_consent'] else "no_consent")),
+                   language=italic(ctx.language_of(user_id)), seen=italic(row['seen_at']),
+                   created=italic(row['created_at'])),
         buttons=[Button(ctx.t("user_role"), "role", user_id),
                  Button(ctx.t("user_wipe"), "wipe", user_id)],
         argument=str(user_id))
@@ -138,7 +140,7 @@ def open_role(ctx: AdvancedCtx) -> View:
 def role_picker(ctx: AdvancedCtx) -> View:
     user_id = wanted_id(ctx)
     current = ctx.users.get_role(user_id)
-    return View(text=ctx.t("role_text", role=ctx.t("core:" + current.key)),
+    return View(text=ctx.t("role_text", role=italic(ctx.t("core:" + current.key))),
                 buttons=[Button(ctx.t("core:" + role.key), "role_set", user_id, int(role))
                          for role in manageable_roles if role != current],
                 argument=str(user_id))
@@ -148,10 +150,10 @@ def role_picker(ctx: AdvancedCtx) -> View:
 def choose_role(ctx: AdvancedCtx) -> View:
     user_id, role = wanted_change(ctx)
     if role is None:
-        return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
+        return View(ctx.t("core:not_working_buttons"), heading=None)
     if role > ctx.users.get_role(user_id):
         return apply_role(ctx, user_id, role)
-    return View(text=ctx.t("role_confirm", role=ctx.t("core:" + role.key)),
+    return View(text=ctx.t("role_confirm", role=italic(ctx.t("core:" + role.key))),
                 buttons=[Button(ctx.t("core:yes_button"), "role_confirmed", user_id, int(role))])
 
 
@@ -159,7 +161,7 @@ def choose_role(ctx: AdvancedCtx) -> View:
 def confirm_role(ctx: AdvancedCtx) -> View:
     user_id, role = wanted_change(ctx)
     if role is None:
-        return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
+        return View(ctx.t("core:not_working_buttons"), heading=None)
     return apply_role(ctx, user_id, role)
 
 
@@ -176,8 +178,8 @@ def apply_role(ctx: AdvancedCtx, user_id: int, role: Role) -> View:
     ctx.users.set_role(user_id, role)
     ctx.log("Role of " + str(user_id) + " changed to " + role.name)
     ctx.notify(user_id, ctx.text_for(user_id, "role_changed",
-                                     role=ctx.text_for(user_id, "core:" + role.key)))
-    return View(text=ctx.t("role_done", role=ctx.t("core:" + role.key)))
+                                     role=italic(ctx.text_for(user_id, "core:" + role.key))))
+    return View(text=ctx.t("role_done", role=italic(ctx.t("core:" + role.key))))
 
 
 @module.callback("wipe", role=Role.ADMIN)
@@ -212,12 +214,12 @@ def open_statistics(ctx: AdvancedCtx) -> View:
 @module.view("statistics", parent="menu", title="statistics")
 def statistics(ctx: AdvancedCtx) -> View:
     counts = ctx.users.count_by_role()
-    people = "\n".join(ctx.t("core:" + role.key) + ": _" + str(counts.get(role, 0)) + "_"
-                       for role in reversed(manageable_roles))
+    people = Html("\n".join(ctx.t("core:" + role.key) + ": " + italic(counts.get(role, 0))
+                            for role in reversed(manageable_roles)))
     return View(text=ctx.t("statistics_text", people=people,
-                           total=str(sum(counts.values())), consent=str(ctx.users.count_with_consent()),
-                           modules=str(len(ctx.registry.names())), version=str(ctx.version),
-                           uptime=uptime_text(ctx)))
+                           total=italic(sum(counts.values())), consent=italic(ctx.users.count_with_consent()),
+                           modules=italic(len(ctx.registry.names())), version=italic(ctx.version),
+                           uptime=italic(uptime_text(ctx))))
 
 
 def uptime_text(ctx: AdvancedCtx) -> str:
@@ -248,7 +250,7 @@ def send_announcement(ctx: AdvancedCtx) -> View:
         reached += 1
     ctx.log("Announcement sent to " + str(reached) + " users", ctx.text)
     ctx.close_screen()
-    return View(text=ctx.t("announcement_done", reached=str(reached)))
+    return View(text=ctx.t("announcement_done", reached=italic(reached)))
 
 
 # ----- alerts -----
@@ -295,12 +297,12 @@ def modules(ctx: AdvancedCtx) -> View:
 def toggle_module(ctx: AdvancedCtx) -> View:
     name = ctx.arguments[0] if ctx.arguments else ""
     if name not in discover(paths.external_modules_dir):
-        return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
+        return View(ctx.t("core:not_working_buttons"), heading=None)
     wanted = not ctx.config.is_module_enabled(name)
     ctx.config.set_module_enabled(name, wanted)
     ctx.log("Module '" + name + "' turned " + ("on" if wanted else "off"))
     ctx.close_screen()
-    return View(text=ctx.t("modules_done", module=name, state=ctx.t("turned_on" if wanted else "turned_off")),
+    return View(text=ctx.t("modules_done", module=italic(name), state=ctx.t("turned_on" if wanted else "turned_off")),
                 buttons=[Button(ctx.t("bot_restart"), "restart")])
 
 
@@ -313,7 +315,7 @@ def open_bot(ctx: AdvancedCtx) -> View:
 
 @module.view("bot", parent="menu", title="bot")
 def bot_menu(ctx: AdvancedCtx) -> View:
-    return View(text=ctx.t("bot_text", version=str(ctx.version), uptime=uptime_text(ctx)),
+    return View(text=ctx.t("bot_text", version=italic(ctx.version), uptime=italic(uptime_text(ctx))),
                 buttons=[Button(ctx.t("bot_log"), "log"),
                          Button(ctx.t("bot_restart"), "restart")])
 

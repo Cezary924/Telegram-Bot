@@ -47,7 +47,7 @@ def test_anything_else_is_left_alone(text):
 
 def test_the_command_explains_how(app, bot):
     send(app, "/downloader")
-    assert bot.last.text.startswith("*📥 Downloader:*")
+    assert bot.last.text.startswith("<b>📥 Downloader:</b>")
     assert "send me a link" in bot.last.text
 
 

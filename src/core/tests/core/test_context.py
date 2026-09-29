@@ -296,7 +296,7 @@ def test_an_internal_module_notifies_another_user(services, module, person, user
     ctx.notify(2, "text1")
     assert services.bot.last.chat_id == 2
     assert services.bot.last.text == "text1"
-    assert services.bot.last.parse_mode is None
+    assert services.bot.last.parse_mode == "HTML"
 
 
 def test_notifying_respects_the_recipient_settings(services, module, person, user):
