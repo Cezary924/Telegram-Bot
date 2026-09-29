@@ -67,7 +67,7 @@ class Router:
             if not settings.has_admin_alerts(admin['id']):
                 continue
             language = settings.get_language(admin['id'])
-            text = (self.core_text("new_user.title", language) + ":\n"
+            text = (self.core_text("new_user.text", language) + ":\n"
                     + labelled(self.core_text("new_user.name", language), user.first_name) + "\n"
                     + labelled(self.core_text("new_user.id", language), user.id))
             send_to(self._services, core_namespace, admin['id'], View(text))
@@ -268,7 +268,7 @@ class Router:
         elif action == middleware.consent_accept_action:
             self.accept_consent(user)
         elif action == middleware.consent_decline_action:
-            self.send_core(user, "consent.declined", "consent.goodbye")
+            self.send_core(user, "consent.declined.text", "consent.declined.goodbye")
         elif action == command_action and arguments:
             self.handle_command(user, screen, "/" + arguments[0])
         elif action == middleware.consent_language_action and arguments:
@@ -327,7 +327,7 @@ class Router:
     def accept_consent(self, user: User) -> None:
         self._services.storage.users.set_consent(user.id, True)
         self._services.storage.settings.set_language(user.id, user.language)
-        self.send_core(user, "consent.accepted", "consent.ready")
+        self.send_core(user, "consent.accepted.text", "consent.accepted.ready")
 
     def switch_consent_language(self, user: User, screen: telebot.types.Message,
                                 language: str) -> None:

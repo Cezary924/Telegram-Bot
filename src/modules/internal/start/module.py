@@ -1,4 +1,4 @@
-from core.api import AdvancedCtx, Button, Module, View, escape, italic
+from core.api import AdvancedCtx, Button, Module, View, bold, italic
 
 module = Module(name="start")
 
@@ -8,8 +8,7 @@ linked_modules = ["help", "about"]
 @module.command("start")
 def command_start(ctx: AdvancedCtx) -> View:
     return View(
-        text="<b>👋 " + ctx.t("greeting") + "!</b>\n\n" + ctx.t("welcome") + " " + escape(ctx.config.bot_name)
-             + "! 🤖",
+        text=bold(ctx.t("welcome.greeting")) + "\n\n" + ctx.t("welcome.text", name=ctx.config.bot_name),
         buttons=[Button.command(ctx.t(name + ":name"), main_command(ctx, name))
                  for name in linked_modules if main_command(ctx, name)]
         + [Button.command(ctx.t("features_button"), "features")], heading=None)

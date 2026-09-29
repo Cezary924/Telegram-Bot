@@ -38,8 +38,8 @@ def test_ban_wins_over_a_missing_consent(loaded):
 
 
 def agreement(loaded, language="en") -> str:
-    return ("<b>" + loaded.catalog.text("core", "consent.title", language) + ":</b>\n\n"
-            + loaded.catalog.text("core", "consent.question", language))
+    return ("<b>" + loaded.catalog.text("core", "consent.agreement.title", language) + ":</b>\n\n"
+            + loaded.catalog.text("core", "consent.agreement.text", language))
 
 
 def test_missing_consent_shows_the_agreement(loaded):
@@ -70,8 +70,8 @@ def test_missing_consent_wins_over_a_missing_role(loaded):
 
 def test_too_low_role_is_stopped(loaded):
     blocked = not_none(middleware.check(loaded, person(Role.USER), Role.ADMIN))
-    assert blocked.text == (loaded.catalog.text("core", "permission_denied", "en") + "\n\n"
-                            + loaded.catalog.text("core", "permission_hint", "en"))
+    assert blocked.text == (loaded.catalog.text("core", "permission_denied.text", "en") + "\n\n"
+                            + loaded.catalog.text("core", "permission_denied.hint", "en"))
 
 
 @pytest.mark.parametrize("role, required, is_allowed", [

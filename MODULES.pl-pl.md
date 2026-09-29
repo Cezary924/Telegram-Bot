@@ -211,15 +211,25 @@ dwukropek wprowadzający wartość i decyduje, jak wygląda każda część:
 
 ```yaml
 menu: Ustawione przez Ciebie przypomnienia
-pick: Wybierz przypomnienie, którym chcesz zarządzać.
-page: Strona {page} z {pages}, łącznie {total}
+pick:
+  text: Wybierz przypomnienie, którym chcesz zarządzać.
+  page: Strona {page} z {pages}, łącznie {total}
+labels:
+  content: Treść
+  date: Data
 ```
+
+Wiadomość składana z kilku tekstów dostaje własną grupę, żeby części, które do siebie należą, stały razem. Główne
+zdanie to ```text```, pogrubiony nagłówek to ```title```, a każda inna część nosi nazwę od tego, co dodaje -
+```hint```, ```page```. Nazwy pól pokazywanych jako ```Etykieta: wartość``` trafiają do ```labels```. Wartość stojąca
+w środku zdania zostaje placeholderem, ```Z tej strony {name}!```, a nie zdaniem przeciętym na pół wokół niej - inny
+język może potrzebować innego szyku.
 
 ```python
 from core.api import bold, escape, italic, labelled
 
 labelled(ctx.t("menu"), len(rows))  # "Ustawione przez Ciebie przypomnienia: <i>3</i>"
-ctx.t("pick") + "\n" + ctx.t("page", page=italic(page), pages=italic(pages), total=italic(total))
+ctx.t("pick.text") + "\n" + ctx.t("pick.page", page=italic(page), pages=italic(pages), total=italic(total))
 ctx.t("done", role=italic(role))  # "Ranga została zmieniona na {role}", z rangą kursywą
 Button(escape(row['content']), "one", row['id'])  # to, co napisał użytkownik, jako bezpieczny tekst
 ```

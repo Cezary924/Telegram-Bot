@@ -153,7 +153,7 @@ def test_core_locales_are_loaded():
     catalog = Catalog()
     assert catalog.load_core() == ["en", "pl"]
     assert catalog.text("core", "yes_button", "pl") == "✅ Tak"
-    assert catalog.text("core", "consent.title", "en").startswith("✋")
+    assert catalog.text("core", "consent.agreement.title", "en").startswith("✋")
 
 
 def test_core_locales_have_the_same_keys_in_every_language():

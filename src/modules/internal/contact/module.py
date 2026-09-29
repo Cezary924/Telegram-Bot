@@ -21,7 +21,7 @@ def command_report(ctx: AdvancedCtx) -> View:
 
 @module.view("report", title="report_title")
 def report(ctx: AdvancedCtx) -> View:
-    return View(text=ctx.t("report_question") + "\n" + ctx.t("report_hint"))
+    return View(text=ctx.t("report_question.text") + "\n" + ctx.t("report_question.hint"))
 
 
 @module.state("report")

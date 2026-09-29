@@ -8,8 +8,9 @@ menu: Reminders you have set
 set: Set a reminder
 manage: Manage reminders
 
-content: Content
-date: Date
+labels:
+  content: Content
+  date: Date
 ask_content: Write what I should remind you about
 ask_date: Write when I should remind you, for example
 wrong_content: The content has to be between 1 and {limit} characters long
@@ -21,8 +22,9 @@ changed: The reminder has been changed ✅
 deleted: The reminder has been deleted ✅
 gone: This reminder is no longer there 💔
 empty: You have no reminders yet
-pick: Pick the reminder you want to manage.
-page: Page {page} of {pages}, {total} in total
+pick:
+  text: Pick the reminder you want to manage.
+  page: Page {page} of {pages}, {total} in total
 previous: ⬅️ Previous
 next: ➡️ Next
 

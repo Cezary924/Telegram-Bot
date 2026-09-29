@@ -41,7 +41,7 @@ def wanted_id(ctx: Ctx) -> int:
 
 
 def details(ctx: Ctx, content: str, date: str) -> str:
-    return labelled(ctx.t("content"), content) + "\n" + labelled(ctx.t("date"), date)
+    return labelled(ctx.t("labels.content"), content) + "\n" + labelled(ctx.t("labels.date"), date)
 
 
 @module.command("reminder", role=Role.USER)
@@ -67,7 +67,7 @@ def open_content(ctx: Ctx) -> View:
     return content_screen(ctx)
 
 
-@module.view("content", parent="menu", title="content")
+@module.view("content", parent="menu", title="labels.content")
 def content_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     return View(text=ctx.t("ask_content"),
@@ -102,7 +102,7 @@ def open_date(ctx: Ctx) -> View:
     return date_screen(ctx)
 
 
-@module.view("date", parent="menu", title="date")
+@module.view("date", parent="menu", title="labels.date")
 def date_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     return View(text=labelled(ctx.t("ask_date"), example_date()),
@@ -170,8 +170,8 @@ def manage(ctx: Ctx) -> View:
     if pages > 1:
         buttons.append(Button(ctx.t("previous"), "manage", max(0, page - 1)))
         buttons.append(Button(ctx.t("next"), "manage", min(pages - 1, page + 1)))
-    return View(text=ctx.t("pick") + "\n"
-                + ctx.t("page", page=italic(page + 1), pages=italic(pages), total=italic(len(rows))),
+    return View(text=ctx.t("pick.text") + "\n"
+                + ctx.t("pick.page", page=italic(page + 1), pages=italic(pages), total=italic(len(rows))),
                 buttons=buttons, argument=str(page))
 
 
@@ -256,8 +256,8 @@ def due_reminders(ctx: JobCtx, now: datetime) -> list:
 def notify(ctx: JobCtx, row, key: str) -> None:
     language = ctx.language_of(row['user_id'])
     text = (mark + "<b>" + ctx.t("title", language) + ":</b>\n\n" + ctx.t(key, language) + "\n"
-            + labelled(ctx.t("content", language), row['content']) + "\n"
-            + labelled(ctx.t("date", language), row['date']))
+            + labelled(ctx.t("labels.content", language), row['content']) + "\n"
+            + labelled(ctx.t("labels.date", language), row['date']))
     if not ctx.send(row['user_id'], View(text=text)):
         return
     ctx.db.execute("UPDATE " + ctx.db.table("reminders") + " SET is_notified = 1 WHERE id = ?;",

@@ -8,8 +8,9 @@ menu: Ustawione przez Ciebie przypomnienia
 set: Ustaw przypomnienie
 manage: Zarządzaj przypomnieniami
 
-content: Treść
-date: Data
+labels:
+  content: Treść
+  date: Data
 ask_content: Napisz, o czym mam Ci przypomnieć
 ask_date: Napisz, kiedy mam Ci przypomnieć, na przykład
 wrong_content: Treść musi mieć od 1 do {limit} znaków
@@ -21,8 +22,9 @@ changed: Przypomnienie zostało zmienione ✅
 deleted: Przypomnienie zostało usunięte ✅
 gone: Tego przypomnienia już nie ma 💔
 empty: Nie masz jeszcze żadnych przypomnień
-pick: Wybierz przypomnienie, którym chcesz zarządzać.
-page: Strona {page} z {pages}, łącznie {total}
+pick:
+  text: Wybierz przypomnienie, którym chcesz zarządzać.
+  page: Strona {page} z {pages}, łącznie {total}
 previous: ⬅️ Poprzednia
 next: ➡️ Następna
 

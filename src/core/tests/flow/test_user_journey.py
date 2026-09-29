@@ -63,12 +63,13 @@ class TestUserJourney:
     def test_04_accepting_unlocks_the_bot(self, app):
         app.router.handle_callback(make_callback("core:consent_accept"))
         assert app.storage.users.has_consent(1)
-        assert app.services.bot.last.text == core_text(app, "consent.accepted") + "\n" + core_text(app, "consent.ready")
+        assert app.services.bot.last.text == (core_text(app, "consent.accepted.text") + "\n"
+                                              + core_text(app, "consent.accepted.ready"))
 
     def test_05_a_guest_still_cannot_run_a_user_command(self, app):
         app.router.handle_message(make_message("/demo"))
-        assert app.services.bot.last.text == (core_text(app, "permission_denied") + "\n\n"
-                                              + core_text(app, "permission_hint"))
+        assert app.services.bot.last.text == (core_text(app, "permission_denied.text") + "\n\n"
+                                              + core_text(app, "permission_denied.hint"))
         assert app.storage.navigation.current(1) is None
 
     def test_06_a_promoted_user_gets_the_menu(self, app):

@@ -121,16 +121,18 @@ def core_text(services, key, language="en") -> str:
 
 
 def accepted(services, language="en") -> str:
-    return core_text(services, "consent.accepted", language) + "\n" + core_text(services, "consent.ready", language)
+    return (core_text(services, "consent.accepted.text", language) + "\n"
+            + core_text(services, "consent.accepted.ready", language))
 
 
 def declined(services, language="en") -> str:
-    return core_text(services, "consent.declined", language) + "\n" + core_text(services, "consent.goodbye", language)
+    return (core_text(services, "consent.declined.text", language) + "\n"
+            + core_text(services, "consent.declined.goodbye", language))
 
 
 def denied(services, language="en") -> str:
-    return (core_text(services, "permission_denied", language) + "\n\n"
-            + core_text(services, "permission_hint", language))
+    return (core_text(services, "permission_denied.text", language) + "\n\n"
+            + core_text(services, "permission_denied.hint", language))
 
 
 def agreement(services, language="en") -> str:

@@ -212,15 +212,25 @@ together, adds the colon that introduces a value and decides how each part looks
 
 ```yaml
 menu: Reminders you have set
-pick: Pick the reminder you want to manage.
-page: Page {page} of {pages}, {total} in total
+pick:
+  text: Pick the reminder you want to manage.
+  page: Page {page} of {pages}, {total} in total
+labels:
+  content: Content
+  date: Date
 ```
+
+A message put together from several texts gets a group of its own, so the parts that belong together stay together.
+The main sentence is ```text```, a heading shown in bold is ```title```, and every other part is named after what it
+adds - ```hint```, ```page```. Names of fields shown as ```Label: value``` live under ```labels```. A value that sits
+inside a sentence stays a placeholder, ```This is {name}!```, never a sentence cut in two around it - another language
+may need the words in a different order.
 
 ```python
 from core.api import bold, escape, italic, labelled
 
 labelled(ctx.t("menu"), len(rows))  # "Reminders you have set: <i>3</i>"
-ctx.t("pick") + "\n" + ctx.t("page", page=italic(page), pages=italic(pages), total=italic(total))
+ctx.t("pick.text") + "\n" + ctx.t("pick.page", page=italic(page), pages=italic(pages), total=italic(total))
 ctx.t("done", role=italic(role))  # "The rank has been changed to {role}" with the role in italics
 Button(escape(row['content']), "one", row['id'])  # anything the user wrote, turned into safe text
 ```
