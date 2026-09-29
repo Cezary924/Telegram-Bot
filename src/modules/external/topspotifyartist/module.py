@@ -111,7 +111,7 @@ def refresh_chart(ctx: JobCtx) -> None:
     try:
         artists = fetch_chart()
     except Exception as error:
-        ctx.error("Could not refresh the chart - " + type(error).__name__ + ".", str(error))
+        ctx.error("Could not refresh the chart - " + type(error).__name__, str(error))
         return
     with chart.lock:
         chart.artists = artists
@@ -123,7 +123,7 @@ def command_topspotifyartist(ctx: Ctx) -> View:
     try:
         artists = ready_chart()
     except Exception as error:
-        ctx.error("Could not read the chart - " + type(error).__name__ + ".", str(error))
+        ctx.error("Could not read the chart - " + type(error).__name__, str(error))
         return View(text=ctx.t("core:error"))
     ctx.state.set("target", str(random.randrange(len(artists))))
     ctx.state.set("left", str(chances))
@@ -150,7 +150,7 @@ def guess(ctx: Ctx) -> View:
     try:
         detail(artists, guessed, target)
     except Exception as error:
-        ctx.error("Could not read the artist - " + type(error).__name__ + ".", str(error))
+        ctx.error("Could not read the artist - " + type(error).__name__, str(error))
         return View(text=ctx.t("core:error"))
     if guessed == target:
         ctx.close_screen()
