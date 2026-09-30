@@ -4,6 +4,7 @@ description: Users, statistics and Bot control
 commands.admin: Show the Administrator menu
 
 title: 🛠️ Admin
+notifications_label: 📢 Announcements
 menu: Select the task of the following
 
 has_consent: given

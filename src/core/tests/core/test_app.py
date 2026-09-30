@@ -293,13 +293,22 @@ def test_an_unchanged_version_says_nothing(app, bot):
     assert bot.sent == []
 
 
-def test_a_user_with_notifications_off_is_not_told(app, bot):
+def test_a_user_with_notifications_off_is_told_silently(app, bot):
     app.storage.state.set("version", "v1.1 (80)")
     app.services.version = Version("v1.2", 100)
     app.storage.users.save(2, "Other", "Person", "other")
     app.storage.settings.set_notifications(2, False)
     app.announce_update()
-    assert [message.chat_id for message in bot.sent] == []
+    assert [(message.chat_id, message.is_silent) for message in bot.sent] == [(2, True)]
+
+
+def test_a_user_who_blocked_notifications_is_not_told(app, bot):
+    app.storage.state.set("version", "v1.1 (80)")
+    app.services.version = Version("v1.2", 100)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.storage.notifications.set_blocked(2, True)
+    app.announce_update()
+    assert bot.sent == []
 
 
 def test_the_update_message_links_to_the_release(app, bot):

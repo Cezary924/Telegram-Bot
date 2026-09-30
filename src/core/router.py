@@ -6,14 +6,15 @@ import telebot
 from telebot.apihelper import ApiTelegramException
 
 from core import callbacks, middleware
-from core.context import User, controls_for, create_context, heading_for, send_to, user_from_row
+from core.context import User, controls_for, hub_for, create_context, heading_for, send_to, user_from_row
 from core.i18n import core_namespace, default_language
 from core.log import print_error, print_log
-from core.module import Module
+from core.module import Module, settings_hub_view
 from core.roles import Role
 from core.services import Services
 from core.ui.html import labelled
-from core.ui.keyboard import back_action, close_action, command_action, delete_message, home_action
+from core.ui.keyboard import (back_action, close_action, command_action, delete_message, home_action,
+                              settings_action)
 from core.ui.view import View, render
 from core.utils import not_none
 
@@ -70,7 +71,7 @@ class Router:
             text = (self.core_text("new_user.text", language) + ":\n"
                     + labelled(self.core_text("new_user.name", language), user.first_name) + "\n"
                     + labelled(self.core_text("new_user.id", language), user.id))
-            send_to(self._services, core_namespace, admin['id'], View(text))
+            send_to(self._services, core_namespace, admin['id'], View(text), source=core_namespace)
 
     def send(self, user: User, module_name: str, view: View) -> telebot.types.Message:
         heading = heading_for(self._services, module_name, view, user.language)
@@ -222,6 +223,7 @@ class Router:
             return True
         return False
 
+    # noinspection PyTypeChecker
     def answer(self, callback: telebot.types.CallbackQuery) -> None:
         try:
             self._bot.answer_callback_query(callback.id)
@@ -271,6 +273,8 @@ class Router:
             self.send_core(user, "consent.declined.text", "consent.declined.goodbye")
         elif action == command_action and arguments:
             self.handle_command(user, screen, "/" + arguments[0])
+        elif action == settings_action and arguments:
+            self.open_settings(user, screen, arguments[0])
         elif action == middleware.consent_language_action and arguments:
             self.switch_consent_language(user, screen, arguments[0])
         else:
@@ -304,13 +308,28 @@ class Router:
             self.close_screen(user)
             self.send_core(user, "not_working_buttons")
             return
+        hub = hub_for(self._services, module, current['view'])
         branch = module.branch(current['view'])
         name = branch[0].name if to_root and branch else module.parent_of(current['view'])
+        if hub is not None and (to_root or not name):
+            self.open_named(user, hub, settings_hub_view, screen)
+            return
         if not name or name == current['view']:
             self.close_screen(user)
             self.send_core(user, "menu_closed")
             return
         self.open_named(user, module, name, screen)
+
+    def open_settings(self, user: User, screen: telebot.types.Message, module_name: str) -> None:
+        module = self._services.registry.get(module_name)
+        if module is None or module.settings_screen is None:
+            self.send_core(user, "not_working_buttons")
+            return
+        blocked = middleware.check(self._services, user, module.settings_screen.role)
+        if blocked is not None:
+            self.send(user, core_namespace, blocked)
+            return
+        self.open_named(user, module, module.settings_screen.view, screen)
 
     def handle_back(self, user: User, screen: telebot.types.Message) -> None:
         self.step_out(user, screen, False)

@@ -174,10 +174,11 @@ def test_a_file_of_an_unknown_kind_is_refused(sending, tmp_path):
         sending.send_file(write_file(tmp_path), "hologram")
 
 
-def test_a_file_is_silent_when_notifications_are_off(sending, services, storage, user, tmp_path):
+def test_a_file_the_user_asked_for_is_never_silent(sending, services, storage, user, tmp_path):
     storage.settings.set_notifications(user, False)
+    storage.notifications.set_blocked(user, True)
     sending.send_file(write_file(tmp_path), "video")
-    assert services.bot.files[0].is_silent
+    assert not services.bot.files[0].is_silent
 
 
 def test_the_file_limit_is_the_one_telegram_allows(ctx):
@@ -303,9 +304,26 @@ def test_notifying_respects_the_recipient_settings(services, module, person, use
     services.bot = FakeBot()
     module.is_internal = True
     services.storage.users.save(2, "Other", "Person", "other")
-    services.storage.settings.set_notifications(2, False)
+    services.storage.notifications.set_loud(2, "module1", False)
     AdvancedCtx(services, module, person).notify(2, "text1")
     assert services.bot.last.is_silent
+
+
+def test_notifying_a_user_who_blocked_everything_sends_nothing(services, module, person, user):
+    services.bot = FakeBot()
+    module.is_internal = True
+    services.storage.users.save(2, "Other", "Person", "other")
+    services.storage.notifications.set_blocked(2, True)
+    assert AdvancedCtx(services, module, person).notify(2, "text1")
+    assert services.bot.sent == []
+
+
+def test_a_reply_rings_whatever_the_settings(services, module, person, user):
+    services.bot = FakeBot()
+    services.storage.settings.set_notifications(1, False)
+    services.storage.notifications.set_blocked(1, True)
+    Ctx(services, module, person).reply("text1")
+    assert not services.bot.last.is_silent
 
 
 def test_the_version_reaches_an_internal_module(services, module, person):

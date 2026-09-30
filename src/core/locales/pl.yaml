@@ -5,6 +5,7 @@ no_button: ❌ Nie
 return_button: 🔙 Powrót
 home_button: 🏠 Menu
 close_button: ✖️ Zamknij
+notifications_label: 🤖 Od Bota
 
 role_banned: Zbanowany
 role_guest: Gość

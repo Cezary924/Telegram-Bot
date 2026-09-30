@@ -5,6 +5,7 @@ from core.db.connection import Database
 from core.db.module_db import ModuleDatabase
 from core.db.module_state import ModuleState
 from core.db.navigation import Navigation
+from core.db.notifications import Notifications
 from core.db.user_settings import UserSettings
 from core.db.users import Users
 
@@ -18,6 +19,7 @@ class Storage:
             self.database.execute_script(f.read())
         self.users = Users(self.database)
         self.settings = UserSettings(self.database)
+        self.notifications = Notifications(self.database, self.settings)
         self.navigation = Navigation(self.database)
         self.module_state = ModuleState(self.database)
         self.state = BotState(self.database)

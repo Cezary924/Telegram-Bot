@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from core.api import Button, Ctx, JobCtx, Module, Role, View, escape, labelled, italic
 
-module = Module(name="reminder")
+module = Module(name="reminder", notifications="name")
 
 mark = "🔔 "
 interval = 60

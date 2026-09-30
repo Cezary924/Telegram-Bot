@@ -27,6 +27,13 @@ told_key = "stop_told"
 quiet_restart = 120.0
 
 
+def away_for(stopped_at: str) -> float:
+    try:
+        return (datetime.now() - datetime.fromisoformat(stopped_at)).total_seconds()
+    except ValueError:
+        return quiet_restart
+
+
 class App:
     def __init__(self, is_beta: bool = False) -> None:
         self.config = Config(is_beta)
@@ -86,11 +93,9 @@ class App:
         print_log("The version changed from " + previous + " to " + current + ".")
         link = self.release_url()
         for row in self.storage.users.get_all():
-            if not self.storage.settings.has_notifications(row['id']):
-                continue
             text = self.catalog.text(core_namespace, "bot_updated",
                                      self.storage.settings.get_language(row['id']))
-            send_to(self.services, core_namespace, row['id'], View(text + link))
+            send_to(self.services, core_namespace, row['id'], View(text + link), source=core_namespace)
 
     def release_url(self) -> str:
         user = self.config.github_username
@@ -113,17 +118,11 @@ class App:
                 print_error("Could not notify the admin - " + type(error).__name__ + ".", str(error))
         return reached
 
-    def away_for(self, stopped_at: str) -> float:
-        try:
-            return (datetime.now() - datetime.fromisoformat(stopped_at)).total_seconds()
-        except ValueError:
-            return quiet_restart
-
     def announce_start(self) -> None:
         stopped_at = self.storage.state.get(stopped_key)
         was_told = self.storage.state.get(told_key) == "1"
         self.storage.state.set(told_key, "0")
-        away = self.away_for(stopped_at) if stopped_at is not None else quiet_restart
+        away = away_for(stopped_at) if stopped_at is not None else quiet_restart
         if not was_told and away < quiet_restart:
             print_log("Back after " + str(round(away)) +
                       "s away, so nobody is told the Bot is back.")

@@ -10,11 +10,12 @@ import telebot
 from core import paths
 from core.config import Config
 from core.db.module_db import ModuleDatabase
+from core.db.notifications import Notifications
 from core.db.user_settings import UserSettings
 from core.db.users import Users
 from core.i18n import core_namespace, supported_languages
 from core.log import print_error, print_log
-from core.module import Module
+from core.module import Module, settings_hub, settings_hub_view
 from core.registry import Registry
 from core.roles import Role
 from core.services import Services
@@ -92,11 +93,21 @@ class UserNavigation:
         self._navigation.clear(self._user_id)
 
 
+def hub_for(services: Services, module: Module, name: str) -> Module | None:
+    if not module.is_settings(name):
+        return None
+    hub = services.registry.get(settings_hub)
+    return hub if hub is not None and hub.view_named(settings_hub_view) is not None else None
+
+
 def heading_for(services: Services, module_name: str, view, language: str) -> list[str]:
     module = services.registry.get(module_name)
     if module is None:
         return []
     segments = [services.catalog.text(module_name, module.title, language)]
+    hub = hub_for(services, module, view.name)
+    if hub is not None:
+        segments.insert(0, services.catalog.text(hub.name, hub.title, language))
     for step in module.branch(view.name):
         if step.title:
             segments.append(services.catalog.text(module_name, step.title, language))
@@ -108,14 +119,15 @@ def controls_for(services: Services, module_name: str, view, language: str) -> l
     if module is None or not view.is_screen:
         return []
     close = Button.close(services.catalog.text(core_namespace, "close_button", language))
-    if len(module.branch(view.name)) <= 1:
+    depth = len(module.branch(view.name)) + (1 if hub_for(services, module, view.name) else 0)
+    if depth <= 1:
         return [close]
     return [Button.back(services.catalog.text(core_namespace, "return_button", language)),
             Button.home(services.catalog.text(core_namespace, "home_button", language)), close]
 
 
 def send_to(services: Services, module_name: str, user_id: int, view,
-            heading: list[str] | None = None) -> bool:
+            heading: list[str] | None = None, source: str | None = None) -> bool:
     from core.ui.view import View, render
     if isinstance(view, str):
         view = View(view)
@@ -123,7 +135,10 @@ def send_to(services: Services, module_name: str, user_id: int, view,
 
     text, markup = render(view, module_name, controls_for(services, module_name, view, language),
                           heading)
-    is_silent = not services.storage.settings.has_notifications(user_id)
+    notifications = services.storage.notifications
+    if source is not None and notifications.is_blocked(user_id):
+        return True
+    is_silent = source is not None and not notifications.is_loud(user_id, source)
     bot = not_none(services.bot, "the bot is not built yet")
     try:
         bot.send_message(user_id, text, parse_mode=view.parse_mode,
@@ -144,10 +159,8 @@ def send_file_to(services: Services, user_id: int, path: str, kind: str, caption
     if kind not in file_senders:
         raise ValueError("Unknown kind of file: " + kind)
     bot = not_none(services.bot, "the bot is not built yet")
-    is_silent = not services.storage.settings.has_notifications(user_id)
     with open(path, 'rb') as handle:
-        getattr(bot, file_senders[kind])(user_id, handle, caption=caption or None,
-                                         disable_notification=is_silent)
+        getattr(bot, file_senders[kind])(user_id, handle, caption=caption or None)
 
 
 class Ctx:
@@ -247,7 +260,7 @@ class JobCtx:
         return self._services.catalog.text(self.module.name, key, language, **values)
 
     def send(self, user_id: int, view) -> bool:
-        return send_to(self._services, self.module.name, user_id, view)
+        return send_to(self._services, self.module.name, user_id, view, source=self.module.name)
 
     def log(self, info: str) -> None:
         print_log(info + " in '" + self.module.name + "'.")
@@ -264,6 +277,10 @@ class AdvancedCtx(Ctx):
     @property
     def settings(self) -> UserSettings:
         return self._services.storage.settings
+
+    @property
+    def notifications(self) -> Notifications:
+        return self._services.storage.notifications
 
     @property
     def registry(self) -> Registry:
@@ -293,7 +310,7 @@ class AdvancedCtx(Ctx):
         return self._services.catalog.text(self.module.name, key, self.language_of(user_id), **values)
 
     def notify(self, user_id: int, view) -> bool:
-        return send_to(self._services, self.module.name, user_id, view)
+        return send_to(self._services, self.module.name, user_id, view, source=self.module.name)
 
     def use_language(self, language: str) -> None:
         self._services.storage.settings.set_language(self.user.id, language)

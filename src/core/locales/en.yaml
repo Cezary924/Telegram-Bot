@@ -5,6 +5,7 @@ no_button: ❌ No
 return_button: 🔙 Back
 home_button: 🏠 Menu
 close_button: ✖️ Close
+notifications_label: 🤖 From the Bot
 
 role_banned: Banned
 role_guest: Guest

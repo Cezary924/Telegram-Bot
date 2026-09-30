@@ -4,6 +4,7 @@ description: Użytkownicy, statystyki i sterowanie Botem
 commands.admin: Wyświetl menu Administratora
 
 title: 🛠️ Admin
+notifications_label: 📢 Ogłoszenia
 menu: Wybierz zadanie z podanych
 
 has_consent: tak

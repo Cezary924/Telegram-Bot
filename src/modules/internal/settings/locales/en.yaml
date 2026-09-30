@@ -7,9 +7,13 @@ title: ⚙️ Settings
 menu: Select the setting of the following
 
 notifications: 🛎️ Notifications
-notifications_question: Do you want notifications to be turned on?
-notifications_on: Notifications have been enabled ✅
-notifications_off: Notifications have been disabled ❌
+notifications_text: Choose what may make a sound. Everything else still arrives, just silently 🔕
+notifications_count: With sound
+notifications_blocked: All notifications are blocked ⛔ Nothing reaches you until you unblock them.
+notifications_all_loud: 🔊 All with sound
+notifications_all_silent: 🔕 All silently
+notifications_block: ⛔ Block all
+notifications_unblock: ✅ Unblock all
 
 language: 🌐 Language
 language_question: Select a language
