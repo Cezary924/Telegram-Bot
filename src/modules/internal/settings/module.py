@@ -1,6 +1,10 @@
 from core.api import AdvancedCtx, Button, Module, Role, View, labelled
 
-module = Module(name="settings")
+module = Module(name="settings",
+                icons={'name': "⚙️", 'title': "⚙️", 'notifications': "🛎️", 'notifications_all_loud': "🔊",
+                       'notifications_all_silent': "🔕", 'notifications_block': "⛔", 'notifications_unblock': "✅",
+                       'language': "🌐", 'deletedata': "🗑️"},
+                endings={'notifications_text': "🔕", 'language_changed': "✅", 'deletedata_done': "✅"})
 
 loud_mark = "🔊"
 silent_mark = "🔕"

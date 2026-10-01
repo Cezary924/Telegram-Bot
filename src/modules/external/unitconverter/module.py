@@ -1,6 +1,8 @@
 from core.api import Ctx, Module, Role, View, bold, italic
 
-module = Module(name="unitconverter")
+module = Module(name="unitconverter",
+                icons={'name': "🧮"},
+                endings={'how': "😊"})
 
 priority = 10
 

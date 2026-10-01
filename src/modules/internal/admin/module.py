@@ -5,7 +5,14 @@ from core.api import AdvancedCtx, Button, Module, Role, View, bold, escape, labe
 from core import paths
 from core.loader import discover
 
-module = Module(name="admin", notifications="notifications_label")
+module = Module(name="admin", notifications="notifications_label",
+                icons={'name': "🛠️", 'title': "🛠️", 'notifications_label': "📢", 'previous': "⬅️", 'next': "➡️",
+                       'users': "🙋", 'users_list': "📋", 'users_search': "🔍", 'users_forward': "↪️", 'user_role': "🎖️",
+                       'user_wipe': "🗑️", 'statistics': "📊", 'announcement': "📢", 'alerts': "🔔", 'modules': "🧩",
+                       'bot': "🤖", 'bot_log': "📃", 'bot_restart': "🔄"},
+                endings={'users_search_missing': "😞", 'users_forward_text': "😁", 'users_forward_missing': "😐",
+                         'role_done': "✅", 'wipe_done': "✅", 'announcement_done': "✅", 'alerts_done': "✅",
+                         'modules_done': "✅"})
 
 page_size = 8
 log_lines = 30

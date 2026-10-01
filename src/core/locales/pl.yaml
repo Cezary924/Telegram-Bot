@@ -2,24 +2,24 @@ language_label: 🇵🇱 Polski
 error: Błąd. Spróbuj później.
 yes_button: ✅ Tak
 no_button: ❌ Nie
-return_button: 🔙 Powrót
-home_button: 🏠 Menu
-close_button: ✖️ Zamknij
-notifications_label: 🤖 Od Bota
+return_button: Powrót
+home_button: Menu
+close_button: Zamknij
+notifications_label: Od Bota
 
 role_banned: Zbanowany
 role_guest: Gość
 role_user: Użytkownik
 role_admin: Admin
 
-banned_info: Niestety, nie wolno Ci się ze mną komunikować 😐
+banned_info: Niestety, nie wolno Ci się ze mną komunikować
 permission_denied:
-  text: Niestety, nie możesz skorzystać z tego polecenia... 😭
-  hint: Aby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
+  text: Niestety, nie możesz skorzystać z tego polecenia...
+  hint: Aby dostać wyższe uprawnienia skontaktuj się z administratorem
 menu_closed: Opuszczono menu
-not_working_buttons: Niestety, ten przycisk już nie działa... 😥
-unknown_command: Niestety, nie znam takiej komendy... 💔
-unknown_message: Niestety, nie rozumiem Twojej wiadomości... 💔
+not_working_buttons: Niestety, ten przycisk już nie działa...
+unknown_command: Niestety, nie znam takiej komendy...
+unknown_message: Niestety, nie rozumiem Twojej wiadomości...
 
 bot_started: Bot został uruchomiony pomyślnie!
 bot_stopped: Bot został wyłączony!
@@ -29,18 +29,18 @@ new_user:
   text: Bot poznał nowego użytkownika
   name: Imię
   id: ID
-bot_updated: Bot został zaktualizowany do najnowszej wersji. Mogą wystąpić chwilowe utrudnienia w jego działaniu. Prosimy o cierpliwość i wyrozumiałość 🙏
+bot_updated: Bot został zaktualizowany do najnowszej wersji. Mogą wystąpić chwilowe utrudnienia w jego działaniu. Prosimy o cierpliwość i wyrozumiałość
 
 consent:
   agreement:
-    title: ✋ Zgoda na przetwarzanie danych
-    text: Widzę, że dopiero zaczynamy naszą wspólną drogę. Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one wykorzystywane zgodnie z ich przeznaczeniem 💝
-  yes_button: ✅ Tak, zgadzam się
-  no_button: ❌ Nie, nie zgadzam się
+    title: Zgoda na przetwarzanie danych
+    text: Widzę, że dopiero zaczynamy naszą wspólną drogę. Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one wykorzystywane zgodnie z ich przeznaczeniem
+  yes_button: Tak, zgadzam się
+  no_button: Nie, nie zgadzam się
   language_switch: 🇬🇧 English
   accepted:
-    text: Cieszę się, że to nie koniec naszej wspólnej przygody 💞
-    ready: Od teraz mogę wykonywać Twoje polecenia 🫡
+    text: Cieszę się, że to nie koniec naszej wspólnej przygody
+    ready: Od teraz mogę wykonywać Twoje polecenia
   declined:
-    text: Dobrze... 😞
-    goodbye: Miło mi było Cię poznać 😄
+    text: Dobrze...
+    goodbye: Miło mi było Cię poznać

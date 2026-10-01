@@ -1,4 +1,4 @@
-name: 🔔 Reminders
+name: Reminders
 description: Reminds you about anything at the time you set
 
 commands.reminder: Set and manage your reminders
@@ -17,16 +17,16 @@ wrong_content: The content has to be between 1 and {limit} characters long
 wrong_date: I do not understand this date, write it like this
 past_date: I cannot remind you about something in the past
 
-done: The reminder has been set ✅
-changed: The reminder has been changed ✅
-deleted: The reminder has been deleted ✅
-gone: This reminder is no longer there 💔
+done: The reminder has been set
+changed: The reminder has been changed
+deleted: The reminder has been deleted
+gone: This reminder is no longer there
 empty: You have no reminders yet
 pick:
   text: Pick the reminder you want to manage.
   page: Page {page} of {pages}, {total} in total
-previous: ⬅️ Previous
-next: ➡️ Next
+previous: Previous
+next: Next
 
 edit_content: Change the content
 edit_date: Change the date

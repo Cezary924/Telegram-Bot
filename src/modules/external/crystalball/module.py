@@ -2,7 +2,8 @@ import random
 
 from core.api import Ctx, Module, Role, View
 
-module = Module(name="crystalball")
+module = Module(name="crystalball",
+                icons={'name': "🔮"})
 
 verdicts = [("sure", "✅"), ("maybe", "❔"), ("nope", "❌")]
 answers_per_verdict = 5

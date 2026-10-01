@@ -11,6 +11,13 @@ default_language = "en"
 namespace_separator = ":"
 language_label_key = "language_label"
 
+core_icons = {'return_button': "🔙", 'home_button': "🏠", 'close_button': "✖️", 'notifications_label': "🤖",
+              'consent.agreement.title': "✋", 'consent.yes_button': "✅", 'consent.no_button': "❌"}
+core_endings = {'banned_info': "😐", 'permission_denied.text': "😭", 'permission_denied.hint': "🧑‍🔬",
+                'not_working_buttons': "😥", 'unknown_command': "💔", 'unknown_message': "💔", 'bot_updated': "🙏",
+                'consent.agreement.text': "💝", 'consent.accepted.text': "💞", 'consent.accepted.ready': "🫡",
+                'consent.declined.text': "😞", 'consent.declined.goodbye': "😄"}
+
 
 def flatten(data: dict, prefix: str = "") -> dict[str, str]:
     texts = {}
@@ -45,7 +52,13 @@ def load_locale_file(path: str) -> dict[str, str]:
 class Catalog:
     def __init__(self) -> None:
         self._texts: dict[str, dict[str, str]] = {}
+        self._icons: dict[str, str] = {}
+        self._endings: dict[str, str] = {}
         self._reported: set[str] = set()
+
+    def add_marks(self, namespace: str, icons: dict[str, str], endings: dict[str, str]) -> None:
+        self._icons.update({full_key(namespace, key): icon for key, icon in icons.items()})
+        self._endings.update({full_key(namespace, key): ending for key, ending in endings.items()})
 
     def add(self, namespace: str, language: str, texts: dict[str, str]) -> None:
         catalog = self._texts.setdefault(language, {})
@@ -65,6 +78,7 @@ class Catalog:
         return languages
 
     def load_core(self) -> list[str]:
+        self.add_marks(core_namespace, core_icons, core_endings)
         return self.load_directory(core_namespace, core_locales_dir)
 
     def has(self, namespace: str, key: str, language: str) -> bool:
@@ -76,11 +90,16 @@ class Catalog:
             text = self._texts.get(candidate, {}).get(wanted)
             if text is not None:
                 safe = escape(text)
-                return Html(safe.format(**{name: escape(value) for name, value in values.items()}) if values else safe)
+                safe = safe.format(**{name: escape(value) for name, value in values.items()}) if values else safe
+                return Html(self.marked(wanted, safe))
         if wanted not in self._reported:
             self._reported.add(wanted)
             print_error("Missing translation - " + wanted + " (" + language + ").")
         return Html(wanted)
+
+    def marked(self, key: str, text: str) -> str:
+        icon, ending = self._icons.get(key), self._endings.get(key)
+        return (icon + " " if icon else "") + text + (" " + ending if ending else "")
 
     def label(self, language: str) -> str:
         return self.text(core_namespace, language_label_key, language)

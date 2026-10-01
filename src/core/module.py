@@ -80,6 +80,8 @@ class Module:
     requires: list[str] = field(default_factory=list)
     tokens: list[str] = field(default_factory=list)
     notifications: str = ""
+    icons: dict[str, str] = field(default_factory=dict)
+    endings: dict[str, str] = field(default_factory=dict)
 
     commands: list[Command] = field(default_factory=list, init=False)
     callbacks: list[Callback] = field(default_factory=list, init=False)

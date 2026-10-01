@@ -1,9 +1,9 @@
-name: ℹ️ About
+name: About
 description: Information about the Bot and its Creator
 
 commands.about: Information about the Bot
 
-title: ℹ️ About The Bot
+title: About The Bot
 tagline: Multifunctional Telegram Bot
 
 labels:
@@ -12,6 +12,6 @@ labels:
   version: Version
   status: Version status
 
-up_to_date: Up-to-date 😊
+up_to_date: Up-to-date
 behind: Outdated (Up-to-date {version})
 ahead: Beta (Stable {version})

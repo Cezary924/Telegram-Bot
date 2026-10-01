@@ -1,4 +1,4 @@
-name: 🔔 Przypomnienia
+name: Przypomnienia
 description: Przypomina Ci o czymkolwiek o wyznaczonej porze
 
 commands.reminder: Ustaw i zarządzaj swoimi przypomnieniami
@@ -17,16 +17,16 @@ wrong_content: Treść musi mieć od 1 do {limit} znaków
 wrong_date: Nie rozumiem tej daty, zapisz ją tak
 past_date: Nie przypomnę Ci o czymś, co już minęło
 
-done: Przypomnienie zostało ustawione ✅
-changed: Przypomnienie zostało zmienione ✅
-deleted: Przypomnienie zostało usunięte ✅
-gone: Tego przypomnienia już nie ma 💔
+done: Przypomnienie zostało ustawione
+changed: Przypomnienie zostało zmienione
+deleted: Przypomnienie zostało usunięte
+gone: Tego przypomnienia już nie ma
 empty: Nie masz jeszcze żadnych przypomnień
 pick:
   text: Wybierz przypomnienie, którym chcesz zarządzać.
   page: Strona {page} z {pages}, łącznie {total}
-previous: ⬅️ Poprzednia
-next: ➡️ Następna
+previous: Poprzednia
+next: Następna
 
 edit_content: Zmień treść
 edit_date: Zmień datę

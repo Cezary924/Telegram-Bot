@@ -61,7 +61,9 @@ module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
     tokens=["service_key"],  # the only secrets this module can read
-    notifications="name")  # the text key its notifications are listed under in /settings
+    notifications="name",  # the text key its notifications are listed under in /settings
+    icons={'name': "🔔"},  # put in front of a text, in every language
+    endings={'saved': "✅"})  # put after it
 ```
 
 > What a module sends on its own - ```ctx.notify``` and ```JobCtx.send``` - is a notification: the user decides in
@@ -210,6 +212,10 @@ Nested YAML flattens with dots:
 menu:
   title: Reminders     # menu.title
 ```
+
+Texts hold words only. An emoji that opens or closes a text belongs in the manifest's ```icons``` and ```endings```,
+so it is written once instead of once per language, and a translation cannot drift from it. The contract refuses an
+icon or ending for a key that has no text. An emoji in the middle of a sentence stays in the text.
 
 Every module needs a ```name``` and a ```description``` key - ```/help``` and ```/features``` list modules as
 ```/command - Name - Description```.

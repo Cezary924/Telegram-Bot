@@ -1,24 +1,24 @@
-name: ⚙️ Settings
+name: Settings
 description: Language, notifications and data deletion
 
 commands.settings: Show the settings menu
 
-title: ⚙️ Settings
+title: Settings
 menu: Select the setting of the following
 
-notifications: 🛎️ Notifications
-notifications_text: Choose what may make a sound. Everything else still arrives, just silently 🔕
+notifications: Notifications
+notifications_text: Choose what may make a sound. Everything else still arrives, just silently
 notifications_count: With sound
 notifications_blocked: All notifications are blocked ⛔ Nothing reaches you until you unblock them.
-notifications_all_loud: 🔊 All with sound
-notifications_all_silent: 🔕 All silently
-notifications_block: ⛔ Block all
-notifications_unblock: ✅ Unblock all
+notifications_all_loud: All with sound
+notifications_all_silent: All silently
+notifications_block: Block all
+notifications_unblock: Unblock all
 
-language: 🌐 Language
+language: Language
 language_question: Select a language
-language_changed: The displayed language has been changed ✅
+language_changed: The displayed language has been changed
 
-deletedata: 🗑️ Data Deletion
+deletedata: Data Deletion
 deletedata_question: Are you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.
-deletedata_done: Your data has been deleted ✅
+deletedata_done: Your data has been deleted

@@ -61,7 +61,9 @@ module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
-    notifications="name")  # klucz tekstu, pod którym jego powiadomienia widać w /settings
+    notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
+    icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
+    endings={'saved': "✅"})  # stawiana po nim
 ```
 
 > To, co moduł wysyła sam z siebie - ```ctx.notify``` i ```JobCtx.send``` - jest powiadomieniem: użytkownik decyduje w
@@ -209,6 +211,10 @@ Zagnieżdżony YAML spłaszcza się kropką:
 menu:
   title: Reminders     # menu.title
 ```
+
+Teksty zawierają wyłącznie słowa. Emotka otwierająca albo zamykająca tekst należy do ```icons``` i ```endings``` w
+manifeście, więc jest wpisana raz zamiast raz na język, a tłumaczenie nie może się od niej rozjechać. Kontrakt odrzuca
+ikonę albo zakończenie dla klucza, który nie ma tekstu. Emotka w środku zdania zostaje w tekście.
 
 Każdy moduł potrzebuje klucza ```name``` i ```description``` - ```/help``` i ```/features``` wypisują moduły jako
 ```/komenda - Name - Description```.

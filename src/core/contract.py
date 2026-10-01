@@ -72,6 +72,9 @@ def check_locales(module: Module) -> list[str]:
     for key in [module.title, module.description]:
         if key not in expected:
             problems.append("there is no '" + key + "' key for the module listing")
+    for kind, marks in [("icon", module.icons), ("ending", module.endings)]:
+        for key in sorted(set(marks) - expected):
+            problems.append("the " + kind + " for '" + key + "' marks a text that does not exist")
     for command in module.commands:
         if command.description not in expected:
             problems.append("command '" + command.name + "' has no description key '" +

@@ -2,24 +2,24 @@ language_label: 🇬🇧 English
 error: Error. Please, try again later.
 yes_button: ✅ Yes
 no_button: ❌ No
-return_button: 🔙 Back
-home_button: 🏠 Menu
-close_button: ✖️ Close
-notifications_label: 🤖 From the Bot
+return_button: Back
+home_button: Menu
+close_button: Close
+notifications_label: From the Bot
 
 role_banned: Banned
 role_guest: Guest
 role_user: User
 role_admin: Admin
 
-banned_info: Sorry, you are not allowed to communicate with me 😐
+banned_info: Sorry, you are not allowed to communicate with me
 permission_denied:
-  text: Sorry, you cannot use this command... 😭
-  hint: Please, contact the Administrator for a higher permission level 🧑‍🔬
+  text: Sorry, you cannot use this command...
+  hint: Please, contact the Administrator for a higher permission level
 menu_closed: The menu has been closed
-not_working_buttons: Sorry, this button does not work anymore... 😥
-unknown_command: Sorry, I do not understand this command... 💔
-unknown_message: Sorry, I do not understand... 💔
+not_working_buttons: Sorry, this button does not work anymore...
+unknown_command: Sorry, I do not understand this command...
+unknown_message: Sorry, I do not understand...
 
 bot_started: The Bot has been started successfully!
 bot_stopped: The Bot has been stopped!
@@ -29,18 +29,18 @@ new_user:
   text: A new user has met the Bot
   name: Name
   id: ID
-bot_updated: The Bot has been updated to the latest version. There may be temporary difficulties in the stable operation of the Bot. We ask for little patience and understanding 🙏
+bot_updated: The Bot has been updated to the latest version. There may be temporary difficulties in the stable operation of the Bot. We ask for little patience and understanding
 
 consent:
   agreement:
-    title: ✋ Data Processing Agreement
-    text: This is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose 💝
-  yes_button: ✅ Yes, I agree
-  no_button: ❌ No, I do not agree
+    title: Data Processing Agreement
+    text: This is the beginning of our journey. However, before we can talk to each other, you must agree to the data collection. It will be used in accordance with its intended purpose
+  yes_button: Yes, I agree
+  no_button: No, I do not agree
   language_switch: 🇵🇱 Polski
   accepted:
-    text: I am glad it is not the end of our journey 💞
-    ready: I can follow your instructions from now on 🫡
+    text: I am glad it is not the end of our journey
+    ready: I can follow your instructions from now on
   declined:
-    text: Ok... 😞
-    goodbye: Nice to meet you 😄
+    text: Ok...
+    goodbye: Nice to meet you

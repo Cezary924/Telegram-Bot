@@ -1,12 +1,12 @@
-name: 👋 Start
+name: Start
 description: The welcome screen and the feature list
 
 commands.start: Start a conversation with the Bot
 commands.features: Check the Bot features
 
 welcome:
-  greeting: 👋 Hi!
-  text: This is {name}! 🤖
-features_title: ✨ Bot Features
-features_button: ✨ Bot Features
+  greeting: Hi!
+  text: This is {name}!
+features_title: Bot Features
+features_button: Bot Features
 nothing: No features are turned on right now.
