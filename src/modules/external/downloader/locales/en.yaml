@@ -1,10 +1,17 @@
 name: Downloader
-description: Downloads a video from a link you send
+description: Downloads a video or its sound from a link you send
 
 commands.downloader: Learn how to download a video
 
 title: Downloader
-how: To download a video, all you have to do is send me a link to it
+how: To download a video or its sound, all you have to do is send me a link to it
 working: Working on it, give me a moment...
 failed: I could not download anything from this link
 too_big: This video is too large for me to send
+settings_text: Choose how I send what you link to
+settings_current: Now
+settings_button: Settings
+format_video: Video (mp4)
+format_audio: Sound (mp3)
+format_ask: Ask every time
+choose: How should I send it?

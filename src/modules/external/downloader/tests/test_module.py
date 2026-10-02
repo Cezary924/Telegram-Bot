@@ -22,9 +22,23 @@ def make_file(path: str, name: str = "video.mp4", size: int = 16) -> str:
 
 
 @pytest.fixture
-def downloading(app, monkeypatch):
-    monkeypatch.setattr(downloader, "download", lambda _url, path, _limit: make_file(path))
+def asked_for(monkeypatch) -> list[tuple[str, str]]:
+    return []
+
+
+@pytest.fixture
+def downloading(app, monkeypatch, asked_for):
+    def download(url, path, _limit, kind):
+        asked_for.append((url, kind))
+        return make_file(path, "sound.mp3" if kind == "audio" else "video.mp4")
+
+    monkeypatch.setattr(downloader, "download", download)
     return app
+
+
+def press(app, data: str):
+    app.router.handle_callback(make_callback(data, message_id=app.services.bot.last.message_id))
+    app.router.wait_for_tasks()
 
 
 @pytest.mark.parametrize("text", [
@@ -69,7 +83,7 @@ def test_a_video_the_user_asked_for_rings_even_with_notifications_off(downloadin
 
 
 def test_a_video_that_does_not_fit_is_reported(app, bot, monkeypatch):
-    monkeypatch.setattr(downloader, "download", lambda _url, _path, _limit: None)
+    monkeypatch.setattr(downloader, "download", lambda _url, _path, _limit, _kind: None)
     send(app, link1)
     assert "too large" in bot.last.text
     assert bot.files == []
@@ -78,18 +92,18 @@ def test_a_video_that_does_not_fit_is_reported(app, bot, monkeypatch):
 def test_a_failure_without_ffmpeg_names_the_reason(app, bot, monkeypatch, capsys):
     monkeypatch.setattr(downloader, "has_ffmpeg", lambda: False)
 
-    def fail(_url, _path, _limit):
+    def fail(_url, _path, _limit, _kind):
         raise ValueError("no such video")
 
     monkeypatch.setattr(downloader, "download", fail)
     send(app, link1)
-    assert "ffmpeg is not installed" in capsys.readouterr().out
+    assert "ffmpeg is missing or does not run" in capsys.readouterr().out
 
 
 def test_a_failure_with_ffmpeg_says_nothing_about_it(app, bot, monkeypatch, capsys):
     monkeypatch.setattr(downloader, "has_ffmpeg", lambda: True)
 
-    def fail(_url, _path, _limit):
+    def fail(_url, _path, _limit, _kind):
         raise ValueError("no such video")
 
     monkeypatch.setattr(downloader, "download", fail)
@@ -98,7 +112,7 @@ def test_a_failure_with_ffmpeg_says_nothing_about_it(app, bot, monkeypatch, caps
 
 
 def test_a_failure_is_reported(app, bot, monkeypatch):
-    def fail(_url, _path, _limit):
+    def fail(_url, _path, _limit, _kind):
         raise ValueError("no such video")
     monkeypatch.setattr(downloader, "download", fail)
     send(app, link1)
@@ -109,7 +123,7 @@ def test_a_failure_is_reported(app, bot, monkeypatch):
 def test_the_workspace_is_gone_afterwards(app, bot, monkeypatch):
     used = []
 
-    def remember(_url, path, _limit):
+    def remember(_url, path, _limit, _kind):
         used.append(path)
         return make_file(path)
 
@@ -141,8 +155,8 @@ def test_a_screen_takes_the_message_before_the_downloader(app, bot):
     assert bot.files == []
 
 
-def options(tmp_path) -> dict:
-    return downloader.build_options(str(tmp_path), 100)
+def options(tmp_path, kind: str = "video") -> dict:
+    return downloader.build_options(str(tmp_path), 100, kind)
 
 
 def test_ffmpeg_brings_the_merging_format(monkeypatch, tmp_path):
@@ -181,3 +195,114 @@ def test_a_file_over_the_limit_is_not_taken(tmp_path):
 def test_a_file_within_the_limit_is_taken(tmp_path):
     make_file(str(tmp_path), "video.mp4", size=50)
     assert downloader.downloaded_file(str(tmp_path), 100) == os.path.join(str(tmp_path), "video.mp4")
+
+
+def test_a_video_is_the_default(downloading, bot, asked_for):
+    send(downloading, link1)
+    assert asked_for == [(link1, "video")]
+    assert [(file.kind, file.name) for file in bot.files] == [("video", "video.mp4")]
+
+
+def test_sound_is_sent_as_an_audio_file(downloading, bot, asked_for):
+    downloading.storage.module_state.set(1, "downloader", "format", "audio")
+    send(downloading, link1)
+    assert asked_for == [(link1, "audio")]
+    assert [(file.kind, file.name) for file in bot.files] == [("audio", "sound.mp3")]
+
+
+def test_asking_offers_a_choice_before_downloading(downloading, bot, asked_for):
+    downloading.storage.module_state.set(1, "downloader", "format", "ask")
+    send(downloading, link1)
+    assert asked_for == []
+    assert bot.last.text == "<b>📥 Downloader:</b>\n\nHow should I send it?"
+    assert [text for text, _ in bot.last.buttons][:2] == ["🎬 Video (mp4)", "🎵 Sound (mp3)"]
+
+
+def test_the_choice_downloads_what_was_picked_and_goes_away(downloading, bot, asked_for):
+    downloading.storage.module_state.set(1, "downloader", "format", "ask")
+    send(downloading, link1)
+    question = bot.last.message_id
+    press(downloading, [data for _, data in bot.last.buttons][1])
+    assert asked_for == [(link1, "audio")]
+    assert (1, question) in bot.deleted
+    assert [file.kind for file in bot.files] == ["audio"]
+    assert downloading.storage.navigation.current(1) is None
+
+
+def test_a_choice_is_used_only_once(downloading, bot, asked_for):
+    downloading.storage.module_state.set(1, "downloader", "format", "ask")
+    send(downloading, link1)
+    choice = [data for _, data in bot.last.buttons][0]
+    press(downloading, choice)
+    press(downloading, choice)
+    assert asked_for == [(link1, "video")]
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+
+
+def test_two_links_waiting_for_a_choice_keep_apart(downloading, bot, asked_for):
+    downloading.storage.module_state.set(1, "downloader", "format", "ask")
+    downloading.router.handle_message(make_message(link1, message_id=101))
+    downloading.router.wait_for_tasks()
+    first = [data for _, data in bot.last.buttons][0]
+    downloading.router.handle_message(make_message(insecure_link1, message_id=102))
+    downloading.router.wait_for_tasks()
+    downloading.router.handle_callback(make_callback(first, message_id=bot.last.message_id))
+    downloading.router.wait_for_tasks()
+    assert asked_for == [(link1, "video")]
+
+
+def test_the_command_leads_to_the_settings(app, bot):
+    send(app, "/downloader")
+    assert ("⚙️ Settings", "core:settings:downloader") in bot.last.buttons
+
+
+def test_the_settings_show_the_current_format(app, bot):
+    send(app, "/settings")
+    press(app, "core:settings:downloader")
+    assert bot.last.text.startswith("<b>⚙️ Settings &gt; 📥 Downloader:</b>")
+    assert "Now: <i>🎬 Video (mp4)</i>" in bot.last.text
+    assert [text for text, data in bot.last.buttons if data.startswith("downloader:")] == [
+        "🎬 Video (mp4)", "🎵 Sound (mp3)", "❓ Ask every time"]
+
+
+def test_picking_a_format_rewrites_the_settings_in_place(app, bot):
+    send(app, "/settings")
+    press(app, "core:settings:downloader")
+    screen = bot.last.message_id
+    press(app, "downloader:format:ask")
+    assert bot.last.message_id == screen
+    assert "Now: <i>❓ Ask every time</i>" in bot.last.text
+    assert app.storage.module_state.get(1, "downloader", "format") == "ask"
+
+
+def test_an_unknown_format_is_refused(app, bot):
+    send(app, "/settings")
+    press(app, "core:settings:downloader")
+    press(app, "downloader:format:gif")
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+    assert app.storage.module_state.get(1, "downloader", "format") is None
+
+
+def test_sound_is_asked_for_as_mp3(tmp_path):
+    asked = options(tmp_path, "audio")
+    assert asked['format'] == "bestaudio/best"
+    assert asked['postprocessors'][0]['preferredcodec'] == "mp3"
+    assert 'merge_output_format' not in asked
+
+
+def test_a_video_is_not_turned_into_sound(tmp_path):
+    asked = options(tmp_path)
+    assert 'postprocessors' not in asked
+    assert asked['merge_output_format'] == "mp4"
+
+
+def test_ffmpeg_that_does_not_run_counts_as_missing(monkeypatch, tmp_path):
+    broken = tmp_path / "ffmpeg"
+    broken.write_text("#!/bin/sh\nexit 1\n")
+    broken.chmod(0o755)
+    monkeypatch.setattr(downloader.shutil, "which", lambda _name: str(broken))
+    downloader.has_ffmpeg.cache_clear()
+    try:
+        assert not downloader.has_ffmpeg()
+    finally:
+        downloader.has_ffmpeg.cache_clear()

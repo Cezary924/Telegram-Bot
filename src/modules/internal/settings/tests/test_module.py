@@ -17,7 +17,8 @@ def test_the_menu_lists_every_setting(app, bot):
     open_menu(app)
     assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect the setting of the following:"
     assert [data for _, data in bot.last.buttons] == [
-        "settings:notifications", "settings:language", "settings:deletedata", "core:close"]
+        "settings:notifications", "settings:language", "core:settings:downloader", "settings:deletedata",
+        "core:close"]
 
 
 def test_a_guest_is_not_offered_notifications(app, bot):
@@ -156,7 +157,8 @@ def test_a_module_with_settings_is_listed_before_data_deletion(app, bot):
     add_module_with_settings(app, Role.USER)
     open_menu(app)
     assert [data for _, data in bot.last.buttons] == [
-        "settings:notifications", "settings:language", "core:settings:extra", "settings:deletedata",
+        "settings:notifications", "settings:language", "core:settings:downloader", "core:settings:extra",
+        "settings:deletedata",
         "core:close"]
     assert "🧩 Extra" in [text for text, _ in bot.last.buttons]
 
