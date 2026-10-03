@@ -7,7 +7,7 @@ from functools import cache
 from urllib.parse import urlparse
 
 from yt_dlp import YoutubeDL
-from yt_dlp.utils import DownloadError
+from yt_dlp.utils import DownloadError, ExtractorError
 
 from core.api import Button, Ctx, Module, Role, View, labelled
 
@@ -28,6 +28,7 @@ top_bitrate = 192
 lowest_bitrate = 32
 fallback_heights = (1080, 720, 480, 360, 240, 144)
 redirects = 5
+cookies_name = "cookies.txt"
 video = "video"
 audio = "audio"
 ask = "ask"
@@ -64,7 +65,7 @@ def hint() -> str:
 def downloaded_file(path: str, limit: int) -> str | None:
     for name in sorted(os.listdir(path)):
         full_path = os.path.join(path, name)
-        if not os.path.isfile(full_path) or name.endswith(leftovers) or name.endswith(thumbnails):
+        if not os.path.isfile(full_path) or name.endswith(leftovers + thumbnails) or name == cookies_name:
             continue
         return full_path if os.path.getsize(full_path) <= limit else None
     return None
@@ -73,7 +74,7 @@ def downloaded_file(path: str, limit: int) -> str | None:
 def clear(path: str) -> None:
     for name in os.listdir(path):
         full_path = os.path.join(path, name)
-        if os.path.isfile(full_path):
+        if os.path.isfile(full_path) and name != cookies_name:
             os.remove(full_path)
 
 
@@ -81,6 +82,7 @@ def build_options(path: str, limit: int, kind: str = video) -> dict:
     options: dict[str, object] = {'quiet': True, 'noprogress': True, 'no_warnings': True, 'noplaylist': True,
                                   'outtmpl': os.path.join(path, name_template),
                                   'http_headers': {'User-Agent': browser_agent},
+                                  'cookiefile': os.path.join(path, cookies_name),
                                   'max_filesize': limit}
     if kind == audio:
         options['format'] = audio_format
@@ -103,7 +105,8 @@ def video_format(height: int | None = None) -> str:
 
 
 def heights(info: dict) -> list[int]:
-    found = {one.get('height') for one in info.get('formats') or [] if one.get('height')}
+    found = {one.get('height') for one in info.get('formats') or []
+             if one.get('height') and one.get('vcodec') not in (None, "none")}
     return sorted(found, reverse=True)[1:] if found else list(fallback_heights)
 
 
@@ -144,7 +147,7 @@ def resolve(options: dict, info: dict, wanted: str) -> dict | None:
     with YoutubeDL({**options, 'format': wanted}) as tool:
         try:
             return dict(tool.process_ie_result(copy.deepcopy(info), download=False))
-        except DownloadError:
+        except (DownloadError, ExtractorError):
             return None
 
 

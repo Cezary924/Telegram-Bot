@@ -432,3 +432,37 @@ def test_a_redirect_is_followed_once_before_anything_else(monkeypatch):
     monkeypatch.setattr("modules.external.downloader.module.YoutubeDL", Tool)
     assert downloader.look_up({}, link1)['title'] == "A film"
     assert calls == [link1, "https://example.com/real"]
+
+
+def storyboard(format_id: str, height: int) -> dict:
+    return {'format_id': format_id, 'url': "https://example.com/" + format_id, 'height': height,
+            'ext': "mhtml", 'vcodec': "none", 'acodec': "none", 'protocol': "mhtml"}
+
+
+def test_storyboards_are_not_qualities_of_the_film():
+    info = video_info(stream("v720", 720), stream("v480", 480), storyboard("sb0", 90), storyboard("sb1", 45))
+    assert downloader.heights(info) == [480]
+
+
+def test_a_quality_nothing_matches_is_skipped_rather_than_fatal(tmp_path, with_ffmpeg):
+    info = video_info(stream("a", size=4 * megabyte, is_sound=True), stream("v720", 720, 90 * megabyte))
+    assert downloader.resolve(options(tmp_path), info, downloader.video_format(90)) is None
+
+
+def test_a_film_with_storyboards_still_finds_its_qualities(tmp_path, with_ffmpeg):
+    info = video_info(stream("a", size=4 * megabyte, is_sound=True), stream("v1080", 1080, 90 * megabyte),
+                      stream("v720", 720, 40 * megabyte), storyboard("sb0", 90), storyboard("sb1", 45))
+    assert downloader.video_formats(options(tmp_path), info, 50 * megabyte) == [downloader.video_format(720)]
+
+
+def test_every_pass_shares_the_cookies_of_the_workspace(tmp_path):
+    assert options(tmp_path)['cookiefile'] == os.path.join(str(tmp_path), "cookies.txt")
+    assert options(tmp_path, "audio")['cookiefile'] == os.path.join(str(tmp_path), "cookies.txt")
+
+
+def test_the_cookies_are_neither_sent_nor_cleared(tmp_path):
+    make_file(str(tmp_path), "cookies.txt")
+    assert downloader.downloaded_file(str(tmp_path), 1000) is None
+    make_file(str(tmp_path), "film.mp4")
+    downloader.clear(str(tmp_path))
+    assert os.listdir(str(tmp_path)) == ["cookies.txt"]
