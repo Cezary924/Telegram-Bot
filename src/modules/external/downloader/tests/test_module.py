@@ -161,12 +161,12 @@ def options(tmp_path, kind: str = "video") -> dict:
 
 def test_ffmpeg_brings_the_merging_format(monkeypatch, tmp_path):
     monkeypatch.setattr(downloader, "has_ffmpeg", lambda: True)
-    assert options(tmp_path)['format'] == downloader.merged_format
+    assert options(tmp_path)['format'] == "bv*+ba/b"
 
 
 def test_without_ffmpeg_only_a_single_file_is_asked_for(monkeypatch, tmp_path):
     monkeypatch.setattr(downloader, "has_ffmpeg", lambda: False)
-    assert options(tmp_path)['format'] == downloader.single_format
+    assert options(tmp_path)['format'] == "b[ext=mp4]/b"
 
 
 def test_the_limit_reaches_yt_dlp(tmp_path):
@@ -306,3 +306,129 @@ def test_ffmpeg_that_does_not_run_counts_as_missing(monkeypatch, tmp_path):
         assert not downloader.has_ffmpeg()
     finally:
         downloader.has_ffmpeg.cache_clear()
+
+
+megabyte = 2 ** 20
+
+
+def stream(format_id: str, height: int | None = None, size: int | None = None, is_sound: bool = False) -> dict:
+    return {'format_id': format_id, 'url': "https://example.com/" + format_id, 'height': height, 'filesize': size,
+            'ext': "m4a" if is_sound else "mp4", 'vcodec': "none" if is_sound else "avc1",
+            'acodec': "mp4a" if is_sound else "none", 'tbr': 128 if is_sound else height}
+
+
+def video_info(*streams: dict, **fields) -> dict:
+    return {'id': "x", 'title': "A film", 'extractor': "generic", 'extractor_key': "Generic",
+            'webpage_url': link1, 'formats': list(streams), **fields}
+
+
+@pytest.fixture
+def with_ffmpeg(monkeypatch):
+    monkeypatch.setattr(downloader, "has_ffmpeg", lambda: True)
+
+
+def test_the_best_quality_that_fits_comes_first(tmp_path, with_ffmpeg):
+    info = video_info(stream("a", size=4 * megabyte, is_sound=True), stream("v1080", 1080, 90 * megabyte),
+                      stream("v720", 720, 40 * megabyte), stream("v480", 480, 20 * megabyte))
+    wanted = downloader.video_formats(options(tmp_path), info, 50 * megabyte)
+    assert wanted == [downloader.video_format(720), downloader.video_format(480)]
+
+
+def test_sound_and_picture_count_together(tmp_path, with_ffmpeg):
+    info = video_info(stream("a", size=15 * megabyte, is_sound=True), stream("v720", 720, 40 * megabyte),
+                      stream("v480", 480, 20 * megabyte))
+    assert downloader.video_formats(options(tmp_path), info, 50 * megabyte) == [downloader.video_format(480)]
+
+
+def test_a_size_nobody_knows_is_still_tried(tmp_path, with_ffmpeg):
+    info = video_info(stream("a", is_sound=True), stream("v720", 720), stream("v480", 480))
+    assert downloader.video_formats(options(tmp_path), info, 50 * megabyte)[0] == downloader.video_format()
+
+
+def test_nothing_fits_when_even_the_smallest_is_too_big(tmp_path, with_ffmpeg):
+    info = video_info(stream("a", size=4 * megabyte, is_sound=True), stream("v480", 480, 90 * megabyte))
+    assert downloader.video_formats(options(tmp_path), info, 50 * megabyte) == []
+
+
+def test_a_film_too_big_after_all_is_tried_again_one_size_down(tmp_path, monkeypatch, with_ffmpeg):
+    info = video_info(stream("a", is_sound=True), stream("v720", 720), stream("v480", 480))
+    monkeypatch.setattr(downloader, "look_up", lambda _options, _url: info)
+    tried = []
+
+    def fetch(fetch_options, _info):
+        tried.append(fetch_options['format'])
+        make_file(str(tmp_path), "film.mp4", 200 if len(tried) == 1 else 50)
+
+    monkeypatch.setattr(downloader, "fetch", fetch)
+    found = downloader.download(link1, str(tmp_path), 100)
+    assert tried == [downloader.video_format(), downloader.video_format(480)]
+    assert found is not None and os.path.getsize(found) == 50
+
+
+def test_sound_gets_its_tags_and_a_bitrate_that_fits(tmp_path, monkeypatch):
+    info = video_info(title="Rick Astley - Never Gonna Give You Up (Official Video)", duration=60 * 60)
+    monkeypatch.setattr(downloader, "look_up", lambda _options, _url: info)
+    seen = {}
+
+    def fetch(fetch_options, fetched):
+        seen['tags'] = (fetched['artist'], fetched['track'])
+        seen['bitrate'] = fetch_options['postprocessors'][0]['preferredquality']
+        make_file(str(tmp_path), "Rick Astley - Never Gonna Give You Up.mp3")
+
+    monkeypatch.setattr(downloader, "fetch", fetch)
+    found = downloader.download(link1, str(tmp_path), 50 * megabyte, "audio")
+    assert found is not None
+    assert seen == {'tags': ("Rick Astley", "Never Gonna Give You Up"), 'bitrate': "110"}
+    assert os.path.basename(found) == "Rick Astley - Never Gonna Give You Up.mp3"
+
+
+@pytest.mark.parametrize("fields, expected", [
+    ({'artist': "Daft Punk", 'track': "One More Time", 'title': "whatever"}, ("Daft Punk", "One More Time")),
+    ({'title': "Queen - Bohemian Rhapsody [Official Video Remastered]"}, ("Queen", "Bohemian Rhapsody")),
+    ({'title': "Bohemian Rhapsody (Lyrics)", 'channel': "Queen - Topic"}, ("Queen", "Bohemian Rhapsody")),
+    ({'title': "My holiday", 'uploader': "Ania"}, ("Ania", "My holiday")),
+    ({'title': "Live (2019)", 'channel': "Band"}, ("Band", "Live (2019)")),
+])
+def test_tags_fall_back_step_by_step(fields, expected):
+    assert downloader.tags(fields) == expected
+
+
+@pytest.mark.parametrize("duration, expected", [
+    (None, 192), (3 * 60, 192), (60 * 60, 110), (10 * 60 * 60, 32)])
+def test_the_bitrate_keeps_sound_under_the_limit(duration, expected):
+    assert downloader.bitrate(duration, 50 * megabyte) == expected
+
+
+def test_sound_is_tagged_and_gets_a_cover(tmp_path):
+    keys = [one['key'] for one in options(tmp_path, "audio")['postprocessors']]
+    assert keys == ["FFmpegExtractAudio", "FFmpegMetadata", "FFmpegThumbnailsConvertor", "EmbedThumbnail"]
+    assert options(tmp_path, "audio")['outtmpl'].endswith("%(artist).60B - %(track).80B.%(ext)s")
+
+
+def test_a_left_over_cover_is_not_taken_for_the_sound(tmp_path):
+    make_file(str(tmp_path), "A - B.jpg")
+    make_file(str(tmp_path), "A - B.mp3")
+    found = downloader.downloaded_file(str(tmp_path), 1000)
+    assert found is not None and found.endswith(".mp3")
+
+
+def test_a_redirect_is_followed_once_before_anything_else(monkeypatch):
+    calls = []
+
+    class Tool:
+        def __init__(self, _options):
+            self.calls = calls
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+        def extract_info(self, url, **_values):
+            self.calls.append(url)
+            return {'_type': "url", 'url': "https://example.com/real"} if url == link1 else video_info()
+
+    monkeypatch.setattr("modules.external.downloader.module.YoutubeDL", Tool)
+    assert downloader.look_up({}, link1)['title'] == "A film"
+    assert calls == [link1, "https://example.com/real"]

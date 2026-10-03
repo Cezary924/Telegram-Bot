@@ -1,10 +1,13 @@
+import copy
 import os
+import re
 import shutil
 import subprocess
 from functools import cache
 from urllib.parse import urlparse
 
-import yt_dlp
+from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 
 from core.api import Button, Ctx, Module, Role, View, labelled
 
@@ -18,9 +21,13 @@ mark = "📥 "
 schemes = ("http", "https")
 leftovers = (".part", ".ytdl")
 name_template = "%(title).80B.%(ext)s"
-merged_format = "bestvideo*+bestaudio/best"
-single_format = "best[ext=mp4]/best"
 audio_format = "bestaudio/best"
+sound_template = "%(artist).60B - %(track).80B.%(ext)s"
+thumbnails = (".jpg", ".jpeg", ".png", ".webp")
+top_bitrate = 192
+lowest_bitrate = 32
+fallback_heights = (1080, 720, 480, 360, 240, 144)
+redirects = 5
 video = "video"
 audio = "audio"
 ask = "ask"
@@ -57,10 +64,17 @@ def hint() -> str:
 def downloaded_file(path: str, limit: int) -> str | None:
     for name in sorted(os.listdir(path)):
         full_path = os.path.join(path, name)
-        if not os.path.isfile(full_path) or name.endswith(leftovers):
+        if not os.path.isfile(full_path) or name.endswith(leftovers) or name.endswith(thumbnails):
             continue
         return full_path if os.path.getsize(full_path) <= limit else None
     return None
+
+
+def clear(path: str) -> None:
+    for name in os.listdir(path):
+        full_path = os.path.join(path, name)
+        if os.path.isfile(full_path):
+            os.remove(full_path)
 
 
 def build_options(path: str, limit: int, kind: str = video) -> dict:
@@ -70,19 +84,115 @@ def build_options(path: str, limit: int, kind: str = video) -> dict:
                                   'max_filesize': limit}
     if kind == audio:
         options['format'] = audio_format
-        options['postprocessors'] = [{'key': "FFmpegExtractAudio", 'preferredcodec': "mp3",
-                                      'preferredquality': "192"}]
+        options['outtmpl'] = os.path.join(path, sound_template)
+        options['writethumbnail'] = True
+        options['postprocessors'] = [
+            {'key': "FFmpegExtractAudio", 'preferredcodec': "mp3", 'preferredquality': str(top_bitrate)},
+            {'key': "FFmpegMetadata"},
+            {'key': "FFmpegThumbnailsConvertor", 'format': "jpg"},
+            {'key': "EmbedThumbnail"}]
     else:
-        options['format'] = merged_format if has_ffmpeg() else single_format
+        options['format'] = video_format()
         options['merge_output_format'] = "mp4"
     return options
 
 
+def video_format(height: int | None = None) -> str:
+    cap = "[height<=" + str(height) + "]" if height else ""
+    return "bv*" + cap + "+ba/b" + cap if has_ffmpeg() else "b" + cap + "[ext=mp4]/b" + cap
+
+
+def heights(info: dict) -> list[int]:
+    found = {one.get('height') for one in info.get('formats') or [] if one.get('height')}
+    return sorted(found, reverse=True)[1:] if found else list(fallback_heights)
+
+
+def estimated_size(selected: dict) -> int | None:
+    total = 0
+    for part in selected.get('requested_formats') or [selected]:
+        size = part.get('filesize') or part.get('filesize_approx')
+        if not isinstance(size, (int, float)):
+            return None
+        total += int(size)
+    return total
+
+
+def bitrate(duration, limit: int) -> int:
+    if not duration:
+        return top_bitrate
+    fitting = int(limit * 8 * 0.95 / duration / 1000)
+    return max(lowest_bitrate, min(top_bitrate, fitting))
+
+
+suffix_pattern = re.compile(r"\s*[(\[][^)\]]*(official|video|audio|lyric|visuali[sz]er|hd|4k)[^)\]]*[)\]]",
+                            re.IGNORECASE)
+
+
+def tags(info: dict) -> tuple[str, str]:
+    title = (info.get('title') or "").strip()
+    if info.get('artist') and info.get('track'):
+        return str(info['artist']), str(info['track'])
+    if " - " in title:
+        artist, track = title.split(" - ", 1)
+        return artist.strip(), suffix_pattern.sub("", track).strip() or track.strip()
+    channel = info.get('channel') or info.get('uploader') or ""
+    return channel.removesuffix(" - Topic").strip(), suffix_pattern.sub("", title).strip() or title
+
+
 # noinspection PyTypeChecker
+def resolve(options: dict, info: dict, wanted: str) -> dict | None:
+    with YoutubeDL({**options, 'format': wanted}) as tool:
+        try:
+            return dict(tool.process_ie_result(copy.deepcopy(info), download=False))
+        except DownloadError:
+            return None
+
+
+# noinspection PyTypeChecker
+def fetch(options: dict, info: dict) -> None:
+    with YoutubeDL(options) as tool:
+        tool.process_ie_result(copy.deepcopy(info), download=True)
+
+
+def video_formats(options: dict, info: dict, limit: int) -> list[str]:
+    fitting = []
+    for height in [None] + heights(info):
+        wanted = video_format(height)
+        selected = resolve(options, info, wanted)
+        if selected is None:
+            continue
+        size = estimated_size(selected)
+        if size is None or size <= limit:
+            fitting.append(wanted)
+    return fitting
+
+
+# noinspection PyTypeChecker
+def look_up(options: dict, url: str) -> dict:
+    with YoutubeDL(options) as tool:
+        info = dict(tool.extract_info(url, download=False, process=False))
+        for _ in range(redirects):
+            if info.get('_type') != "url":
+                break
+            info = dict(tool.extract_info(info['url'], download=False, process=False))
+    return info
+
+
 def download(url: str, path: str, limit: int, kind: str = video) -> str | None:
-    with yt_dlp.YoutubeDL(build_options(path, limit, kind)) as tool:
-        tool.extract_info(url, download=True)
-    return downloaded_file(path, limit)
+    options = build_options(path, limit, kind)
+    info = look_up(options, url)
+    if kind == audio:
+        info['artist'], info['track'] = tags(info)
+        options['postprocessors'][0]['preferredquality'] = str(bitrate(info.get('duration'), limit))
+        fetch(options, info)
+        return downloaded_file(path, limit)
+    for wanted in video_formats(options, info, limit):
+        fetch({**options, 'format': wanted}, info)
+        found = downloaded_file(path, limit)
+        if found is not None:
+            return found
+        clear(path)
+    return None
 
 
 def chosen(ctx: Ctx) -> str:
