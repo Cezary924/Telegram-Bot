@@ -52,6 +52,16 @@ def test_locales_must_have_the_same_keys(tmp_path):
     assert "'pl.yaml' has the extra key 'key3'" in problems
 
 
+def test_an_icon_must_mark_a_text_that_exists(tmp_path):
+    module = Module(name="module1", icons={'name': "🔔", 'titel': "🔔"}, endings={'gone': "✅"})
+    module.path = str(tmp_path)
+    write_locales(tmp_path, "name: Module one\ndescription: Something\n")
+    problems = contract.check_locales(module)
+    assert "the icon for 'titel' marks a text that does not exist" in problems
+    assert "the ending for 'gone' marks a text that does not exist" in problems
+    assert not [problem for problem in problems if "'name'" in problem]
+
+
 def test_locales_need_the_default_language(tmp_path):
     module = Module(name="module1")
     module.path = str(tmp_path)

@@ -10,6 +10,16 @@ name_pattern = re.compile(r"[a-z][a-z0-9_]*")
 action_pattern = re.compile(r"[a-z][a-z0-9_]*")
 command_pattern = re.compile(r"[a-z][a-z0-9_]*")
 
+settings_view = "settings"
+settings_hub = "settings"
+settings_hub_view = "menu"
+
+
+@dataclass(frozen=True)
+class SettingsScreen:
+    view: str
+    role: Role
+
 
 @dataclass(frozen=True)
 class Command:
@@ -69,6 +79,9 @@ class Module:
     description: str = "description"
     requires: list[str] = field(default_factory=list)
     tokens: list[str] = field(default_factory=list)
+    notifications: str = ""
+    icons: dict[str, str] = field(default_factory=dict)
+    endings: dict[str, str] = field(default_factory=dict)
 
     commands: list[Command] = field(default_factory=list, init=False)
     callbacks: list[Callback] = field(default_factory=list, init=False)
@@ -76,6 +89,7 @@ class Module:
     states: list[State] = field(default_factory=list, init=False)
     views: list[ViewHandler] = field(default_factory=list, init=False)
     jobs: list[Job] = field(default_factory=list, init=False)
+    settings_screen: SettingsScreen | None = field(default=None, init=False)
 
     is_internal: bool = field(default=False, init=False)
     path: str = field(default="", init=False)
@@ -151,6 +165,18 @@ class Module:
             return stamped
 
         return decorator
+
+    def settings(self, role: Role = Role.GUEST) -> Callable:
+        if self.settings_screen is not None:
+            raise ValueError("Module '" + self.name + "' declares settings twice")
+        register = self.view(settings_view)
+        self.settings_screen = SettingsScreen(settings_view, role)
+        return register
+
+    def is_settings(self, name: str) -> bool:
+        branch = self.branch(name)
+        return (self.settings_screen is not None and self.name != settings_hub
+                and bool(branch) and branch[0].name == self.settings_screen.view)
 
     def view_named(self, name: str) -> ViewHandler | None:
         return next((view for view in self.views if view.name == name), None)

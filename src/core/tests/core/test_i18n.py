@@ -162,3 +162,34 @@ def test_core_locales_have_the_same_keys_in_every_language():
     keys = catalog.keys("core", languages[0])
     for language in languages[1:]:
         assert catalog.keys("core", language) == keys
+
+
+def test_an_icon_and_an_ending_frame_the_text():
+    catalog = Catalog()
+    catalog.add("module1", "en", {'key1': "Reminders", 'key2': "Saved", 'key3': "Plain"})
+    catalog.add_marks("module1", {'key1': "🔔"}, {'key2': "✅"})
+    assert catalog.text("module1", "key1", "en") == "🔔 Reminders"
+    assert catalog.text("module1", "key2", "en") == "Saved ✅"
+    assert catalog.text("module1", "key3", "en") == "Plain"
+
+
+def test_marks_reach_a_text_asked_for_from_another_namespace():
+    catalog = Catalog()
+    catalog.add("module1", "en", {'name': "Reminders"})
+    catalog.add_marks("module1", {'name': "🔔"}, {})
+    assert catalog.text("module2", "module1:name", "en") == "🔔 Reminders"
+
+
+def test_marks_go_around_the_filled_in_values():
+    catalog = Catalog()
+    catalog.add("module1", "en", {'key1': "Hello {name}"})
+    catalog.add_marks("module1", {}, {'key1': "👋"})
+    assert catalog.text("module1", "key1", "en", name="<Ann>") == "Hello &lt;Ann&gt; 👋"
+
+
+def test_marks_are_the_same_in_every_language():
+    catalog = Catalog()
+    catalog.add("module1", "en", {'key1': "Saved"})
+    catalog.add("module1", "pl", {'key1': "Zapisano"})
+    catalog.add_marks("module1", {}, {'key1': "✅"})
+    assert catalog.text("module1", "key1", "pl") == "Zapisano ✅"

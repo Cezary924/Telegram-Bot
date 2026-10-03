@@ -221,17 +221,18 @@ def test_an_announcement_goes_past_somebody_who_blocked_the_bot(boss, bot):
 
 
 def test_an_announcement_reaches_the_others(boss, bot):
-    add_people(boss, 2)
+    add_people(boss, 3)
     boss.storage.settings.set_notifications(3, False)
+    boss.storage.notifications.set_blocked(4, True)
     open_menu(boss)
     press(boss, "admin:announcement")
     bot.clear()
     boss.router.handle_message(make_message("The Bot will rest tonight"))
     boss.router.wait_for_tasks()
-    reached = [message.chat_id for message in bot.sent if message.chat_id != 1]
-    assert reached == [2]
+    reached = [(message.chat_id, message.is_silent) for message in bot.sent if message.chat_id != 1]
+    assert reached == [(2, False), (3, True)]
     assert bot.sent[0].text == "The Bot will rest tonight"
-    assert "reached <i>1</i> users" in bot.last.text
+    assert "reached <i>2</i> users" in bot.last.text
 
 
 def test_alerts_can_be_turned_off(boss, bot):

@@ -5,7 +5,14 @@ from core.api import AdvancedCtx, Button, Module, Role, View, bold, escape, labe
 from core import paths
 from core.loader import discover
 
-module = Module(name="admin")
+module = Module(name="admin", notifications="notifications_label",
+                icons={'name': "🛠️", 'title': "🛠️", 'notifications_label': "📢", 'previous': "⬅️", 'next': "➡️",
+                       'users': "🙋", 'users_list': "📋", 'users_search': "🔍", 'users_forward': "↪️", 'user_role': "🎖️",
+                       'user_wipe': "🗑️", 'statistics': "📊", 'announcement': "📢", 'alerts': "🔔", 'modules': "🧩",
+                       'bot': "🤖", 'bot_log': "📃", 'bot_restart': "🔄"},
+                endings={'users_search_missing': "😞", 'users_forward_text': "😁", 'users_forward_missing': "😐",
+                         'role_done': "✅", 'wipe_done': "✅", 'announcement_done': "✅", 'alerts_done': "✅",
+                         'modules_done': "✅"})
 
 page_size = 8
 log_lines = 30
@@ -245,7 +252,7 @@ def announcement(ctx: AdvancedCtx) -> View:
 def send_announcement(ctx: AdvancedCtx) -> View:
     reached = 0
     for row in ctx.users.get_all():
-        if row['id'] == ctx.user.id or not ctx.settings.has_notifications(row['id']):
+        if row['id'] == ctx.user.id or ctx.notifications.is_blocked(row['id']):
             continue
         if ctx.notify(row['id'], View(ctx.text, parse_mode=None)):
             reached += 1

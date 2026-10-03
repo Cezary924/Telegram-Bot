@@ -40,6 +40,17 @@ CREATE TABLE IF NOT EXISTS user_screen_arguments (
 DROP TABLE IF EXISTS user_navigation_stacks;
 DROP TABLE IF EXISTS user_anchors;
 
+CREATE TABLE IF NOT EXISTS user_notifications (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    source TEXT NOT NULL,
+    is_loud INTEGER NOT NULL,
+    PRIMARY KEY (user_id, source)
+);
+
+CREATE TABLE IF NOT EXISTS user_notification_blocks (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS user_module_state (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     module TEXT NOT NULL,

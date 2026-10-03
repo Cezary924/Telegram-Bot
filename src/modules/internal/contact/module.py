@@ -1,6 +1,9 @@
 from core.api import AdvancedCtx, Button, Module, Role, View, escape
 
-module = Module(name="contact")
+module = Module(name="contact",
+                icons={'name': "☎️", 'report': "📨", 'report_title': "📨"},
+                endings={'contact': "📨", 'report_question.text': "🫡", 'report_question.hint': "🚀🪱",
+                         'report_sent': "😁", 'no_admin': "😞"})
 
 
 @module.command("contact")

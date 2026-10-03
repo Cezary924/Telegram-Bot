@@ -6,7 +6,9 @@ import yt_dlp
 
 from core.api import Ctx, Module, Role, View
 
-module = Module(name="downloader")
+module = Module(name="downloader",
+                icons={'name': "📥"},
+                endings={'how': "😊", 'working': "⏳", 'failed': "💔", 'too_big': "💔"})
 
 priority = 20
 mark = "📥 "

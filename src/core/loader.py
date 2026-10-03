@@ -85,6 +85,7 @@ class Loader:
 
     def install(self, module: Module, registry: Registry) -> None:
         self._catalog.load_directory(module.name, os.path.join(module.path, locales_name))
+        self._catalog.add_marks(module.name, module.icons, module.endings)
         schema_path = os.path.join(module.path, schema_name)
         if os.path.isfile(schema_path):
             with open(schema_path, encoding='utf8') as f:

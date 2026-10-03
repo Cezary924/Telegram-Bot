@@ -9,6 +9,7 @@ back_action = "back"
 home_action = "home"
 close_action = "close"
 command_action = "command"
+settings_action = "settings"
 
 
 class Button:
@@ -41,6 +42,10 @@ class Button:
     @classmethod
     def command(cls, text: str, name: str) -> "Button":
         return cls(text, command_action, name, module=core_module_name)
+
+    @classmethod
+    def settings(cls, text: str, module_name: str) -> "Button":
+        return cls(text, settings_action, module_name, module=core_module_name)
 
 
 def render_button(button: Button, module_name: str) -> telebot.types.InlineKeyboardButton:

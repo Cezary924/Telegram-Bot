@@ -1,12 +1,12 @@
-name: 👋 Start
+name: Start
 description: Ekran powitalny i lista funkcji
 
 commands.start: Zacznij rozmowę z Botem
 commands.features: Sprawdź funkcje Bota
 
 welcome:
-  greeting: 👋 Cześć!
-  text: Z tej strony {name}! 🤖
-features_title: ✨ Funkcje Bota
-features_button: ✨ Funkcje Bota
+  greeting: Cześć!
+  text: Z tej strony {name}!
+features_title: Funkcje Bota
+features_button: Funkcje Bota
 nothing: Żadne funkcje nie są w tej chwili włączone.

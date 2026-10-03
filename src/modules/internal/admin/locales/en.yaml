@@ -1,28 +1,29 @@
-name: 🛠️ Admin
+name: Admin
 description: Users, statistics and Bot control
 
 commands.admin: Show the Administrator menu
 
-title: 🛠️ Admin
+title: Admin
+notifications_label: Announcements
 menu: Select the task of the following
 
 has_consent: given
 no_consent: not given
 turned_on: turned on
 turned_off: turned off
-previous: ⬅️ Previous
-next: ➡️ Next
+previous: Previous
+next: Next
 
-users: 🙋 Users
+users: Users
 users_menu: Find the User you want to manage
-users_list: 📋 List
+users_list: List
 users_list_text: Page {page} of {pages}, {total} users in total
-users_search: 🔍 Search by ID
+users_search: Search by ID
 users_search_text: Enter the User ID
-users_search_missing: The User with the entered ID has not been found in the database 😞
-users_forward: ↪️ Find by a message
-users_forward_text: Forward a message created by the User whose ID you want to find 😁
-users_forward_missing: That message carries no sender - the User hides their account on forwards 😐
+users_search_missing: The User with the entered ID has not been found in the database
+users_forward: Find by a message
+users_forward_text: Forward a message created by the User whose ID you want to find
+users_forward_missing: That message carries no sender - the User hides their account on forwards
 
 labels:
   username: Username
@@ -36,35 +37,35 @@ labels:
   modules: Modules loaded
   version: Version
   uptime: Running for
-user_role: 🎖️ Change the rank
-user_wipe: 🗑️ Delete the data
+user_role: Change the rank
+user_wipe: Delete the data
 
 role_text: The current rank is {role}. Choose a new one
 role_confirm: Are you sure you want to lower the rank to {role}? The User will lose the permissions they have now.
-role_done: The rank has been changed to {role} ✅
+role_done: The rank has been changed to {role}
 role_changed: Your rank has been changed to
 
 wipe_text: Are you sure you want to delete all the data the Bot has about this User? This operation cannot be undone.
-wipe_done: The User data has been deleted ✅
+wipe_done: The User data has been deleted
 
-statistics: 📊 Statistics
+statistics: Statistics
 
-announcement: 📢 Announcement
+announcement: Announcement
 announcement_text: Send me the message you want every User to read. It goes out to everyone who keeps notifications on.
-announcement_done: The announcement has reached {reached} users ✅
+announcement_done: The announcement has reached {reached} users
 
-alerts: 🔔 New user alerts
+alerts: New user alerts
 alerts_text: Alerts about new Users are {state}. Do you want them turned on?
-alerts_done: Alerts about new Users are now {state} ✅
+alerts_done: Alerts about new Users are now {state}
 
-modules: 🧩 Modules
+modules: Modules
 modules_text: Tap a module to turn it on or off. The change applies on the next start
 modules_none: There are no external modules to manage.
-modules_done: The module {module} is now {state}. Restart the Bot to apply it ✅
+modules_done: The module {module} is now {state}. Restart the Bot to apply it
 
-bot: 🤖 Bot
-bot_log: 📃 Log
+bot: Bot
+bot_log: Log
 bot_log_none: There is nothing in the log yet.
-bot_restart: 🔄 Restart
+bot_restart: Restart
 bot_restart_text: Are you sure you want to restart the Bot?
 bot_restart_done: The Bot is restarting...

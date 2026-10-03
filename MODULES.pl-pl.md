@@ -60,8 +60,15 @@ answer: Ask again later
 module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
-    tokens=["service_key"])  # jedyne sekrety, które ten moduł może odczytać
+    tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
+    notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
+    icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
+    endings={'saved': "✅"})  # stawiana po nim
 ```
+
+> To, co moduł wysyła sam z siebie - ```ctx.notify``` i ```JobCtx.send``` - jest powiadomieniem: użytkownik decyduje w
+> ```/settings```, czy ma dzwonić, i może zablokować wszystkie powiadomienia naraz. Wyciszony moduł dalej dostarcza
+> wiadomości, tylko po cichu. Odpowiedź na coś, co użytkownik zrobił, dzwoni zawsze.
 
 > Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```, a kontrakt odrzuca moduł
 > importujący coś, czego nie zadeklarował. Liczy się nazwa pakietu, nie nazwa importu, więc ```bs4``` deklaruje się jako
@@ -74,6 +81,7 @@ module = Module(
 | ```@module.command("nazwa", role=, description=, is_background=)``` | rejestruje ```/nazwa``` i dodaje ją do menu komend w Telegramie           |
 | ```@module.callback("akcja", role=, is_background=)```              | obsługuje przycisk ```moduł:akcja:argumenty```                            |
 | ```@module.view("nazwa", parent=, title=)```                        | buduje ekran, umieszczony pod ```parent``` w drzewie modułu               |
+| ```@module.settings(role=)```                                       | buduje ekran ustawień modułu, widoczny w ```/settings```                  |
 | ```@module.state("nazwa", role=, is_background=)```                 | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
 | ```@module.match(predykat, priority=, role=, is_background=)```     | przejmuje wiadomości pasujące do ```predykat(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                    | uruchamia się co ```interval``` sekund we własnym wątku                   |
@@ -142,6 +150,16 @@ def take_content(ctx: Ctx) -> View:
     return save(ctx)
 ```
 
+Moduł z własnymi opcjami deklaruje jeden ekran ustawień. Bot pokazuje go w ```/settings```, a sam ekran stoi pod tym
+menu: nagłówek to, np. ```⚙️ Settings > 📥 Downloader```, a Wstecz wraca do ```/settings```. Ekrany głębiej w
+ustawieniach dostają ```parent="settings"```:
+
+```python
+@module.settings(role=Role.USER)
+def settings(ctx: Ctx) -> View:
+    return View(text=ctx.t("settings.text"), buttons=[Button(ctx.t("settings.format"), "format")])
+```
+
 ## 🎒 Kontekst
 
 Każdy handler przyjmuje jeden argument.
@@ -175,7 +193,7 @@ ctx.languages  # wszystkie języki Bota, jako pary (kod, etykieta)
 ctx.use_language("pl")  # zmienia język użytkownika, razem z tym kontekstem
 ctx.language_of(user_id)  # język innego użytkownika
 ctx.text_for(user_id, "klucz")  # tekst w języku innego użytkownika
-ctx.notify(user_id, view)  # pisze do innego użytkownika, z jego ustawieniem powiadomień
+ctx.notify(user_id, view)  # pisze do innego użytkownika jako powiadomienie
 ```
 
 > Moduły zewnętrzne nie mają tych atrybutów w ogóle.
@@ -194,6 +212,10 @@ menu:
   title: Reminders     # menu.title
 ```
 
+Teksty zawierają wyłącznie słowa. Emotka otwierająca albo zamykająca tekst należy do ```icons``` i ```endings``` w
+manifeście, więc jest wpisana raz zamiast raz na język, a tłumaczenie nie może się od niej rozjechać. Kontrakt odrzuca
+ikonę albo zakończenie dla klucza, który nie ma tekstu. Emotka w środku zdania zostaje w tekście.
+
 Każdy moduł potrzebuje klucza ```name``` i ```description``` - ```/help``` i ```/features``` wypisują moduły jako
 ```/komenda - Name - Description```.
 
@@ -205,9 +227,9 @@ jest awaryjnym źródłem dla każdego innego języka. Każdy język nazywa sam 
 
 ### Formatowanie
 
-Tekst to jedna goła linijka słów, więc tłumaczenie wymaga wyłącznie słów. Kontrakt odrzuca tekst w cudzysłowie,
-tekst połamany na linie oraz tekst z tagami albo Markdownem. Cała reszta należy do kodu - składa linie, dokleja
-dwukropek wprowadzający wartość i decyduje, jak wygląda każda część:
+Tekst to jedna goła linijka słów, więc tłumaczenie wymaga wyłącznie słów. Kontrakt odrzuca tekst w cudzysłowie, tekst
+połamany na linie oraz tekst z tagami albo Markdownem. Cała reszta należy do kodu - składa linie, dokleja dwukropek
+wprowadzający wartość i decyduje, jak wygląda każda część:
 
 ```yaml
 menu: Ustawione przez Ciebie przypomnienia
@@ -219,11 +241,11 @@ labels:
   date: Data
 ```
 
-Wiadomość składana z kilku tekstów dostaje własną grupę, żeby części, które do siebie należą, stały razem. Główne
-zdanie to ```text```, pogrubiony nagłówek to ```title```, a każda inna część nosi nazwę od tego, co dodaje -
-```hint```, ```page```. Nazwy pól pokazywanych jako ```Etykieta: wartość``` trafiają do ```labels```. Wartość stojąca
-w środku zdania zostaje placeholderem, ```Z tej strony {name}!```, a nie zdaniem przeciętym na pół wokół niej - inny
-język może potrzebować innego szyku.
+Wiadomość składana z kilku tekstów dostaje własną grupę, żeby części, które do siebie należą, stały razem. Główne zdanie
+to ```text```, pogrubiony nagłówek to ```title```, a każda inna część nosi nazwę od tego, co dodaje -
+```hint```, ```page```. Nazwy pól pokazywanych jako ```Etykieta: wartość``` trafiają do ```labels```. Wartość stojąca w
+środku zdania zostaje placeholderem, ```Z tej strony {name}!```, a nie zdaniem przeciętym na pół wokół niej - inny język
+może potrzebować innego szyku.
 
 ```python
 from core.api import bold, escape, italic, labelled
@@ -237,11 +259,11 @@ Button(escape(row['content']), "one", row['id'])  # to, co napisał użytkownik,
 > Tekst nigdy nie kończy się dwukropkiem ani nie zawiera dwukropka ze spacją, a same słowa ```yes```, ```no```, ```on```
 > i ```off``` YAML czyta jako prawdę i fałsz. Gdy zdanie ich potrzebuje, zostaje sformułowane inaczej albo podzielone.
 
-Wiadomości wychodzą jako HTML. Wszystko, co trafia do ```ctx.t``` jako wartość, jest escapowane po drodze, więc imię
-w rodzaju ```<Eve> & co``` albo nazwa użytkownika ```john_doe``` nie zepsują wiadomości. ```bold``` i ```italic```
+Wiadomości wychodzą jako HTML. Wszystko, co trafia do ```ctx.t``` jako wartość, jest escapowane po drodze, więc imię w
+rodzaju ```<Eve> & co``` albo nazwa użytkownika ```john_doe``` nie zepsują wiadomości. ```bold``` i ```italic```
 escapują to, co owijają; ```escape``` służy do reszty, którą moduł skleja ręcznie. Tekst z ```ctx.t``` jest już
-znacznikiem i nigdy nie jest escapowany drugi raz. Przyciski i menu komend Telegrama przyjmują czysty tekst - rdzeń
-sam zdejmuje z nich znaczniki.
+znacznikiem i nigdy nie jest escapowany drugi raz. Przyciski i menu komend Telegrama przyjmują czysty tekst - rdzeń sam
+zdejmuje z nich znaczniki.
 
 ## 🗄️ Tabele
 

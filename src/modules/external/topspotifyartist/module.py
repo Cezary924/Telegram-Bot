@@ -7,7 +7,9 @@ from bs4 import BeautifulSoup
 
 from core.api import Ctx, JobCtx, Module, Role, View, labelled
 
-module = Module(name="topspotifyartist")
+module = Module(name="topspotifyartist",
+                endings={'how': "😁", 'wrong.text': "👎", 'correct.text': "👍", 'correct.victory': "😁",
+                         'defeat.text': "😞"})
 
 chart_url = "https://kworb.net/spotify/listeners.html"
 artist_prefix = "https://kworb.net/spotify/"

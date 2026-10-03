@@ -60,8 +60,15 @@ answer: Ask again later
 module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
-    tokens=["service_key"])  # the only secrets this module can read
+    tokens=["service_key"],  # the only secrets this module can read
+    notifications="name",  # the text key its notifications are listed under in /settings
+    icons={'name': "🔔"},  # put in front of a text, in every language
+    endings={'saved': "✅"})  # put after it
 ```
+
+> What a module sends on its own - ```ctx.notify``` and ```JobCtx.send``` - is a notification: the user decides in
+> ```/settings``` whether it makes a sound, and can block every notification at once. A user who turned a module down
+> still gets its messages, only silently. A reply to something the user did always makes a sound.
 
 > A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```, and the contract
 > refuses a module that imports something it did not declare. The name of the package counts, not the name of the
@@ -74,7 +81,8 @@ module = Module(
 |--------------------------------------------------------------------|-------------------------------------------------------------------|
 | ```@module.command("name", role=, description=, is_background=)``` | registers ```/name``` and adds it to the Telegram command menu    |
 | ```@module.callback("action", role=, is_background=)```            | handles the button ```module:action:arguments```                  |
-| ```@module.view("name", parent=, title=)```                        | builds a screen, placed under ```parent``` in the module tree      |
+| ```@module.view("name", parent=, title=)```                        | builds a screen, placed under ```parent``` in the module tree     |
+| ```@module.settings(role=)```                                      | builds the module's settings screen, listed in ```/settings```    |
 | ```@module.state("name", role=, is_background=)```                 | takes plain messages while the user sits on the screen ```name``` |
 | ```@module.match(predicate, priority=, role=, is_background=)```   | takes messages matching ```predicate(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                   | runs every ```interval``` seconds in its own thread               |
@@ -123,8 +131,8 @@ A handler returns what should appear:
 
 One message at a time carries the screen. A button press rewrites that message where it is, so moving around a module
 adds nothing to the chat. A typed message - a command, an answer to a question - is different: the user has written
-something, so the screen is taken away and written again below what they said, and it stays the last thing in the
-chat. Running the same command twice reopens its screen at the bottom instead of leaving two of them around.
+something, so the screen is taken away and written again below what they said, and it stays the last thing in the chat.
+Running the same command twice reopens its screen at the bottom instead of leaving two of them around.
 
 Use ```Button.command(text, "help")``` for a button that runs a command - the core routes it, so one module never needs
 to know another module's actions.
@@ -142,6 +150,16 @@ def take_content(ctx: Ctx) -> View:
     if not ctx.text.strip():
         return ctx.retry(ctx.t("set.empty"))
     return save(ctx)
+```
+
+A module with options of its own declares one settings screen. The Bot lists it in ```/settings```, and the screen sits
+under that menu: the heading reads, for example, ```⚙️ Settings > 📥 Downloader```, and Back returns to ```/settings```.
+Screens deeper in the settings take ```parent="settings"```:
+
+```python
+@module.settings(role=Role.USER)
+def settings(ctx: Ctx) -> View:
+    return View(text=ctx.t("settings.text"), buttons=[Button(ctx.t("settings.format"), "format")])
 ```
 
 ## 🎒 Context
@@ -177,7 +195,7 @@ ctx.languages  # every language the Bot supports, as (code, label) pairs
 ctx.use_language("pl")  # changes the user's language, this context included
 ctx.language_of(user_id)  # another user's language
 ctx.text_for(user_id, "key")  # a text in another user's language
-ctx.notify(user_id, view)  # writes to another user, respecting their notification setting
+ctx.notify(user_id, view)  # writes to another user as a notification
 ```
 
 > External modules do not have these attributes at all.
@@ -195,6 +213,10 @@ menu:
   title: Reminders     # menu.title
 ```
 
+Texts hold words only. An emoji that opens or closes a text belongs in the manifest's ```icons``` and ```endings```,
+so it is written once instead of once per language, and a translation cannot drift from it. The contract refuses an
+icon or ending for a key that has no text. An emoji in the middle of a sentence stays in the text.
+
 Every module needs a ```name``` and a ```description``` key - ```/help``` and ```/features``` list modules as
 ```/command - Name - Description```.
 
@@ -206,9 +228,9 @@ less, and ```en.yaml``` is the fallback for every other language. Each language 
 
 ### Formatting
 
-A text is one bare line of words, so translating it takes nothing but words. The contract refuses a text in quotes,
-a text broken into lines and a text with tags or Markdown. Everything else is the code's job - it puts lines
-together, adds the colon that introduces a value and decides how each part looks:
+A text is one bare line of words, so translating it takes nothing but words. The contract refuses a text in quotes, a
+text broken into lines and a text with tags or Markdown. Everything else is the code's job - it puts lines together,
+adds the colon that introduces a value and decides how each part looks:
 
 ```yaml
 menu: Reminders you have set
@@ -220,11 +242,11 @@ labels:
   date: Date
 ```
 
-A message put together from several texts gets a group of its own, so the parts that belong together stay together.
-The main sentence is ```text```, a heading shown in bold is ```title```, and every other part is named after what it
-adds - ```hint```, ```page```. Names of fields shown as ```Label: value``` live under ```labels```. A value that sits
-inside a sentence stays a placeholder, ```This is {name}!```, never a sentence cut in two around it - another language
-may need the words in a different order.
+A message put together from several texts gets a group of its own, so the parts that belong together stay together. The
+main sentence is ```text```, a heading shown in bold is ```title```, and every other part is named after what it adds -
+```hint```, ```page```. Names of fields shown as ```Label: value``` live under ```labels```. A value that sits inside a
+sentence stays a placeholder, ```This is {name}!```, never a sentence cut in two around it - another language may need
+the words in a different order.
 
 ```python
 from core.api import bold, escape, italic, labelled

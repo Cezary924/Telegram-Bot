@@ -14,6 +14,13 @@ CREATE TABLE IF NOT EXISTS users (
     seen_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS user_settings (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    language TEXT NOT NULL DEFAULT 'en',
+    has_notifications INTEGER NOT NULL DEFAULT 1,
+    has_admin_alerts INTEGER NOT NULL DEFAULT 1
+);
+
 CREATE TABLE IF NOT EXISTS user_navigation_stacks (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     position INTEGER NOT NULL,
@@ -65,4 +72,18 @@ def test_a_database_from_2_0_0_takes_new_rows(tmp_path):
     current = storage.navigation.current(1)
     assert current is not None and current['message_id'] == 777
     assert storage.navigation.remembered(1, "module1", "view2") == "3"
+    storage.close()
+
+
+def test_a_user_who_turned_notifications_off_in_2_0_0_gets_everything_silently(tmp_path):
+    path = database_of_2_0_0(tmp_path)
+    connection = sqlite3.connect(path)
+    connection.execute("INSERT INTO user_settings (user_id, has_notifications) VALUES (1, 0);")
+    connection.commit()
+    connection.close()
+    storage = Storage(path)
+    assert not storage.notifications.is_loud(1, "reminder")
+    assert not storage.notifications.is_blocked(1)
+    storage.notifications.set_loud(1, "reminder", True)
+    assert storage.notifications.is_loud(1, "reminder")
     storage.close()

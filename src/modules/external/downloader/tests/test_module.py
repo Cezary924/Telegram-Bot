@@ -62,10 +62,10 @@ def test_the_video_goes_to_the_person_who_asked(downloading, bot):
     assert bot.files[0].chat_id == 1
 
 
-def test_a_silent_user_gets_a_silent_video(downloading, bot):
+def test_a_video_the_user_asked_for_rings_even_with_notifications_off(downloading, bot):
     downloading.storage.settings.set_notifications(1, False)
     send(downloading, link1)
-    assert bot.files[0].is_silent
+    assert not bot.files[0].is_silent
 
 
 def test_a_video_that_does_not_fit_is_reported(app, bot, monkeypatch):

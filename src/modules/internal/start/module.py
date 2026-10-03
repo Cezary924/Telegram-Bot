@@ -1,6 +1,8 @@
 from core.api import AdvancedCtx, Button, Module, View, bold, italic
 
-module = Module(name="start")
+module = Module(name="start",
+                icons={'name': "👋", 'welcome.greeting': "👋", 'features_title': "✨", 'features_button': "✨"},
+                endings={'welcome.text': "🤖"})
 
 linked_modules = ["help", "about"]
 
