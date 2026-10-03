@@ -44,6 +44,18 @@ def table_of(app) -> str:
     return app.storage.for_module("reminder").table("reminders")
 
 
+def refuse(app, refused: int) -> None:
+    bot = app.services.bot
+    sending = bot.send_message
+
+    def send_message(chat_id, *arguments, **values):
+        if chat_id == refused:
+            raise RuntimeError("Forbidden: bot was blocked by the user")
+        return sending(chat_id, *arguments, **values)
+
+    bot.send_message = send_message
+
+
 def run_job(app):
     reminder.check_reminders(JobCtx(app.services, app.registry.get("reminder")))
 
@@ -62,7 +74,7 @@ def test_only_a_full_date_is_understood(text, is_valid):
 
 def test_the_menu_counts_what_is_set(app, bot):
     send(app, "/reminder")
-    assert "_0_" in bot.last.text
+    assert "<i>0</i>" in bot.last.text
     assert [text for text, _ in bot.last.buttons][:1] == ["Set a reminder"]
 
 
@@ -269,7 +281,7 @@ def test_the_list_fits_on_one_page_when_it_can(app, bot):
     labels = [text for text, _ in bot.last.buttons]
     assert len([one for one in labels if one.startswith(("🔔", "🔕"))]) == reminder.page_size
     assert "⬅️ Previous" not in labels
-    assert "Page _1_ of _1_" in bot.last.text
+    assert "Page <i>1</i> of <i>1</i>" in bot.last.text
 
 
 def test_a_longer_list_is_split_into_pages(app, bot):
@@ -278,8 +290,8 @@ def test_a_longer_list_is_split_into_pages(app, bot):
     labels = [text for text, _ in bot.last.buttons]
     assert len([one for one in labels if one.startswith(("🔔", "🔕"))]) == reminder.page_size
     assert "⬅️ Previous" in labels and "➡️ Next" in labels
-    assert "Page _1_ of _2_" in bot.last.text
-    assert "_11_ in total" in bot.last.text
+    assert "Page <i>1</i> of <i>2</i>" in bot.last.text
+    assert "<i>11</i> in total" in bot.last.text
 
 
 def test_the_next_page_shows_the_rest(app, bot):
@@ -288,20 +300,20 @@ def test_the_next_page_shows_the_rest(app, bot):
     click(app, bot, "reminder:manage:1")
     labels = [text for text, _ in bot.last.buttons]
     assert len([one for one in labels if one.startswith(("🔔", "🔕"))]) == 3
-    assert "Page _2_ of _2_" in bot.last.text
+    assert "Page <i>2</i> of <i>2</i>" in bot.last.text
 
 
 def test_a_page_past_the_end_falls_back_to_the_last_one(app, bot):
     fill(app, bot, reminder.page_size + 3)
     open_list(app, bot)
     click(app, bot, "reminder:manage:9")
-    assert "Page _2_ of _2_" in bot.last.text
+    assert "Page <i>2</i> of <i>2</i>" in bot.last.text
 
 
 def test_the_reminder_screen_shows_its_state(app, bot):
     set_one(app, bot)
     click(app, bot, "reminder:one:1")
-    assert bot.last.text.startswith("*🔔 Reminders > Manage reminders:*\n\n🔔 " + content1)
+    assert bot.last.text.startswith("<b>🔔 Reminders &gt; Manage reminders:</b>\n\n🔔 " + content1)
 
 
 def test_the_furthest_away_comes_first(app, bot):
@@ -311,3 +323,17 @@ def test_the_furthest_away_comes_first(app, bot):
     open_list(app, bot)
     shown = [text for text, _ in bot.last.buttons if text.startswith(("🔔", "🔕"))]
     assert shown == ["🔔 Latest", "🔔 Middle", "🔔 Soonest"]
+
+
+def test_a_reminder_that_cannot_be_delivered_does_not_hold_up_the_others(app, bot):
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.storage.settings.set_language(2, "en")
+    set_one(app, bot, content1)
+    app.storage.database.execute("INSERT INTO " + table_of(app) + " (user_id, date, content) VALUES (?, ?, ?);",
+                                 (2, later(), content2))
+    make_due(app)
+    refuse(app, 1)
+    bot.clear()
+    run_job(app)
+    assert [message.chat_id for message in bot.sent] == [2]
+    assert [row['is_notified'] for row in rows(app)] == [0, 1]

@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from core.api import Button, Ctx, JobCtx, Module, Role, View
+from core.api import Button, Ctx, JobCtx, Module, Role, View, escape, labelled, italic
 
 module = Module(name="reminder")
 
@@ -41,7 +41,7 @@ def wanted_id(ctx: Ctx) -> int:
 
 
 def details(ctx: Ctx, content: str, date: str) -> str:
-    return ctx.t("content") + ": _" + content + "_\n" + ctx.t("date") + ": _" + date + "_"
+    return labelled(ctx.t("labels.content"), content) + "\n" + labelled(ctx.t("labels.date"), date)
 
 
 @module.command("reminder", role=Role.USER)
@@ -55,7 +55,7 @@ def menu(ctx: Ctx) -> View:
     buttons = [Button(ctx.t("set"), "set")]
     if rows:
         buttons.append(Button(ctx.t("manage"), "manage"))
-    return View(text=ctx.t("menu", count=str(len(rows))),
+    return View(text=labelled(ctx.t("menu"), len(rows)),
                 buttons=buttons)
 
 
@@ -67,7 +67,7 @@ def open_content(ctx: Ctx) -> View:
     return content_screen(ctx)
 
 
-@module.view("content", parent="menu", title="content")
+@module.view("content", parent="menu", title="labels.content")
 def content_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     return View(text=ctx.t("ask_content"),
@@ -102,10 +102,10 @@ def open_date(ctx: Ctx) -> View:
     return date_screen(ctx)
 
 
-@module.view("date", parent="menu", title="date")
+@module.view("date", parent="menu", title="labels.date")
 def date_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
-    return View(text=ctx.t("ask_date", example=example_date()),
+    return View(text=labelled(ctx.t("ask_date"), example_date()),
                 argument=str(reminder_id) if reminder_id else None)
 
 
@@ -117,7 +117,7 @@ def example_date() -> str:
 def take_date(ctx: Ctx) -> View:
     moment = parse_date(ctx.text)
     if moment is None:
-        return ctx.retry(ctx.t("wrong_date", example=example_date()))
+        return ctx.retry(labelled(ctx.t("wrong_date"), example_date()))
     if moment < datetime.now().replace(second=0, microsecond=0):
         return ctx.retry(ctx.t("past_date"))
     date = moment.strftime(date_format)
@@ -170,7 +170,8 @@ def manage(ctx: Ctx) -> View:
     if pages > 1:
         buttons.append(Button(ctx.t("previous"), "manage", max(0, page - 1)))
         buttons.append(Button(ctx.t("next"), "manage", min(pages - 1, page + 1)))
-    return View(text=ctx.t("pick", page=str(page + 1), pages=str(pages), total=str(len(rows))),
+    return View(text=ctx.t("pick.text") + "\n"
+                + ctx.t("pick.page", page=italic(page + 1), pages=italic(pages), total=italic(len(rows))),
                 buttons=buttons, argument=str(page))
 
 
@@ -179,7 +180,7 @@ def wanted_page(ctx: Ctx) -> int:
 
 
 def label(row) -> str:
-    return (done_mark if row['is_notified'] else waiting_mark) + row['content']
+    return (done_mark if row['is_notified'] else waiting_mark) + escape(row['content'])
 
 
 @module.callback("one", role=Role.USER)
@@ -254,10 +255,11 @@ def due_reminders(ctx: JobCtx, now: datetime) -> list:
 
 def notify(ctx: JobCtx, row, key: str) -> None:
     language = ctx.language_of(row['user_id'])
-    text = (mark + "*" + ctx.t("title", language) + ":*\n\n" + ctx.t(key, language) + "\n"
-            + ctx.t("content", language) + ": _" + row['content'] + "_\n"
-            + ctx.t("date", language) + ": _" + row['date'] + "_")
-    ctx.send(row['user_id'], View(text=text))
+    text = (mark + "<b>" + ctx.t("title", language) + ":</b>\n\n" + ctx.t(key, language) + "\n"
+            + labelled(ctx.t("labels.content", language), row['content']) + "\n"
+            + labelled(ctx.t("labels.date", language), row['date']))
+    if not ctx.send(row['user_id'], View(text=text)):
+        return
     ctx.db.execute("UPDATE " + ctx.db.table("reminders") + " SET is_notified = 1 WHERE id = ?;",
                    (row['id'],))
     ctx.log("Reminder " + str(row['id']) + " sent")

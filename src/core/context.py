@@ -18,6 +18,7 @@ from core.module import Module
 from core.registry import Registry
 from core.roles import Role
 from core.services import Services
+from core.ui.html import Html
 from core.ui.keyboard import Button, delete_message
 from core.ui.view import View
 from core.utils import not_none
@@ -114,18 +115,24 @@ def controls_for(services: Services, module_name: str, view, language: str) -> l
 
 
 def send_to(services: Services, module_name: str, user_id: int, view,
-            heading: list[str] | None = None) -> None:
+            heading: list[str] | None = None) -> bool:
     from core.ui.view import View, render
     if isinstance(view, str):
-        view = View(view, parse_mode=None)
+        view = View(view)
     language = services.storage.settings.get_language(user_id)
 
     text, markup = render(view, module_name, controls_for(services, module_name, view, language),
                           heading)
     is_silent = not services.storage.settings.has_notifications(user_id)
     bot = not_none(services.bot, "the bot is not built yet")
-    bot.send_message(user_id, text, parse_mode=view.parse_mode,
-                     reply_markup=markup, disable_notification=is_silent)
+    try:
+        bot.send_message(user_id, text, parse_mode=view.parse_mode,
+                         reply_markup=markup, disable_notification=is_silent)
+    except Exception as error:
+        print_error("Could not deliver a message to " + str(user_id) + " - " + type(error).__name__ + ".",
+                    str(error))
+        return False
+    return True
 
 
 file_senders = {'audio': "send_audio", 'document': "send_document", 'photo': "send_photo",
@@ -167,7 +174,7 @@ class Ctx:
     def text(self) -> str:
         return (self.message.text or "") if self.message is not None else ""
 
-    def t(self, key: str, /, **values) -> str:
+    def t(self, key: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, self.user.language, **values)
 
     def token(self, name: str) -> str:
@@ -175,10 +182,10 @@ class Ctx:
             raise PermissionError("Module '" + self.module.name + "' did not declare token '" + name + "'")
         return self._services.config.token(name)
 
-    def reply(self, view) -> None:
+    def reply(self, view) -> bool:
         heading = heading_for(self._services, self.module.name, view, self.user.language) \
             if isinstance(view, View) else None
-        send_to(self._services, self.module.name, self.user.id, view, heading)
+        return send_to(self._services, self.module.name, self.user.id, view, heading)
 
     def send_file(self, path: str, kind: str = "document", caption: str = "") -> None:
         send_file_to(self._services, self.user.id, path, kind, caption)
@@ -236,11 +243,11 @@ class JobCtx:
     def language_of(self, user_id: int) -> str:
         return self._services.storage.settings.get_language(user_id)
 
-    def t(self, key: str, language: str, /, **values) -> str:
+    def t(self, key: str, language: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, language, **values)
 
-    def send(self, user_id: int, view) -> None:
-        send_to(self._services, self.module.name, user_id, view)
+    def send(self, user_id: int, view) -> bool:
+        return send_to(self._services, self.module.name, user_id, view)
 
     def log(self, info: str) -> None:
         print_log(info + " in '" + self.module.name + "'.")
@@ -282,11 +289,11 @@ class AdvancedCtx(Ctx):
     def language_of(self, user_id: int) -> str:
         return self._services.storage.settings.get_language(user_id)
 
-    def text_for(self, user_id: int, key: str, /, **values) -> str:
+    def text_for(self, user_id: int, key: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, self.language_of(user_id), **values)
 
-    def notify(self, user_id: int, view) -> None:
-        send_to(self._services, self.module.name, user_id, view)
+    def notify(self, user_id: int, view) -> bool:
+        return send_to(self._services, self.module.name, user_id, view)
 
     def use_language(self, language: str) -> None:
         self._services.storage.settings.set_language(self.user.id, language)

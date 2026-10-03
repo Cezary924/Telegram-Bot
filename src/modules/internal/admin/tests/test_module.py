@@ -32,7 +32,7 @@ def test_only_an_admin_may_open_the_menu(app, bot):
 
 def test_the_menu_lists_every_section(boss, bot):
     open_menu(boss)
-    assert bot.last.text == "*🛠️ Admin:*\n\nSelect the task of the following:"
+    assert bot.last.text == "<b>🛠️ Admin:</b>\n\nSelect the task of the following:"
     assert [data for _, data in bot.last.buttons] == [
         "admin:users", "admin:statistics", "admin:announcement",
         "admin:alerts", "admin:modules", "admin:bot", "core:close"]
@@ -65,7 +65,17 @@ def test_searching_by_id_opens_the_user(boss, bot):
     press(boss, "admin:search")
     boss.router.handle_message(make_message("2"))
     assert "Person2 (2)" in bot.last.text
-    assert "Rank: _User_" in bot.last.text
+    assert "Rank: <i>User</i>" in bot.last.text
+
+
+def test_a_name_and_username_with_special_characters_are_shown_as_they_are(boss, bot):
+    boss.storage.users.save(2, "<Eve> & *co*", "Last", "john_doe")
+    open_menu(boss)
+    press(boss, "admin:users")
+    press(boss, "admin:search")
+    boss.router.handle_message(make_message("2"))
+    assert "<b>&lt;Eve&gt; &amp; *co* (2)</b>" in bot.last.text
+    assert "<i>@john_doe</i>" in bot.last.text
 
 
 def test_searching_for_somebody_who_is_not_there(boss, bot):
@@ -118,7 +128,7 @@ def test_promoting_takes_effect_at_once(boss, bot):
     press(boss, "admin:role:2")
     press(boss, "admin:role_set:2:1")
     assert boss.storage.users.get_role(2) == Role.USER
-    assert "The rank has been changed to _User_" in bot.last.text
+    assert "The rank has been changed to <i>User</i>" in bot.last.text
 
 
 def test_the_user_is_told_about_the_new_rank(boss, bot):
@@ -131,7 +141,7 @@ def test_the_user_is_told_about_the_new_rank(boss, bot):
     bot.clear()
     boss.router.handle_callback(make_callback("admin:role_set:2:1", message_id=screen))
     told = [message for message in bot.sent if message.chat_id == 2]
-    assert told and told[0].text == "Zmieniono Twoją rangę na: _Użytkownik_"
+    assert told and told[0].text == "Zmieniono Twoją rangę na: <i>Użytkownik</i>"
 
 
 def test_lowering_the_rank_asks_first(boss, bot):
@@ -184,11 +194,30 @@ def test_statistics_count_everyone(boss, bot):
     boss.storage.users.set_consent(2, True)
     open_menu(boss)
     press(boss, "admin:statistics")
-    assert "User: _3_" in bot.last.text
-    assert "Admin: _1_" in bot.last.text
-    assert "Users in total: _4_" in bot.last.text
-    assert "With the agreement: _2_" in bot.last.text
-    assert "Running for: _0d 0h 0m_" in bot.last.text
+    assert "User: <i>3</i>" in bot.last.text
+    assert "Admin: <i>1</i>" in bot.last.text
+    assert "Users in total: <i>4</i>" in bot.last.text
+    assert "With the agreement: <i>2</i>" in bot.last.text
+    assert "Running for: <i>0d 0h 0m</i>" in bot.last.text
+
+
+def test_an_announcement_goes_past_somebody_who_blocked_the_bot(boss, bot):
+    add_people(boss, 3)
+    sending = bot.send_message
+
+    def send_message(chat_id, *arguments, **values):
+        if chat_id == 2:
+            raise RuntimeError("Forbidden: bot was blocked by the user")
+        return sending(chat_id, *arguments, **values)
+
+    bot.send_message = send_message
+    open_menu(boss)
+    press(boss, "admin:announcement")
+    bot.clear()
+    boss.router.handle_message(make_message("The Bot will rest tonight"))
+    boss.router.wait_for_tasks()
+    assert [message.chat_id for message in bot.sent if message.chat_id != 1] == [3, 4]
+    assert "reached <i>2</i> users" in bot.last.text
 
 
 def test_an_announcement_reaches_the_others(boss, bot):
@@ -202,22 +231,22 @@ def test_an_announcement_reaches_the_others(boss, bot):
     reached = [message.chat_id for message in bot.sent if message.chat_id != 1]
     assert reached == [2]
     assert bot.sent[0].text == "The Bot will rest tonight"
-    assert "reached _1_ users" in bot.last.text
+    assert "reached <i>1</i> users" in bot.last.text
 
 
 def test_alerts_can_be_turned_off(boss, bot):
     open_menu(boss)
     press(boss, "admin:alerts")
-    assert "Alerts about new Users are on" in bot.last.text
+    assert "Alerts about new Users are turned on" in bot.last.text
     press(boss, "admin:alerts_set:0")
     assert not boss.storage.settings.has_admin_alerts(1)
-    assert "are now off" in bot.last.text
+    assert "are now turned off" in bot.last.text
 
 
 def test_the_bot_screen_shows_the_version(boss, bot):
     open_menu(boss)
     press(boss, "admin:bot")
-    assert "Version: _" in bot.last.text
+    assert "Version: <i>" in bot.last.text
     assert [data for _, data in bot.last.buttons] == ["admin:log", "admin:restart",
                                                       "core:back", "core:home", "core:close"]
 
@@ -259,8 +288,8 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     press(boss, "admin:list:0")
     assert boss.storage.navigation.current(1) is not None
     press(boss, "core:back")
-    assert bot.last.text.startswith("*🛠️ Admin > 🙋 Users:*")
+    assert bot.last.text.startswith("<b>🛠️ Admin &gt; 🙋 Users:</b>")
     press(boss, "core:back")
-    assert bot.last.text.startswith("*🛠️ Admin:*")
+    assert bot.last.text.startswith("<b>🛠️ Admin:</b>")
     press(boss, "core:back")
     assert bot.last.text == "The menu has been closed"

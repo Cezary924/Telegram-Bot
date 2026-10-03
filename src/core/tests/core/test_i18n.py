@@ -1,6 +1,7 @@
 import pytest
 
 from core.i18n import Catalog, flatten, load_locale_file
+from core.ui.html import Html, italic
 
 escaped_newline = "\\n"
 real_newline = "\n"
@@ -92,8 +93,30 @@ def test_values_are_formatted_in(catalog):
 
 
 def test_braces_are_left_alone_without_values(catalog):
-    catalog.add("module1", "en", {'key3': "*{bold}*"})
-    assert catalog.text("module1", "key3", "en") == "*{bold}*"
+    catalog.add("module1", "en", {'key3': "Keep {this} as it is"})
+    assert catalog.text("module1", "key3", "en") == "Keep {this} as it is"
+
+
+def test_a_text_is_escaped_so_it_can_be_sent_as_html(catalog):
+    catalog.add("module1", "en", {'key3': "Weight & Height < 2 m"})
+    assert catalog.text("module1", "key3", "en") == "Weight &amp; Height &lt; 2 m"
+
+
+def test_a_value_is_escaped_before_it_goes_in(catalog):
+    catalog.add("module1", "en", {'key3': "Hello, {name}"})
+    assert catalog.text("module1", "key3", "en", name="<Eve>") == "Hello, &lt;Eve&gt;"
+
+
+def test_a_formatted_value_keeps_its_markup(catalog):
+    catalog.add("module1", "en", {'key3': "Hello, {name}"})
+    assert catalog.text("module1", "key3", "en", name=italic("Eve")) == "Hello, <i>Eve</i>"
+
+
+def test_a_text_is_markup_that_is_not_escaped_again(catalog):
+    catalog.add("module1", "en", {'key3': "R&D", 'key4': "In {team}"})
+    team = catalog.text("module1", "key3", "en")
+    assert isinstance(team, Html)
+    assert catalog.text("module1", "key4", "en", team=team) == "In R&amp;D"
 
 
 def test_has(catalog):
@@ -130,7 +153,7 @@ def test_core_locales_are_loaded():
     catalog = Catalog()
     assert catalog.load_core() == ["en", "pl"]
     assert catalog.text("core", "yes_button", "pl") == "✅ Tak"
-    assert catalog.text("core", "consent.question", "en").startswith("✋")
+    assert catalog.text("core", "consent.agreement.title", "en").startswith("✋")
 
 
 def test_core_locales_have_the_same_keys_in_every_language():

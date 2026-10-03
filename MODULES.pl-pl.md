@@ -203,6 +203,46 @@ jest awaryjnym źródłem dla każdego innego języka. Każdy język nazywa sam 
 
 > Brakujący klucz nie jest błędem. Użytkownik zobaczy ```reminder:menu.title```.
 
+### Formatowanie
+
+Tekst to jedna goła linijka słów, więc tłumaczenie wymaga wyłącznie słów. Kontrakt odrzuca tekst w cudzysłowie,
+tekst połamany na linie oraz tekst z tagami albo Markdownem. Cała reszta należy do kodu - składa linie, dokleja
+dwukropek wprowadzający wartość i decyduje, jak wygląda każda część:
+
+```yaml
+menu: Ustawione przez Ciebie przypomnienia
+pick:
+  text: Wybierz przypomnienie, którym chcesz zarządzać.
+  page: Strona {page} z {pages}, łącznie {total}
+labels:
+  content: Treść
+  date: Data
+```
+
+Wiadomość składana z kilku tekstów dostaje własną grupę, żeby części, które do siebie należą, stały razem. Główne
+zdanie to ```text```, pogrubiony nagłówek to ```title```, a każda inna część nosi nazwę od tego, co dodaje -
+```hint```, ```page```. Nazwy pól pokazywanych jako ```Etykieta: wartość``` trafiają do ```labels```. Wartość stojąca
+w środku zdania zostaje placeholderem, ```Z tej strony {name}!```, a nie zdaniem przeciętym na pół wokół niej - inny
+język może potrzebować innego szyku.
+
+```python
+from core.api import bold, escape, italic, labelled
+
+labelled(ctx.t("menu"), len(rows))  # "Ustawione przez Ciebie przypomnienia: <i>3</i>"
+ctx.t("pick.text") + "\n" + ctx.t("pick.page", page=italic(page), pages=italic(pages), total=italic(total))
+ctx.t("done", role=italic(role))  # "Ranga została zmieniona na {role}", z rangą kursywą
+Button(escape(row['content']), "one", row['id'])  # to, co napisał użytkownik, jako bezpieczny tekst
+```
+
+> Tekst nigdy nie kończy się dwukropkiem ani nie zawiera dwukropka ze spacją, a same słowa ```yes```, ```no```, ```on```
+> i ```off``` YAML czyta jako prawdę i fałsz. Gdy zdanie ich potrzebuje, zostaje sformułowane inaczej albo podzielone.
+
+Wiadomości wychodzą jako HTML. Wszystko, co trafia do ```ctx.t``` jako wartość, jest escapowane po drodze, więc imię
+w rodzaju ```<Eve> & co``` albo nazwa użytkownika ```john_doe``` nie zepsują wiadomości. ```bold``` i ```italic```
+escapują to, co owijają; ```escape``` służy do reszty, którą moduł skleja ręcznie. Tekst z ```ctx.t``` jest już
+znacznikiem i nigdy nie jest escapowany drugi raz. Przyciski i menu komend Telegrama przyjmują czysty tekst - rdzeń
+sam zdejmuje z nich znaczniki.
+
 ## 🗄️ Tabele
 
 Moduł jest właścicielem tabel z prefiksem ```module_<nazwa>_```. Umieść je w ```schema.sql``` obok ```module.py```, a
@@ -259,6 +299,7 @@ youtube: false
 - nazwa w manifeście zgadza się z katalogiem, nic nie wymaga samego siebie,
 - jest jeden plik językowy na każdy język Bota, każdy z tymi samymi kluczami co ```en.yaml```, w tym ```name```,
   ```description``` oraz klucz opisu każdej komendy,
+- każdy tekst to jedna goła linijka, bez cudzysłowów, łamania linii, tagów i Markdownu,
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
 - moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w

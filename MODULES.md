@@ -204,6 +204,46 @@ less, and ```en.yaml``` is the fallback for every other language. Each language 
 
 > A missing key is not an error. The user sees ```reminder:menu.title```.
 
+### Formatting
+
+A text is one bare line of words, so translating it takes nothing but words. The contract refuses a text in quotes,
+a text broken into lines and a text with tags or Markdown. Everything else is the code's job - it puts lines
+together, adds the colon that introduces a value and decides how each part looks:
+
+```yaml
+menu: Reminders you have set
+pick:
+  text: Pick the reminder you want to manage.
+  page: Page {page} of {pages}, {total} in total
+labels:
+  content: Content
+  date: Date
+```
+
+A message put together from several texts gets a group of its own, so the parts that belong together stay together.
+The main sentence is ```text```, a heading shown in bold is ```title```, and every other part is named after what it
+adds - ```hint```, ```page```. Names of fields shown as ```Label: value``` live under ```labels```. A value that sits
+inside a sentence stays a placeholder, ```This is {name}!```, never a sentence cut in two around it - another language
+may need the words in a different order.
+
+```python
+from core.api import bold, escape, italic, labelled
+
+labelled(ctx.t("menu"), len(rows))  # "Reminders you have set: <i>3</i>"
+ctx.t("pick.text") + "\n" + ctx.t("pick.page", page=italic(page), pages=italic(pages), total=italic(total))
+ctx.t("done", role=italic(role))  # "The rank has been changed to {role}" with the role in italics
+Button(escape(row['content']), "one", row['id'])  # anything the user wrote, turned into safe text
+```
+
+> A text never ends with a colon or contains one followed by a space, and ```yes```, ```no```, ```on``` and ```off```
+> alone are words YAML reads as true and false. Where a sentence needs them, it is worded differently or split.
+
+Messages go out as HTML. Whatever reaches ```ctx.t``` as a value is escaped on the way in, so a name like
+```<Eve> & co``` or a username like ```john_doe``` cannot break a message. ```bold``` and ```italic``` escape what they
+wrap too; ```escape``` is for the rest of what a module glues together by hand. A text from ```ctx.t``` is markup
+already and is never escaped twice. Buttons and the Telegram command menu take plain text, and the core strips the
+markup from them itself.
+
 ## 🗄️ Tables
 
 A module owns tables prefixed with ```module_<name>_```. Put them in ```schema.sql``` next to ```module.py``` and the
@@ -260,6 +300,7 @@ youtube: false
 - the manifest name matches the directory and nothing requires itself,
 - there is one language file per language the Bot supports, each with the same keys as ```en.yaml```, including
   ```name```, ```description``` and a description key for every command,
+- every text is one bare line, with no quotes, line breaks, tags or Markdown,
 - callback names leave room for arguments within Telegram's 64 byte limit,
 - ```schema.sql``` creates objects carrying the module prefix only,
 - an external module imports only ```core.api``` and ```core.testing``` from the core, and from other modules only those

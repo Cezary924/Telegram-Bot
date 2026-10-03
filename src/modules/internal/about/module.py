@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from core.api import AdvancedCtx, Module, View
+from core.api import AdvancedCtx, Module, View, bold, escape, italic, labelled
 from core.version import Version
 
 module = Module(name="about")
@@ -15,18 +15,18 @@ timeout = 10
 @module.command("about", is_background=True)
 def command_about(ctx: AdvancedCtx) -> View:
     return View(
-        text="*" + ctx.config.bot_name + "*\n"
-             + line(ctx, "labels.description", ctx.t("tagline"))
-             + line(ctx, "labels.creator", "@" + ctx.config.github_username)
-             + line(ctx, "labels.version", str(ctx.version))
-             + line(ctx, "labels.status", version_status(ctx))
-             + "GitHub Repo: " + repository_url(ctx) + "\n"
-             + "© _" + str(first_year) + " - " + str(datetime.now().year) + "_",
+        text=(bold(ctx.config.bot_name) + "\n"
+              + line(ctx, "labels.description", ctx.t("tagline"))
+              + line(ctx, "labels.creator", "@" + ctx.config.github_username)
+              + line(ctx, "labels.version", str(ctx.version))
+              + line(ctx, "labels.status", version_status(ctx))
+              + "GitHub Repo: " + escape(repository_url(ctx)) + "\n"
+              + "© " + italic(str(first_year) + " - " + str(datetime.now().year))),
         heading=ctx.t("title"))
 
 
 def line(ctx: AdvancedCtx, key: str, value: str) -> str:
-    return ctx.t(key) + ": _" + value + "_\n"
+    return labelled(ctx.t(key), value) + "\n"
 
 
 def repository_url(ctx: AdvancedCtx) -> str:

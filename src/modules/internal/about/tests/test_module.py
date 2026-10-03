@@ -42,40 +42,40 @@ def test_about_shows_the_bot_details(known_version, monkeypatch):
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
     text = known_version.services.bot.last.text
-    assert text.startswith("*ℹ️ About The Bot:*\n\n*DemoBot*\n")
-    assert "Description: _Multifunctional Telegram Bot_" in text
-    assert "Version: _v1.2 (100)_" in text
+    assert text.startswith("<b>ℹ️ About The Bot:</b>\n\n<b>DemoBot</b>\n")
+    assert "Description: <i>Multifunctional Telegram Bot</i>" in text
+    assert "Version: <i>v1.2 (100)</i>" in text
     assert "GitHub Repo: https://github.com/" in text
-    assert "© _2023 - " in text
+    assert "© <i>2023 - " in text
 
 
 def test_about_reports_being_up_to_date(known_version, monkeypatch):
     use_published(monkeypatch, 100)
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
-    assert "Version status: _Up-to-date 😊_" in known_version.services.bot.last.text
+    assert "Version status: <i>Up-to-date 😊</i>" in known_version.services.bot.last.text
 
 
 def test_about_reports_being_behind(known_version, monkeypatch):
     use_published(monkeypatch, 120, "v1.3")
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
-    assert "Version status: _Outdated (Up-to-date v1.3 (120))_" in known_version.services.bot.last.text
+    assert "Version status: <i>Outdated (Up-to-date v1.3 (120))</i>" in known_version.services.bot.last.text
 
 
 def test_about_reports_being_ahead(known_version, monkeypatch):
     use_published(monkeypatch, 80, "v1.1")
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
-    assert "Version status: _Beta (Stable v1.1 (80))_" in known_version.services.bot.last.text
+    assert "Version status: <i>Beta (Stable v1.1 (80))</i>" in known_version.services.bot.last.text
 
 
 def test_about_survives_a_missing_network(known_version, offline, capsys):
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
     text = known_version.services.bot.last.text
-    assert "Version status: _Error. Please, try again later._" in text
-    assert "Version: _v1.2 (100)_" in text
+    assert "Version status: <i>Error. Please, try again later.</i>" in text
+    assert "Version: <i>v1.2 (100)</i>" in text
     assert "Could not read the published version - ConnectionError in 'about'." in capsys.readouterr().out
 
 
@@ -85,9 +85,9 @@ def test_about_speaks_polish(known_version, monkeypatch):
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
     text = known_version.services.bot.last.text
-    assert text.startswith("*ℹ️ Informacje o Bocie:*")
-    assert "Wersja: _v1.2 (100)_" in text
-    assert "Status wersji: _Aktualna 😊_" in text
+    assert text.startswith("<b>ℹ️ Informacje o Bocie:</b>")
+    assert "Wersja: <i>v1.2 (100)</i>" in text
+    assert "Status wersji: <i>Aktualna 😊</i>" in text
 
 
 def test_about_is_not_a_screen(known_version, monkeypatch):

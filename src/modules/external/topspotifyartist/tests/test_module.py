@@ -47,7 +47,7 @@ def test_the_module_asks_for_no_tokens(app):
 
 def test_starting_a_round_opens_a_screen(playing, bot):
     start(playing)
-    assert bot.last.text.startswith("*ᯤ Guess the Spotify artist:*")
+    assert bot.last.text.startswith("<b>ᯤ Guess the Spotify artist:</b>")
     assert "You have 5 chances" in bot.last.text
     assert playing.storage.navigation.current(1) is not None
     assert playing.storage.module_state.get(1, "topspotifyartist", "target") == "1"
@@ -74,10 +74,10 @@ def test_a_wrong_guess_shows_the_hints(playing, bot):
     say(playing, "Ariana Grande")
     text = bot.last.text
     assert "Wrong! 👎 Chances left: 4" in text
-    assert "Nickname: _Ariana Grande_ ⬇️" in text
-    assert "Streams in total: _1.0B_ ⬆️" in text
-    assert "Number of tracks: _40_ ⬆️" in text
-    assert "Monthly listeners: _#1_ ⬇️" in text
+    assert "Nickname: <i>Ariana Grande</i> ⬇️" in text
+    assert "Streams in total: <i>1.0B</i> ⬆️" in text
+    assert "Number of tracks: <i>40</i> ⬆️" in text
+    assert "Monthly listeners: <i>#1</i> ⬇️" in text
 
 
 def test_the_hints_point_the_other_way_too(playing, bot, monkeypatch):
@@ -85,10 +85,10 @@ def test_the_hints_point_the_other_way_too(playing, bot, monkeypatch):
     start(playing)
     say(playing, "Demi Lovato")
     text = bot.last.text
-    assert "Nickname: _Demi Lovato_ ⬆️" in text
-    assert "Streams in total: _3.0B_ ⬇️" in text
-    assert "Number of tracks: _120_ ⬇️" in text
-    assert "Monthly listeners: _#2_ ⬆️" in text
+    assert "Nickname: <i>Demi Lovato</i> ⬆️" in text
+    assert "Streams in total: <i>3.0B</i> ⬇️" in text
+    assert "Number of tracks: <i>120</i> ⬇️" in text
+    assert "Monthly listeners: <i>#2</i> ⬆️" in text
 
 
 def test_guessing_right_ends_the_round(playing, bot):
@@ -96,8 +96,8 @@ def test_guessing_right_ends_the_round(playing, bot):
     say(playing, "Demi Lovato")
     text = bot.last.text
     assert "Correct! 👍" in text
-    assert "Nickname: _Demi Lovato_ 🆗" in text
-    assert "Most streamed song: _A song (https://open.spotify.com/DemiLovato)_" in text
+    assert "Nickname: <i>Demi Lovato</i> 🆗" in text
+    assert "Most streamed song: <i>A song (https://open.spotify.com/DemiLovato)</i>" in text
     assert "You have guessed the artist" in text
     assert playing.storage.navigation.current(1) is None
 
@@ -114,8 +114,8 @@ def test_running_out_of_chances_reveals_the_artist(playing, bot):
         say(playing, "Ariana Grande")
     text = bot.last.text
     assert "you have not guessed the artist" in text
-    assert "Nickname: _Demi Lovato_" in text
-    assert "Most streamed song: _A song" in text
+    assert "Nickname: <i>Demi Lovato</i>" in text
+    assert "Most streamed song: <i>A song" in text
     assert playing.storage.navigation.current(1) is None
 
 
@@ -139,7 +139,7 @@ def test_a_guest_may_not_play(app, bot):
 def test_it_speaks_polish(playing, bot):
     playing.storage.settings.set_language(1, "pl")
     start(playing)
-    assert bot.last.text.startswith("*ᯤ Zgadnij artystę Spotify:*")
+    assert bot.last.text.startswith("<b>ᯤ Zgadnij artystę Spotify:</b>")
     say(playing, "Demi Lovato")
     assert "Dobrze! 👍" in bot.last.text
 

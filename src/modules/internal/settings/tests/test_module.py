@@ -14,7 +14,7 @@ def press(app, data: str):
 
 def test_the_menu_lists_every_setting(app, bot):
     open_menu(app)
-    assert bot.last.text == "*⚙️ Settings:*\n\nSelect the setting of the following:"
+    assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect the setting of the following:"
     assert [data for _, data in bot.last.buttons] == [
         "settings:notifications", "settings:language", "settings:deletedata", "core:close"]
 
@@ -34,9 +34,9 @@ def test_the_menu_is_a_screen(app):
 def test_turning_notifications_on(app, bot):
     open_menu(app)
     press(app, "settings:notifications")
-    assert bot.last.text == "*⚙️ Settings > 🛎️ Notifications:*\n\nDo you want notifications to be turned on?"
+    assert bot.last.text == "<b>⚙️ Settings &gt; 🛎️ Notifications:</b>\n\nDo you want notifications to be turned on?"
     press(app, "settings:notifications_set:1")
-    assert bot.last.text == "*⚙️ Settings:*\n\nNotifications have been enabled ✅"
+    assert bot.last.text == "<b>⚙️ Settings:</b>\n\nNotifications have been enabled ✅"
     assert app.storage.settings.has_notifications(1)
 
 
@@ -62,7 +62,7 @@ def test_changing_the_language_answers_in_the_new_one(app, bot):
     press(app, "settings:language")
     assert [text for text, _ in bot.last.buttons][:2] == ["🇬🇧 English", "🇵🇱 Polski"]
     press(app, "settings:language_set:pl")
-    assert bot.last.text == "*⚙️ Ustawienia:*\n\nZmieniono język ✅"
+    assert bot.last.text == "<b>⚙️ Ustawienia:</b>\n\nZmieniono język ✅"
     assert app.storage.settings.get_language(1) == "pl"
 
 
@@ -71,7 +71,7 @@ def test_the_menu_speaks_the_new_language_afterwards(app, bot):
     press(app, "settings:language")
     press(app, "settings:language_set:pl")
     open_menu(app)
-    assert bot.last.text == "*⚙️ Ustawienia:*\n\nWybierz opcję z podanych:"
+    assert bot.last.text == "<b>⚙️ Ustawienia:</b>\n\nWybierz opcję z podanych:"
 
 
 def test_an_unknown_language_is_refused(app, bot):
@@ -103,7 +103,7 @@ def test_going_back_walks_up_the_menu(app, bot):
     press(app, "settings:notifications")
     assert app.storage.navigation.current(1) is not None
     press(app, "core:back")
-    assert bot.last.text.startswith("*⚙️ Settings:*")
+    assert bot.last.text.startswith("<b>⚙️ Settings:</b>")
     press(app, "core:back")
     assert bot.last.text == "The menu has been closed"
     assert app.storage.navigation.current(1) is None

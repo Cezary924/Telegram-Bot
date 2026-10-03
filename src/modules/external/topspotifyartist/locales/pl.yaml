@@ -4,15 +4,21 @@ description: Zgadnij jednego z najpopularniejszych artystów Spotify
 commands.topspotifyartist: Zagraj w zgadywanie artysty Spotify
 
 title: ᯤ Zgadnij artystę Spotify
-how: 'Zgadnij jednego z najpopularniejszych artystów Spotify. Nazwa musi zgadzać się w całości. Masz {chances} prób - zgaduj 😁'
+how: Zgadnij jednego z najpopularniejszych artystów Spotify. Nazwa musi zgadzać się w całości. Masz {chances} prób - zgaduj 😁
 unknown: Nie znam tego artysty 😵‍💫 Spróbuj jeszcze raz!
-wrong: 'Pudło! 👎 Pozostało prób: {left}'
-correct: Dobrze! 👍
-victory: Brawo! 👏 Zgadłeś artystę! 😁
-defeat: 'Niestety, nie udało Ci się zgadnąć artysty 😞\nOto szczegóły:'
+wrong:
+  text: Pudło! 👎
+  chances: Pozostało prób
+correct:
+  text: Dobrze! 👍
+  victory: Brawo! 👏 Zgadłeś artystę! 😁
+defeat:
+  text: Niestety, nie udało Ci się zgadnąć artysty 😞
+  details: Oto szczegóły
 
-nickname: Pseudonim
-streams: Odtworzenia łącznie
-tracks: Liczba utworów
-listeners: Słuchacze miesięcznie
-song: Najczęściej odtwarzany utwór
+labels:
+  nickname: Pseudonim
+  streams: Odtworzenia łącznie
+  tracks: Liczba utworów
+  listeners: Słuchacze miesięcznie
+  song: Najczęściej odtwarzany utwór

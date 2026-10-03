@@ -1,4 +1,4 @@
-from core.api import Ctx, Module, Role, View
+from core.api import Ctx, Module, Role, View, bold, italic
 
 module = Module(name="unitconverter")
 
@@ -55,6 +55,6 @@ def convert(ctx: Ctx) -> View | None:
         return None
     family, unit, number = found
     base = number / family[unit]
-    lines = "\n".join("_" + name + "_: " + "{:g}".format(base * factor)
+    lines = "\n".join(italic(name) + ": " + "{:g}".format(base * factor)
                       for name, factor in family.items())
-    return View(text="*" + "{:g}".format(number) + " " + unit + "*\n" + lines)
+    return View(text=bold("{:g}".format(number) + " " + unit) + "\n" + lines)

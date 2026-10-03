@@ -5,6 +5,7 @@ import telebot
 from telebot.apihelper import ApiTelegramException
 
 from core.api import Button, Module, Role, View
+from core import middleware
 from core.config import Config
 from core.registry import Registry
 from core.router import Router
@@ -119,6 +120,25 @@ def core_text(services, key, language="en") -> str:
     return services.catalog.text("core", key, language)
 
 
+def accepted(services, language="en") -> str:
+    return (core_text(services, "consent.accepted.text", language) + "\n"
+            + core_text(services, "consent.accepted.ready", language))
+
+
+def declined(services, language="en") -> str:
+    return (core_text(services, "consent.declined.text", language) + "\n"
+            + core_text(services, "consent.declined.goodbye", language))
+
+
+def denied(services, language="en") -> str:
+    return (core_text(services, "permission_denied.text", language) + "\n\n"
+            + core_text(services, "permission_denied.hint", language))
+
+
+def agreement(services, language="en") -> str:
+    return middleware.consent_view(services, language).text
+
+
 def test_unknown_command(router, bot, services, settled):
     router.handle_message(make_message("/nope"))
     assert bot.last.text == core_text(services, "unknown_command")
@@ -136,7 +156,7 @@ def test_command_with_a_bot_mention_runs(router, bot, settled):
 
 def test_command_above_the_user_role_is_refused(router, bot, services, settled):
     router.handle_message(make_message("/command2"))
-    assert bot.last.text == core_text(services, "permission_denied")
+    assert bot.last.text == denied(services)
 
 
 def test_command_runs_for_an_admin(router, bot, services, settled):
@@ -147,7 +167,7 @@ def test_command_runs_for_an_admin(router, bot, services, settled):
 
 def test_a_new_user_is_asked_for_consent(router, bot, services):
     router.handle_message(make_message("/command1"))
-    assert bot.last.text == core_text(services, "consent.question")
+    assert bot.last.text == agreement(services)
     assert [data for _, data in bot.last.buttons] == [
         "core:consent_language:pl", "core:consent_accept", "core:consent_decline"]
 
@@ -159,14 +179,14 @@ def test_a_new_user_is_registered(router, services):
 
 def test_consent_is_asked_in_the_telegram_language(router, bot, services):
     router.handle_message(make_message("/command1", language_code="pl"))
-    assert bot.last.text == core_text(services, "consent.question", "pl")
+    assert bot.last.text == agreement(services, "pl")
 
 
 def test_accepting_consent_unlocks_the_bot(router, bot, services):
     router.handle_message(make_message("/command1"))
     router.handle_callback(make_callback("core:consent_accept"))
     assert services.storage.users.has_consent(1)
-    assert bot.last.text == core_text(services, "consent.accepted")
+    assert bot.last.text == accepted(services)
     bot.clear()
     router.handle_message(make_message("/command1"))
     assert bot.last.text == "text1"
@@ -176,14 +196,14 @@ def test_declining_consent_keeps_the_bot_locked(router, bot, services):
     router.handle_message(make_message("/command1"))
     router.handle_callback(make_callback("core:consent_decline"))
     assert not services.storage.users.has_consent(1)
-    assert bot.last.text == core_text(services, "consent.declined")
+    assert bot.last.text == declined(services)
 
 
 def test_switching_the_consent_language_edits_the_message(router, bot, services):
     router.handle_message(make_message("/command1"))
     router.handle_callback(make_callback("core:consent_language:pl", message_id=500))
     assert bot.edited[0].message_id == 500
-    assert bot.edited[0].text == core_text(services, "consent.question", "pl")
+    assert bot.edited[0].text == agreement(services, "pl")
 
 
 def test_switching_the_consent_language_is_remembered(router, bot, services):
@@ -191,14 +211,14 @@ def test_switching_the_consent_language_is_remembered(router, bot, services):
     router.handle_callback(make_callback("core:consent_language:pl", message_id=bot.last.message_id))
     assert services.storage.settings.get_language(1) == "pl"
     router.handle_callback(make_callback("core:consent_accept"))
-    assert bot.last.text == core_text(services, "consent.accepted", "pl")
+    assert bot.last.text == accepted(services, "pl")
 
 
 def test_consent_in_the_telegram_language_is_remembered(router, bot, services):
     router.handle_message(make_message("/command1", language_code="pl"))
     router.handle_callback(make_callback("core:consent_accept", language_code="pl"))
     assert services.storage.settings.get_language(1) == "pl"
-    assert bot.last.text == core_text(services, "consent.accepted", "pl")
+    assert bot.last.text == accepted(services, "pl")
 
 
 def test_a_banned_user_is_stopped(router, bot, services, settled):
@@ -230,7 +250,7 @@ def test_going_back_restores_the_parent(router, bot, services, settled):
     router.handle_message(make_message("/menu"))
     router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
     router.handle_callback(make_callback("core:back", message_id=bot.last.message_id))
-    assert bot.last.text == "*Module one:*\n\nscreen1"
+    assert bot.last.text == "<b>Module one:</b>\n\nscreen1"
     assert services.storage.navigation.current(1) is not None
     assert not_none(services.storage.navigation.current(1))['view'] == "view1"
     assert not_none(services.storage.navigation.current(1))['message_id'] == bot.last.message_id
@@ -281,7 +301,7 @@ def test_an_answer_moves_the_screen_below_what_the_user_wrote(router, bot, servi
     screen = bot.last.message_id
     router.handle_message(make_message("value1"))
     assert bot.deleted == [(1, screen)]
-    assert bot.last.text == "*Module one:*\n\nscreen1" and bot.last.message_id != screen
+    assert bot.last.text == "<b>Module one:</b>\n\nscreen1" and bot.last.message_id != screen
     assert not_none(services.storage.navigation.current(1))['message_id'] == bot.last.message_id
 
 
@@ -289,7 +309,7 @@ def test_an_answer_that_is_not_understood_asks_again(router, bot, services, sett
     router.handle_message(make_message("/menu"))
     router.handle_callback(make_callback("module1:ask", message_id=bot.last.message_id))
     router.handle_message(make_message("no"))
-    assert bot.last.text == "*Module one:*\n\nwrong\n\nquestion"
+    assert bot.last.text == "<b>Module one:</b>\n\nwrong\n\nquestion"
     assert not_none(services.storage.navigation.current(1))['view'] == "asking"
     assert bot.last.buttons[-1] == (core_text(services, "close_button"), "core:close")
 
@@ -395,14 +415,14 @@ def test_a_user_without_consent_is_asked_before_anything_else(router, bot, servi
     for incoming in ["/nope", "value1", "https://example.com"]:
         bot.clear()
         router.handle_message(make_message(incoming))
-        assert bot.last.text == core_text(services, "consent.question")
+        assert bot.last.text == agreement(services)
 
 
 def test_a_user_without_consent_can_still_answer_the_consent(router, bot, services):
     router.handle_message(make_message("/command1"))
     bot.clear()
     router.handle_callback(make_callback("core:consent_accept"))
-    assert bot.last.text == core_text(services, "consent.accepted")
+    assert bot.last.text == accepted(services)
 
 
 @module1.view("view3")
@@ -434,9 +454,9 @@ def test_a_screen_is_reopened_with_what_it_remembered(router, bot, services, set
     router.handle_message(make_message("/parametrised"))
     assert not_none(services.storage.navigation.current(1))['argument'] == "42"
     router.handle_callback(make_callback("module1:deeper", message_id=bot.last.message_id))
-    assert bot.last.text == "*Module one:*\n\nscreen4"
+    assert bot.last.text == "<b>Module one:</b>\n\nscreen4"
     router.handle_callback(make_callback("core:back", message_id=bot.last.message_id))
-    assert bot.last.text == "*Module one:*\n\nscreen3 for ('42',)"
+    assert bot.last.text == "<b>Module one:</b>\n\nscreen3 for ('42',)"
 
 
 def test_a_message_without_a_sender_is_ignored(router, bot, settled):
@@ -503,7 +523,7 @@ def test_an_undeletable_screen_does_not_break_navigation(router, bot, services, 
     monkeypatch.setattr(bot, "delete_message", refuse)
     router.handle_callback(make_callback("module1:action1", message_id=bot.last.message_id))
     assert services.storage.navigation.current(1) is not None
-    assert bot.last.text == "*Module one:*\n\nscreen2"
+    assert bot.last.text == "<b>Module one:</b>\n\nscreen2"
 
 
 def test_the_registered_handlers_route_an_update(router, services, settled):
@@ -553,7 +573,7 @@ def test_a_new_user_is_announced_to_the_admins(router, bot, services, settled):
     router.handle_message(make_message("value1", user_id=3))
     announced = [message for message in bot.sent if message.chat_id == 2]
     assert len(announced) == 1
-    assert "ID: _3_" in announced[0].text
+    assert "ID: <i>3</i>" in announced[0].text
 
 
 def test_a_returning_user_is_not_announced(router, bot, services, settled):

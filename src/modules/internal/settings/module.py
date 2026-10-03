@@ -14,7 +14,7 @@ def menu(ctx: AdvancedCtx) -> View:
                Button(ctx.t("deletedata"), "deletedata")]
     if ctx.user.role >= Role.USER:
         buttons.insert(0, Button(ctx.t("notifications"), "notifications"))
-    return View(text=ctx.t("menu"), buttons=buttons)
+    return View(text=ctx.t("menu") + ":", buttons=buttons)
 
 
 @module.callback("notifications", role=Role.USER)
@@ -46,7 +46,7 @@ def open_language(ctx: AdvancedCtx) -> View:
 
 @module.view("language", parent="menu", title="language")
 def language(ctx: AdvancedCtx) -> View:
-    return View(text=ctx.t("language_question"),
+    return View(text=ctx.t("language_question") + ":",
                 buttons=[Button(label, "language_set", code) for code, label in ctx.languages])
 
 
@@ -54,7 +54,7 @@ def language(ctx: AdvancedCtx) -> View:
 def set_language(ctx: AdvancedCtx) -> View:
     wanted = ctx.arguments[0] if ctx.arguments else ""
     if wanted not in [code for code, _ in ctx.languages]:
-        return View(ctx.t("core:not_working_buttons"), parse_mode=None, heading=None)
+        return View(ctx.t("core:not_working_buttons"), heading=None)
     ctx.use_language(wanted)
     ctx.log("Language changed to " + wanted)
     ctx.close_screen()

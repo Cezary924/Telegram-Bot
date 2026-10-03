@@ -1,4 +1,4 @@
-from core.api import AdvancedCtx, Module, Role, View
+from core.api import AdvancedCtx, Module, Role, View, italic
 
 module = Module(name="help")
 
@@ -7,7 +7,7 @@ module = Module(name="help")
 def command_help(ctx: AdvancedCtx) -> View:
     listed = [entry(ctx, found) for found in ctx.registry.modules()
               if found.is_internal and is_listed(found)]
-    return View(text=ctx.t("intro") + "\n\n" + "\n".join(listed))
+    return View(text=ctx.t("intro") + ":\n\n" + "\n".join(listed))
 
 
 def open_command(found: Module) -> str:
@@ -24,4 +24,4 @@ def is_listed(found: Module) -> bool:
 def entry(ctx: AdvancedCtx, found: Module) -> str:
     command = open_command(found)
     return ("/" + command + " - " if command else "") + \
-        ctx.t(found.name + ":" + found.title) + " - _" + ctx.t(found.name + ":" + found.description) + "_"
+        ctx.t(found.name + ":" + found.title) + " - " + italic(ctx.t(found.name + ":" + found.description))

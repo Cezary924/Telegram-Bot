@@ -2,6 +2,7 @@ import telebot
 from telebot.apihelper import ApiTelegramException
 
 from core import callbacks
+from core.ui.html import plain
 
 core_module_name = "core"
 back_action = "back"
@@ -44,9 +45,9 @@ class Button:
 
 def render_button(button: Button, module_name: str) -> telebot.types.InlineKeyboardButton:
     if button.url is not None:
-        return telebot.types.InlineKeyboardButton(text=button.text, url=button.url)
+        return telebot.types.InlineKeyboardButton(text=plain(button.text), url=button.url)
     data = callbacks.build(button.module or module_name, button.action, *button.arguments)
-    return telebot.types.InlineKeyboardButton(text=button.text, callback_data=data)
+    return telebot.types.InlineKeyboardButton(text=plain(button.text), callback_data=data)
 
 
 def render_markup(buttons: list[Button], module_name: str,

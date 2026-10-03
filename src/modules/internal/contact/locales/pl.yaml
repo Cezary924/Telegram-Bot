@@ -8,7 +8,9 @@ contact: Aby skontaktować się z Administratorem, napisz bezpośrednio do {user
 report: 📨 Zgłoszenie do Administratora
 
 report_title: 📨 Zgłoszenie
-report_question: Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡 \nPS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
+report_question:
+  text: Napisz wiadomość-zgłoszenie do Administratora, a ja ją przekażę 🫡
+  hint: PS Jest to dobry sposób na przekazanie Administratorowi propozycji funkcjonalności oraz informacji o błędach 🚀🪱
 report_sent: Twoje zgłoszenie zostało wysłane 😁
 no_admin: Niestety, Twoje zgłoszenie nie mogło zostać wysłane... Spróbuj ponownie później 😞
-forwarded_to_admin: 'Cześć, {name} ({id}) chce przekazać Ci taką wiadomość-zgłoszenie:\n\n{text}'
+forwarded_to_admin: Cześć, {name} ({id}) chce przekazać Ci taką wiadomość-zgłoszenie

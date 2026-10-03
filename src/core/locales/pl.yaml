@@ -12,7 +12,9 @@ role_user: Użytkownik
 role_admin: Admin
 
 banned_info: Niestety, nie wolno Ci się ze mną komunikować 😐
-permission_denied: Niestety, nie możesz skorzystać z tego polecenia... 😭\n\nAby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
+permission_denied:
+  text: Niestety, nie możesz skorzystać z tego polecenia... 😭
+  hint: Aby dostać wyższe uprawnienia skontaktuj się z administratorem 🧑‍🔬
 menu_closed: Opuszczono menu
 not_working_buttons: Niestety, ten przycisk już nie działa... 😥
 unknown_command: Niestety, nie znam takiej komendy... 💔
@@ -22,13 +24,22 @@ bot_started: Bot został uruchomiony pomyślnie!
 bot_stopped: Bot został wyłączony!
 bot_failed: Bot napotkał błąd!
 
-new_user: 'Bot poznał nowego użytkownika:\nImię: _{name}_\nID: _{id}_'
+new_user:
+  text: Bot poznał nowego użytkownika
+  name: Imię
+  id: ID
 bot_updated: Bot został zaktualizowany do najnowszej wersji. Mogą wystąpić chwilowe utrudnienia w jego działaniu. Prosimy o cierpliwość i wyrozumiałość 🙏
 
 consent:
-  question: ✋ *Zgoda na przetwarzanie danych:*\n\nWidzę, że dopiero zaczynamy naszą wspólną drogę. Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one wykorzystywane zgodnie z ich przeznaczeniem 💝
+  agreement:
+    title: ✋ Zgoda na przetwarzanie danych
+    text: Widzę, że dopiero zaczynamy naszą wspólną drogę. Jednakże zanim będziemy mogli ze sobą rozmawiać, musisz zgodzić się na gromadzenie przeze mnie przekazywanych mi przez Ciebie danych. Będą one wykorzystywane zgodnie z ich przeznaczeniem 💝
   yes_button: ✅ Tak, zgadzam się
   no_button: ❌ Nie, nie zgadzam się
-  accepted: Cieszę się, że to nie koniec naszej wspólnej przygody 💞 \nOd teraz mogę wykonywać Twoje polecenia 🫡
-  declined: Dobrze... 😞 \nMiło mi było Cię poznać 😄
   language_switch: 🇬🇧 English
+  accepted:
+    text: Cieszę się, że to nie koniec naszej wspólnej przygody 💞
+    ready: Od teraz mogę wykonywać Twoje polecenia 🫡
+  declined:
+    text: Dobrze... 😞
+    goodbye: Miło mi było Cię poznać 😄
