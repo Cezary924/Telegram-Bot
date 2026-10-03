@@ -6,7 +6,12 @@ import subprocess
 from functools import cache
 from urllib.parse import urlparse
 
+import json
+
 from yt_dlp import YoutubeDL
+from yt_dlp.networking import Request
+from yt_dlp.networking.exceptions import RequestError
+from yt_dlp.networking.impersonate import ImpersonateTarget
 from yt_dlp.utils import DownloadError, ExtractorError
 
 from core.api import Button, Ctx, Module, Role, View, labelled
@@ -29,6 +34,12 @@ lowest_bitrate = 32
 fallback_heights = (1080, 720, 480, 360, 240, 144)
 redirects = 5
 cookies_name = "cookies.txt"
+photo = "photo"
+photo_limit = 10 * 1024 * 1024
+pictures_name = "pictures"
+tiktok_photo_pattern = re.compile(r"(tiktok\.com/@[^/?#]+/)photo/(\d+)")
+page_data_pattern = re.compile(r'<script id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.*?)</script>', re.DOTALL)
+picture_starts = {b"\xff\xd8\xff": "jpg", b"\x89PNG": "png", b"GIF8": "gif"}
 video = "video"
 audio = "audio"
 ask = "ask"
@@ -78,11 +89,12 @@ def clear(path: str) -> None:
             os.remove(full_path)
 
 
-def build_options(path: str, limit: int, kind: str = video) -> dict:
+def build_options(path: str, limit: int, kind: str = video, cookies: str = "", is_lookup: bool = False) -> dict:
     options: dict[str, object] = {'quiet': True, 'noprogress': True, 'no_warnings': True, 'noplaylist': True,
                                   'outtmpl': os.path.join(path, name_template),
                                   'http_headers': {'User-Agent': browser_agent},
-                                  'cookiefile': os.path.join(path, cookies_name),
+                                  'cookiefile': cookies or os.path.join(path, cookies_name),
+                                  'ignore_no_formats_error': is_lookup,
                                   'max_filesize': limit}
     if kind == audio:
         options['format'] = audio_format
@@ -170,32 +182,141 @@ def video_formats(options: dict, info: dict, limit: int) -> list[str]:
     return fitting
 
 
+def page_of(url: str) -> str:
+    return tiktok_photo_pattern.sub(r"\1video/\2", url)
+
+
 # noinspection PyTypeChecker
-def look_up(options: dict, url: str) -> dict:
-    with YoutubeDL(options) as tool:
-        info = dict(tool.extract_info(url, download=False, process=False))
-        for _ in range(redirects):
-            if info.get('_type') != "url":
-                break
-            info = dict(tool.extract_info(info['url'], download=False, process=False))
+def look_up(tool: YoutubeDL, url: str) -> dict:
+    info = dict(tool.extract_info(page_of(url), download=False, process=False))
+    for _ in range(redirects):
+        if info.get('_type') != "url":
+            break
+        info = dict(tool.extract_info(page_of(info['url']), download=False, process=False))
     return info
 
 
-def download(url: str, path: str, limit: int, kind: str = video) -> str | None:
-    options = build_options(path, limit, kind)
-    info = look_up(options, url)
+def entries_of(info: dict) -> list[dict]:
+    if info.get('_type') != "playlist":
+        return [info]
+    shared = {key: info[key] for key in ('extractor', 'extractor_key', 'webpage_url') if key in info}
+    return [{**shared, **dict(entry)} for entry in info.get('entries') or []]
+
+
+def is_video(entry: dict) -> bool:
+    return any(one.get('vcodec') != "none" for one in entry.get('formats') or [])
+
+
+def best_picture(entry: dict) -> str | None:
+    pictures = [one['url'] for one in entry.get('thumbnails') or [] if one.get('url')]
+    return pictures[-1] if pictures else None
+
+
+# noinspection PyTypeChecker
+def fetch_page(tool: YoutubeDL, url: str) -> bytes:
+    try:
+        return tool.urlopen(Request(url, extensions={'impersonate': ImpersonateTarget("chrome")})).read()
+    except RequestError:
+        return tool.urlopen(url).read()
+
+
+def tiktok_pictures(tool: YoutubeDL, info: dict) -> list[str]:
+    found = page_data_pattern.search(fetch_page(tool, info.get('webpage_url') or "").decode("utf-8", "replace"))
+    if found is None:
+        return []
+    scope = json.loads(found.group(1)).get('__DEFAULT_SCOPE__') or {}
+    item = ((scope.get('webapp.video-detail') or {}).get('itemInfo') or {}).get('itemStruct') or {}
+    images = (item.get('imagePost') or {}).get('images') or []
+    return [urls[0] for urls in [(image.get('imageURL') or {}).get('urlList') or [] for image in images] if urls]
+
+
+def picture_urls(tool: YoutubeDL, info: dict, entries: list[dict]) -> list[str]:
+    if info.get('extractor_key') == "TikTok" and not any(is_video(entry) for entry in entries):
+        return tiktok_pictures(tool, info)
+    urls = []
+    for entry in entries:
+        url = None if is_video(entry) else best_picture(entry)
+        if url is not None:
+            urls.append(url)
+    return urls
+
+
+def as_jpeg(source: str, target: str) -> str:
+    if not has_ffmpeg():
+        return source
+    subprocess.run([shutil.which("ffmpeg") or "ffmpeg", "-loglevel", "error", "-y", "-i", source, "-q:v", "2", target],
+                   capture_output=True, timeout=60, check=True)
+    return target
+
+
+def extension_of(body: bytes) -> str:
+    if body[:4] == b"RIFF" and body[8:12] == b"WEBP":
+        return "webp"
+    return next((extension for start, extension in picture_starts.items() if body.startswith(start)), "jpg")
+
+
+def save_pictures(tool: YoutubeDL, urls: list[str], path: str) -> list[str]:
+    folder = os.path.join(path, pictures_name)
+    os.makedirs(folder, exist_ok=True)
+    saved = []
+    for number, url in enumerate(urls):
+        body = fetch_page(tool, url)
+        if len(body) > photo_limit:
+            continue
+        name = os.path.join(folder, str(number).zfill(2))
+        extension = extension_of(body)
+        with open(name + "." + extension, 'wb') as handle:
+            handle.write(body)
+        saved.append(name + ".jpg" if extension == "jpg" else as_jpeg(name + "." + extension, name + ".jpg"))
+    return saved
+
+
+def download_one(entry: dict, path: str, limit: int, kind: str, cookies: str) -> str | None:
+    options = build_options(path, limit, kind, cookies)
     if kind == audio:
-        info['artist'], info['track'] = tags(info)
-        options['postprocessors'][0]['preferredquality'] = str(bitrate(info.get('duration'), limit))
-        fetch(options, info)
+        entry['artist'], entry['track'] = tags(entry)
+        options['postprocessors'][0]['preferredquality'] = str(bitrate(entry.get('duration'), limit))
+        fetch(options, entry)
         return downloaded_file(path, limit)
-    for wanted in video_formats(options, info, limit):
-        fetch({**options, 'format': wanted}, info)
+    for wanted in video_formats(options, entry, limit):
+        fetch({**options, 'format': wanted}, entry)
         found = downloaded_file(path, limit)
         if found is not None:
             return found
         clear(path)
     return None
+
+
+# noinspection PyTypeChecker
+def download(url: str, path: str, limit: int, kind: str = video) -> list[tuple[str, str]]:
+    cookies = os.path.join(path, cookies_name)
+    with YoutubeDL(build_options(path, limit, kind, cookies, is_lookup=True)) as tool:
+        info = look_up(tool, url)
+        entries = entries_of(info)
+        pictures = save_pictures(tool, picture_urls(tool, info, entries), path)
+    pieces: list[tuple[str, str]] = [(picture, photo) for picture in pictures]
+    for number, entry in enumerate([entry for entry in entries if is_video(entry)]):
+        folder = os.path.join(path, str(number))
+        os.makedirs(folder, exist_ok=True)
+        found = download_one(entry, folder, limit, kind, cookies)
+        if found is not None:
+            pieces.append((found, kind))
+    return pieces
+
+
+# noinspection PyTypeChecker
+def has_only_pictures(path: str, url: str) -> bool:
+    try:
+        with YoutubeDL(build_options(path, 0, is_lookup=True)) as tool:
+            return not any(is_video(entry) for entry in entries_of(look_up(tool, url)))
+    except (DownloadError, ExtractorError, RequestError):
+        return False
+
+
+def summary(pieces: list[tuple[str, str]]) -> str:
+    names = {photo: "photo", video: "video", audio: "sound"}
+    counts = [(sum(1 for _, kind in pieces if kind == one), names[one]) for one in (photo, video, audio)]
+    return ", ".join(("a " + name if count == 1 else str(count) + " " + name + "s") for count, name in counts if count)
 
 
 def chosen(ctx: Ctx) -> str:
@@ -207,14 +328,19 @@ def deliver(ctx: Ctx, url: str, kind: str) -> View | None:
     ctx.reply(View(text=ctx.t("working")))
     with ctx.workspace() as path:
         try:
-            file_path = download(url, path, ctx.file_limit, kind)
+            pieces = download(url, path, ctx.file_limit, kind)
         except Exception as error:
             ctx.error("Could not download - " + type(error).__name__ + hint(), str(error))
             return View(text=ctx.t("failed"))
-        if file_path is None:
+        if not pieces:
             return View(text=ctx.t("too_big"))
-        ctx.send_file(file_path, kind)
-        ctx.log("Downloaded " + ("a video" if kind == video else "a sound"))
+        pictures = [piece for piece, piece_kind in pieces if piece_kind == photo]
+        if pictures:
+            ctx.send_album(pictures)
+        for piece, piece_kind in pieces:
+            if piece_kind != photo:
+                ctx.send_file(piece, piece_kind)
+        ctx.log("Downloaded " + summary(pieces))
     return None
 
 
@@ -228,6 +354,9 @@ def take_link(ctx: Ctx) -> View | None:
     url = ctx.text.strip()
     if chosen(ctx) != ask:
         return deliver(ctx, url, chosen(ctx))
+    with ctx.workspace() as path:
+        if has_only_pictures(path, url):
+            return deliver(ctx, url, video)
     asked = str(ctx.message.message_id) if ctx.message is not None else "0"
     ctx.state.set(link_prefix + asked, url)
     return choice(ctx, asked)

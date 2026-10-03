@@ -1,5 +1,10 @@
+import json
 import os
+from typing import cast
+
 import pytest
+from yt_dlp import YoutubeDL
+from yt_dlp.networking import Request
 
 from core.api import Role
 from core.testing import make_callback, make_message
@@ -30,9 +35,10 @@ def asked_for(monkeypatch) -> list[tuple[str, str]]:
 def downloading(app, monkeypatch, asked_for):
     def download(url, path, _limit, kind):
         asked_for.append((url, kind))
-        return make_file(path, "sound.mp3" if kind == "audio" else "video.mp4")
+        return [(make_file(path, "sound.mp3" if kind == "audio" else "video.mp4"), kind)]
 
     monkeypatch.setattr(downloader, "download", download)
+    monkeypatch.setattr(downloader, "has_only_pictures", lambda _path, _url: False)
     return app
 
 
@@ -83,7 +89,7 @@ def test_a_video_the_user_asked_for_rings_even_with_notifications_off(downloadin
 
 
 def test_a_video_that_does_not_fit_is_reported(app, bot, monkeypatch):
-    monkeypatch.setattr(downloader, "download", lambda _url, _path, _limit, _kind: None)
+    monkeypatch.setattr(downloader, "download", lambda _url, _path, _limit, _kind: [])
     send(app, link1)
     assert "too large" in bot.last.text
     assert bot.files == []
@@ -125,7 +131,7 @@ def test_the_workspace_is_gone_afterwards(app, bot, monkeypatch):
 
     def remember(_url, path, _limit, _kind):
         used.append(path)
-        return make_file(path)
+        return [(make_file(path), "video")]
 
     monkeypatch.setattr(downloader, "download", remember)
     send(app, link1)
@@ -352,34 +358,35 @@ def test_nothing_fits_when_even_the_smallest_is_too_big(tmp_path, with_ffmpeg):
 
 def test_a_film_too_big_after_all_is_tried_again_one_size_down(tmp_path, monkeypatch, with_ffmpeg):
     info = video_info(stream("a", is_sound=True), stream("v720", 720), stream("v480", 480))
-    monkeypatch.setattr(downloader, "look_up", lambda _options, _url: info)
+    monkeypatch.setattr(downloader, "look_up", lambda _tool, _url: info)
     tried = []
 
     def fetch(fetch_options, _info):
         tried.append(fetch_options['format'])
-        make_file(str(tmp_path), "film.mp4", 200 if len(tried) == 1 else 50)
+        make_file(os.path.dirname(fetch_options['outtmpl']), "film.mp4", 200 if len(tried) == 1 else 50)
 
     monkeypatch.setattr(downloader, "fetch", fetch)
     found = downloader.download(link1, str(tmp_path), 100)
     assert tried == [downloader.video_format(), downloader.video_format(480)]
-    assert found is not None and os.path.getsize(found) == 50
+    assert [(os.path.getsize(path), kind) for path, kind in found] == [(50, "video")]
 
 
 def test_sound_gets_its_tags_and_a_bitrate_that_fits(tmp_path, monkeypatch):
-    info = video_info(title="Rick Astley - Never Gonna Give You Up (Official Video)", duration=60 * 60)
-    monkeypatch.setattr(downloader, "look_up", lambda _options, _url: info)
+    info = video_info(stream("v720", 720), title="Rick Astley - Never Gonna Give You Up (Official Video)",
+                      duration=60 * 60)
+    monkeypatch.setattr(downloader, "look_up", lambda _tool, _url: info)
     seen = {}
 
     def fetch(fetch_options, fetched):
         seen['tags'] = (fetched['artist'], fetched['track'])
         seen['bitrate'] = fetch_options['postprocessors'][0]['preferredquality']
-        make_file(str(tmp_path), "Rick Astley - Never Gonna Give You Up.mp3")
+        make_file(os.path.dirname(fetch_options['outtmpl']), "Rick Astley - Never Gonna Give You Up.mp3")
 
     monkeypatch.setattr(downloader, "fetch", fetch)
     found = downloader.download(link1, str(tmp_path), 50 * megabyte, "audio")
-    assert found is not None
     assert seen == {'tags': ("Rick Astley", "Never Gonna Give You Up"), 'bitrate': "110"}
-    assert os.path.basename(found) == "Rick Astley - Never Gonna Give You Up.mp3"
+    assert [(os.path.basename(path), kind) for path, kind in found] == [
+        ("Rick Astley - Never Gonna Give You Up.mp3", "audio")]
 
 
 @pytest.mark.parametrize("fields, expected", [
@@ -412,25 +419,18 @@ def test_a_left_over_cover_is_not_taken_for_the_sound(tmp_path):
     assert found is not None and found.endswith(".mp3")
 
 
-def test_a_redirect_is_followed_once_before_anything_else(monkeypatch):
+def test_a_redirect_is_followed_once_before_anything_else():
     calls = []
 
     class Tool:
-        def __init__(self, _options):
+        def __init__(self):
             self.calls = calls
-
-        def __enter__(self):
-            return self
-
-        def __exit__(self, *_):
-            return False
 
         def extract_info(self, url, **_values):
             self.calls.append(url)
             return {'_type': "url", 'url': "https://example.com/real"} if url == link1 else video_info()
 
-    monkeypatch.setattr("modules.external.downloader.module.YoutubeDL", Tool)
-    assert downloader.look_up({}, link1)['title'] == "A film"
+    assert downloader.look_up(as_tool(Tool()), link1)['title'] == "A film"
     assert calls == [link1, "https://example.com/real"]
 
 
@@ -466,3 +466,159 @@ def test_the_cookies_are_neither_sent_nor_cleared(tmp_path):
     make_file(str(tmp_path), "film.mp4")
     downloader.clear(str(tmp_path))
     assert os.listdir(str(tmp_path)) == ["cookies.txt"]
+
+
+jpeg_body = b"\xff\xd8\xff\xe0" + b"x" * 60
+webp_body = b"RIFF" + b"\x00" * 4 + b"WEBPVP8 " + b"x" * 60
+
+
+class Page:
+    def __init__(self, body: bytes):
+        self.body = body
+
+    def read(self) -> bytes:
+        return self.body
+
+
+class Web:
+    def __init__(self, pages: dict, refuses_chrome: bool = False):
+        self.pages = pages
+        self.refuses_chrome = refuses_chrome
+        self.asked: list[tuple[str, bool]] = []
+
+    def urlopen(self, request: Request | str) -> Page:
+        url = request.url if isinstance(request, Request) else request
+        as_chrome = isinstance(request, Request) and bool(request.extensions.get('impersonate'))
+        self.asked.append((url, as_chrome))
+        if as_chrome and self.refuses_chrome:
+            raise downloader.RequestError("no impersonation")
+        return Page(self.pages[url])
+
+
+def as_tool(fake) -> YoutubeDL:
+    return cast(YoutubeDL, fake)
+
+
+def tiktok_page(*urls: str) -> bytes:
+    images = [{'imageURL': {'urlList': [url, url + "?other"]}} for url in urls]
+    item = {'imagePost': {'images': images}}
+    data = {'__DEFAULT_SCOPE__': {'webapp.video-detail': {'itemInfo': {'itemStruct': item}}}}
+    return ('<html><script id="__UNIVERSAL_DATA_FOR_REHYDRATION__" type="application/json">'
+            + json.dumps(data) + '</script></html>').encode()
+
+
+tiktok_video_page = "https://www.tiktok.com/@someone/video/123"
+
+
+@pytest.mark.parametrize("url, expected", [
+    ("https://www.tiktok.com/@someone/photo/123?_r=1", "https://www.tiktok.com/@someone/video/123?_r=1"),
+    ("https://www.tiktok.com/@someone/video/123", "https://www.tiktok.com/@someone/video/123"),
+    ("https://www.instagram.com/p/abc/", "https://www.instagram.com/p/abc/"),
+])
+def test_a_tiktok_photo_post_is_read_from_its_video_page(url, expected):
+    assert downloader.page_of(url) == expected
+
+
+def test_a_carousel_shares_where_it_came_from_with_every_element():
+    info = {'_type': "playlist", 'extractor': "Instagram", 'extractor_key': "Instagram", 'webpage_url': link1,
+            'entries': [{'id': "1"}, {'id': "2"}]}
+    assert [(one['id'], one['extractor_key']) for one in downloader.entries_of(info)] == [
+        ("1", "Instagram"), ("2", "Instagram")]
+
+
+@pytest.mark.parametrize("formats, expected", [
+    ([stream("v720", 720)], True), ([stream("a", is_sound=True)], False), ([], False)])
+def test_only_something_with_a_picture_track_is_a_video(formats, expected):
+    assert downloader.is_video({'formats': formats}) == expected
+
+
+def test_the_largest_picture_comes_last():
+    entry = {'thumbnails': [{'url': "https://x/small"}, {'url': "https://x/large"}]}
+    assert downloader.best_picture(entry) == "https://x/large"
+
+
+def test_tiktok_pictures_come_from_the_page_asked_for_as_chrome():
+    web = Web({tiktok_video_page: tiktok_page("https://x/1.jpeg", "https://x/2.jpeg")})
+    info = {'extractor_key': "TikTok", 'webpage_url': tiktok_video_page, 'formats': [stream("a", is_sound=True)]}
+    assert downloader.picture_urls(as_tool(web), info, [info]) == ["https://x/1.jpeg", "https://x/2.jpeg"]
+    assert web.asked == [(tiktok_video_page, True)]
+
+
+def test_without_impersonation_the_page_is_asked_for_plainly():
+    web = Web({tiktok_video_page: tiktok_page("https://x/1.jpeg")}, refuses_chrome=True)
+    assert downloader.fetch_page(as_tool(web), tiktok_video_page).startswith(b"<html>")
+    assert web.asked == [(tiktok_video_page, True), (tiktok_video_page, False)]
+
+
+def test_a_tiktok_video_has_no_pictures_to_look_for():
+    web = Web({})
+    info = {'extractor_key': "TikTok", 'webpage_url': tiktok_video_page, 'formats': [stream("v720", 720)]}
+    assert downloader.picture_urls(as_tool(web), info, [info]) == []
+    assert web.asked == []
+
+
+def test_a_carousel_gives_the_pictures_of_its_pictures_only():
+    picture = {'thumbnails': [{'url': "https://x/p1"}]}
+    film = {'formats': [stream("v720", 720)], 'thumbnails': [{'url': "https://x/cover"}]}
+    info = {'extractor_key': "Instagram"}
+    assert downloader.picture_urls(as_tool(Web({})), info, [picture, film, picture]) == ["https://x/p1", "https://x/p1"]
+
+
+def test_pictures_are_saved_in_order_and_a_jpeg_stays_as_it_is(tmp_path):
+    web = Web({"https://x/1": jpeg_body, "https://x/2": jpeg_body})
+    saved = downloader.save_pictures(as_tool(web), ["https://x/1", "https://x/2"], str(tmp_path))
+    assert [os.path.basename(one) for one in saved] == ["00.jpg", "01.jpg"]
+
+
+def test_a_webp_without_ffmpeg_is_kept_under_its_own_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(downloader, "has_ffmpeg", lambda: False)
+    saved = downloader.save_pictures(as_tool(Web({"https://x/1": webp_body})), ["https://x/1"], str(tmp_path))
+    assert [os.path.basename(one) for one in saved] == ["00.webp"]
+
+
+def test_a_webp_is_turned_into_a_jpeg_by_ffmpeg(tmp_path, monkeypatch, with_ffmpeg):
+    ran = []
+    monkeypatch.setattr(downloader.subprocess, "run", lambda command, **_values: ran.append(command))
+    saved = downloader.save_pictures(as_tool(Web({"https://x/1": webp_body})), ["https://x/1"], str(tmp_path))
+    assert [os.path.basename(one) for one in saved] == ["00.jpg"]
+    assert ran[0][-1].endswith("00.jpg") and ran[0][ran[0].index("-i") + 1].endswith("00.webp")
+
+
+def test_a_picture_over_the_telegram_limit_is_left_out(tmp_path, monkeypatch):
+    monkeypatch.setattr(downloader, "photo_limit", 10)
+    assert downloader.save_pictures(as_tool(Web({"https://x/1": jpeg_body})), ["https://x/1"], str(tmp_path)) == []
+
+
+@pytest.fixture
+def mixed_post(app, monkeypatch):
+    def download(_url, path, _limit, kind):
+        return [(make_file(path, "00.jpg"), "photo"), (make_file(path, "01.jpg"), "photo"),
+                (make_file(path, "film.mp4"), kind)]
+
+    monkeypatch.setattr(downloader, "download", download)
+    monkeypatch.setattr(downloader, "has_only_pictures", lambda _path, _url: False)
+    return app
+
+
+def test_pictures_come_as_one_album_and_films_after_them(mixed_post, bot, capsys):
+    send(mixed_post, link1)
+    assert bot.albums == [["00.jpg", "01.jpg"]]
+    assert [(file.kind, file.name) for file in bot.files] == [("video", "film.mp4")]
+    assert "Downloaded 2 photos, a video" in capsys.readouterr().out
+
+
+def test_a_post_of_pictures_only_is_sent_without_asking(app, bot, monkeypatch):
+    app.storage.module_state.set(1, "downloader", "format", "ask")
+    monkeypatch.setattr(downloader, "has_only_pictures", lambda _path, _url: True)
+    monkeypatch.setattr(downloader, "download",
+                        lambda _url, path, _limit, _kind: [(make_file(path, "00.jpg"), "photo")])
+    send(app, link1)
+    assert "How should I send it?" not in bot.texts()[-1]
+    assert [(file.kind, file.name) for file in bot.files] == [("photo", "00.jpg")]
+
+
+@pytest.mark.parametrize("pieces, expected", [
+    ([("a", "video")], "a video"), ([("a", "audio")], "a sound"),
+    ([("a", "photo"), ("b", "photo"), ("c", "video")], "2 photos, a video")])
+def test_the_log_counts_what_was_sent(pieces, expected):
+    assert downloader.summary(pieces) == expected

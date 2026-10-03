@@ -25,16 +25,16 @@ pip install -r requirements.txt
    github_username: nazwa_uzytkownika_github
    telegram_username: nazwa_uzytkownika_telegram
    ```
-   > Nazwę użytkownika wpisz bez ```@```. Osoba, do której należy, zostaje pierwszym
-   Administratorem Bota, o ile żadnego Administratora jeszcze nie ma.
+   > Nazwę użytkownika wpisz bez ```@```. Osoba, do której należy, zostaje pierwszym Administratorem Bota, o ile żadnego
+   Administratora jeszcze nie ma.
     - plik ```tokens.yaml``` w folderze *config* i wprowadź do niego poniższy kod:
    ```
    telegram: token_telegram
    telegram_beta: inny_token_telegram
    ```
 
-4. Zainstaluj [ffmpeg](https://ffmpeg.org/download.html). Serwisy, które oddają obraz i dźwięk w osobnych plikach -
-   a takim jest YouTube - bez niego się nie pobiorą, podobnie jak nic, co ma przyjść jako mp3.
+4. Zainstaluj [ffmpeg](https://ffmpeg.org/download.html). Serwisy, które oddają obraz i dźwięk w osobnych plikach - a
+   takim jest YouTube - bez niego się nie pobiorą, podobnie jak nic, co ma przyjść jako mp3.
 
 ## 🚀 Start
 
@@ -67,7 +67,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 
 ## ✨ Moduły funkcjonalności dodatkowych
 
-- Pobieranie filmów i dźwięku 📥 (```/downloader```)
+- Pobieranie filmów, muzyki i zdjęć 📥 (```/downloader```)
 - Przypomnienia 🔔 (```/reminder```)
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)

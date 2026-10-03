@@ -1,10 +1,10 @@
 name: Downloader
-description: Downloads a video or its sound from a link you send
+description: Downloads a video, its sound or pictures from a link you send
 
 commands.downloader: Learn how to download a video
 
 title: Downloader
-how: To download a video or its sound, all you have to do is send me a link to it
+how: To download a video, its sound or pictures, all you have to do is send me a link to them
 working: Working on it, give me a moment...
 failed: I could not download anything from this link
 too_big: This video is too large for me to send

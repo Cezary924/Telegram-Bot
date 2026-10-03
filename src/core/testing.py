@@ -91,6 +91,7 @@ class FakeBot:
     def __init__(self) -> None:
         self.sent: list[SentMessage] = []
         self.files: list[SentFile] = []
+        self.albums: list[list[str]] = []
         self.edited: list[SentMessage] = []
         self.shown: list[SentMessage] = []
         self.deleted: list[tuple[int, int]] = []
@@ -133,7 +134,11 @@ class FakeBot:
     def texts(self) -> list[str]:
         return [message.text for message in self.sent]
 
+    def send_media_group(self, _chat_id: int, media: list) -> None:
+        self.albums.append([os.path.basename(getattr(one.media.file, 'name', "")) for one in media])
+
     def clear(self) -> None:
+        self.albums.clear()
         self.sent.clear()
         self.shown.clear()
         self.files.clear()

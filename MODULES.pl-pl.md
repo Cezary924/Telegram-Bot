@@ -179,6 +179,7 @@ ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # ten sam ekran jeszcze raz
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc przepływ
 ctx.send_file(path, "video")  # audio, document, photo, video albo voice
+ctx.send_album(pictures)  # zdjęcia w albumach po maksymalnie dziesięć
 ctx.file_limit  # największy plik, jaki Telegram pozwala wysłać botowi
 with ctx.workspace() as path:  # katalog tymczasowy, kasowany także po błędzie
     ...

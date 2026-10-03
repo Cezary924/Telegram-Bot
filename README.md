@@ -25,8 +25,8 @@ pip install -r requirements.txt
    github_username: your_github_username
    telegram_username: your_telegram_username
    ```
-   > Write the username without the ```@```. The person it belongs to becomes the first
-   Administrator of the Bot, as long as there is no Administrator yet.
+   > Write the username without the ```@```. The person it belongs to becomes the first Administrator of the Bot, as
+   long as there is no Administrator yet.
     - the ```tokens.yaml``` file in the *config* folder and write the following code to it:
    ```
    telegram: your_telegram_token
@@ -35,7 +35,6 @@ pip install -r requirements.txt
 
 4. Install [ffmpeg](https://ffmpeg.org/download.html). Services that hand out video and sound as separate files -
    YouTube among them - cannot be downloaded without it, and neither can anything sent as mp3.
-
 
 ## 🚀 Starting
 
@@ -63,11 +62,12 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 - Settings, language and notifications ⚙️ (```/settings```)
 - Contact and reports 📨 (```/contact```, ```/report```)
 - User management and Bot control 🛠️ (```/admin```)
+
 > ```/admin``` is a hidden command, available to the Administrator only.
 
 ## ✨ Feature modules
 
-- Video and sound downloader 📥 (```/downloader```)
+- Downloader of videos, music and pictures 📥 (```/downloader```)
 - Reminders 🔔 (```/reminder```)
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)

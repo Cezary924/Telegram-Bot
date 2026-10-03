@@ -372,3 +372,36 @@ def test_a_delivered_message_says_so(services, module, person, user):
     module.is_internal = True
     services.storage.users.save(2, "Other", "Person", "other")
     assert AdvancedCtx(services, module, person).notify(2, "text1") is True
+
+
+def test_pictures_go_in_albums_of_ten_and_a_lone_one_as_a_photo(sending, services, tmp_path):
+    pictures = [write_file(tmp_path, "%02d.jpg" % number) for number in range(11)]
+    sending.send_album(pictures)
+    assert [len(album) for album in services.bot.albums] == [10]
+    assert [(file.kind, file.name) for file in services.bot.files] == [("photo", "10.jpg")]
+
+
+def test_two_albums_when_there_are_more_than_ten(sending, services, tmp_path):
+    sending.send_album([write_file(tmp_path, "%02d.jpg" % number) for number in range(14)])
+    assert [len(album) for album in services.bot.albums] == [10, 4]
+    assert services.bot.files == []
+
+
+def test_every_picture_of_an_album_is_closed_even_when_sending_fails(sending, services, tmp_path, monkeypatch):
+    opened = []
+    real_open = open
+
+    def watch(path, mode="r", *rest, **values):
+        handle = real_open(path, mode, *rest, **values)
+        opened.append(handle)
+        return handle
+
+    def refuse(*_args, **_kwargs):
+        raise RuntimeError("Telegram said no")
+
+    monkeypatch.setattr("builtins.open", watch)
+    services.bot.send_media_group = refuse
+    with pytest.raises(RuntimeError):
+        sending.send_album([write_file(tmp_path, "%02d.jpg" % number) for number in range(3)])
+    pictures = [handle for handle in opened if handle.name.endswith(".jpg") and "rb" in handle.mode]
+    assert len(pictures) == 3 and all(handle.closed for handle in pictures)

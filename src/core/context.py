@@ -153,6 +153,7 @@ def send_to(services: Services, module_name: str, user_id: int, view,
 file_senders = {'audio': "send_audio", 'document': "send_document", 'photo': "send_photo",
                 'video': "send_video", 'voice': "send_voice"}
 file_limit = 50 * 1024 * 1024
+album_limit = 10
 
 
 def send_file_to(services: Services, user_id: int, path: str, kind: str, caption: str) -> None:
@@ -161,6 +162,24 @@ def send_file_to(services: Services, user_id: int, path: str, kind: str, caption
     bot = not_none(services.bot, "the bot is not built yet")
     with open(path, 'rb') as handle:
         getattr(bot, file_senders[kind])(user_id, handle, caption=caption or None)
+
+
+def send_album_to(services: Services, user_id: int, pictures: list[str]) -> None:
+    bot = not_none(services.bot, "the bot is not built yet")
+    for start in range(0, len(pictures), album_limit):
+        group = pictures[start:start + album_limit]
+        if len(group) == 1:
+            send_file_to(services, user_id, group[0], "photo", "")
+            continue
+        handles = []
+        try:
+            for picture in group:
+                handles.append(open(picture, 'rb'))
+            bot.send_media_group(user_id, [telebot.types.InputMediaPhoto(telebot.types.InputFile(handle))
+                                           for handle in handles])
+        finally:
+            for handle in handles:
+                handle.close()
 
 
 class Ctx:
@@ -202,6 +221,9 @@ class Ctx:
 
     def send_file(self, path: str, kind: str = "document", caption: str = "") -> None:
         send_file_to(self._services, self.user.id, path, kind, caption)
+
+    def send_album(self, pictures: list[str]) -> None:
+        send_album_to(self._services, self.user.id, pictures)
 
     @property
     def file_limit(self) -> int:
