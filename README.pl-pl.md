@@ -34,7 +34,7 @@ pip install -r requirements.txt
    ```
 
 4. Zainstaluj [ffmpeg](https://ffmpeg.org/download.html). Serwisy, które oddają obraz i dźwięk w osobnych plikach -
-   a takim jest YouTube - bez niego się nie pobiorą.
+   a takim jest YouTube - bez niego się nie pobiorą, podobnie jak nic, co ma przyjść jako mp3.
 
 ## 🚀 Start
 
@@ -67,7 +67,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 
 ## ✨ Moduły funkcjonalności dodatkowych
 
-- Pobieranie wideo 📥 (```/downloader```)
+- Pobieranie filmów i dźwięku 📥 (```/downloader```)
 - Przypomnienia 🔔 (```/reminder```)
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)

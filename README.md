@@ -34,7 +34,7 @@ pip install -r requirements.txt
    ```
 
 4. Install [ffmpeg](https://ffmpeg.org/download.html). Services that hand out video and sound as separate files -
-   YouTube among them - cannot be downloaded without it.
+   YouTube among them - cannot be downloaded without it, and neither can anything sent as mp3.
 
 
 ## 🚀 Starting
@@ -67,7 +67,7 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 
 ## ✨ Feature modules
 
-- Video downloader 📥 (```/downloader```)
+- Video and sound downloader 📥 (```/downloader```)
 - Reminders 🔔 (```/reminder```)
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
