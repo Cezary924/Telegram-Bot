@@ -1,0 +1,23 @@
+name: Asystent
+description: Rozmawia z Tobą przez lokalny model językowy
+
+commands.llm: Dowiedz się, jak rozmawiać z asystentem
+
+title: Asystent
+how: Po prostu do mnie napisz - każda wiadomość, która nie jest komendą ani linkiem, trafia do modelu językowego. Rozmowa trwa, dopóki piszesz, a godzina ciszy zaczyna nową
+new: Nowa rozmowa
+fresh_done: Zaczęła się nowa rozmowa
+continue: Kontynuuj
+ask: Ostatnia wiadomość była {minutes} minut temu. Kontynuować tamtą rozmowę czy zacząć nową?
+waiting: Piszę
+thinking: Myślę
+reasoning: Rozumowanie
+busy: Jeszcze odpowiadam na poprzednią wiadomość, chwilkę
+failed: Model językowy nie odpowiedział
+empty: Model językowy nic nie zwrócił
+not_configured: Model językowy nie jest skonfigurowany
+settings_button: Ustawienia
+settings_text: Wybierz, czy model ma myśleć przed odpowiedzią. Z myśleniem odpowiada lepiej, ale dużo dłużej
+settings_current: Teraz
+thinking_on: Z myśleniem
+thinking_off: Bez myślenia

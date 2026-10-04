@@ -297,7 +297,7 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     assert bot.last.text == "The menu has been closed"
 
 
-guarded_modules = ["crystalball", "downloader", "reminder", "topspotifyartist", "unitconverter"]
+guarded_modules = ["crystalball", "downloader", "llm", "reminder", "topspotifyartist", "unitconverter"]
 
 
 def access_toggles(bot) -> list[str]:
@@ -351,11 +351,11 @@ def test_a_module_is_taken_away_on_the_second_tap(boss, bot):
 def test_an_old_user_quietly_becomes_a_guest_with_the_same_access(boss, bot):
     add_people(boss, 1, Role.USER)
     open_access(boss)
-    assert all(text.endswith("✅") for text in access_toggles(bot))
+    assert [text for text in access_toggles(bot) if text.endswith("❌")] == ["🤖 Assistant ❌"]
     press(boss, "admin:access_set:2:reminder")
     assert boss.storage.users.get_role(2) == Role.GUEST
     allowed = [name for name in guarded_modules if boss.storage.access.is_allowed(2, name, Role.GUEST, False)]
-    assert allowed == [name for name in guarded_modules if name != "reminder"]
+    assert allowed == [name for name in guarded_modules if name not in ("reminder", "llm")]
 
 
 def test_an_admin_needs_no_access_screen(boss, bot):

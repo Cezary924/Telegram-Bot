@@ -72,3 +72,4 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
 - Crystal ball 🔮 (```/crystalball```)
+- Assistant on a local language model 🤖 (```/llm```)

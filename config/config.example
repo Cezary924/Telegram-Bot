@@ -3,3 +3,5 @@ github_repo: XYZ
 github_username: XYZ
 telegram_username: XYZ
 worker_threads: 8
+llm_url: http://localhost:8080/v1
+llm_model: XYZ

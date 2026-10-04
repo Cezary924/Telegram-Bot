@@ -1,0 +1,23 @@
+name: Assistant
+description: Talks with you using a local language model
+
+commands.llm: Learn how to talk with the assistant
+
+title: Assistant
+how: Just write to me - every message that is neither a command nor a link goes to the language model. A conversation goes on while you write, and an hour of silence starts a new one
+new: New conversation
+fresh_done: A new conversation has started
+continue: Continue
+ask: Your last message was {minutes} minutes ago. Carry on with that conversation or start a new one?
+waiting: Writing
+thinking: Thinking
+reasoning: Reasoning
+busy: I am still answering your previous message, please wait a moment
+failed: The language model did not answer
+empty: The language model returned nothing
+not_configured: The language model is not set up
+settings_button: Settings
+settings_text: Choose whether the model thinks before it answers. Thinking gives better answers but takes much longer
+settings_current: Now
+thinking_on: With thinking
+thinking_off: Without thinking

@@ -72,3 +72,4 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)
 - Magiczna kryształowa kula 🔮 (```/crystalball```)
+- Asystent na lokalnym modelu językowym 🤖 (```/llm```)
