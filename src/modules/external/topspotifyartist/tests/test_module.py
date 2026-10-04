@@ -133,7 +133,8 @@ def test_a_guest_may_not_play(app, bot):
     app.storage.users.set_role(1, Role.GUEST)
     app.router.handle_message(make_message("/topspotifyartist"))
     app.router.wait_for_tasks()
-    assert bot.last.text.startswith("Sorry, you cannot use this command")
+    assert bot.last.text.startswith("You do not have access to")
+    assert ("🙋 Ask for access", "core:request:topspotifyartist") in bot.last.buttons
 
 
 def test_it_speaks_polish(playing, bot):

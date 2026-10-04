@@ -21,10 +21,12 @@ def test_the_menu_lists_every_setting(app, bot):
         "core:close"]
 
 
-def test_a_guest_is_not_offered_notifications(app, bot):
+def test_a_guest_is_offered_notifications_too(app, bot):
     app.storage.users.set_role(1, Role.GUEST)
     open_menu(app)
-    assert "settings:notifications" not in [data for _, data in bot.last.buttons]
+    assert "settings:notifications" in [data for _, data in bot.last.buttons]
+    press(app, "settings:notifications")
+    assert "Choose what may make a sound" in bot.last.text
 
 
 def test_the_menu_is_a_screen(app):

@@ -9,7 +9,7 @@ module = Module(name="admin", notifications="notifications_label",
                 icons={'name': "🛠️", 'title': "🛠️", 'notifications_label': "📢", 'previous': "⬅️", 'next': "➡️",
                        'users': "🙋", 'users_list': "📋", 'users_search': "🔍", 'users_forward': "↪️", 'user_role': "🎖️",
                        'user_wipe': "🗑️", 'statistics': "📊", 'announcement': "📢", 'alerts': "🔔", 'modules': "🧩",
-                       'bot': "🤖", 'bot_log': "📃", 'bot_restart': "🔄"},
+                       'bot': "🤖", 'bot_log': "📃", 'bot_restart': "🔄", 'user_access': "🔑", 'default_access': "🚪"},
                 endings={'users_search_missing': "😞", 'users_forward_text': "😁", 'users_forward_missing': "😐",
                          'role_done': "✅", 'wipe_done': "✅", 'announcement_done': "✅", 'alerts_done': "✅",
                          'modules_done': "✅"})
@@ -17,7 +17,9 @@ module = Module(name="admin", notifications="notifications_label",
 page_size = 8
 log_lines = 30
 alerts_key = "alerts"
-manageable_roles = [Role.BANNED, Role.GUEST, Role.USER, Role.ADMIN]
+manageable_roles = [Role.BANNED, Role.GUEST, Role.ADMIN]
+allowed_mark = "✅"
+refused_mark = "❌"
 
 
 @module.command("admin", role=Role.ADMIN)
@@ -33,6 +35,7 @@ def menu(ctx: AdvancedCtx) -> View:
                          Button(ctx.t("announcement"), "announcement"),
                          Button(ctx.t("alerts"), "alerts"),
                          Button(ctx.t("modules"), "modules"),
+                         Button(ctx.t("default_access"), "defaults"),
                          Button(ctx.t("bot"), "bot")])
 
 
@@ -131,8 +134,80 @@ def details(ctx: AdvancedCtx, user_id: int = 0) -> View:
             labelled(ctx.t("labels.created"), row['created_at']),
             labelled(ctx.t("labels.seen"), row['seen_at'])]),
         buttons=[Button(ctx.t("user_role"), "role", user_id),
+                 Button(ctx.t("user_access"), "access", user_id),
                  Button(ctx.t("user_wipe"), "wipe", user_id)],
         argument=str(user_id))
+
+
+def guarded(ctx: AdvancedCtx) -> list[Module]:
+    return [found for found in ctx.registry.modules() if found.is_guarded]
+
+
+def title_of(ctx: AdvancedCtx, found: Module) -> str:
+    return ctx.t(found.name + ":" + found.title)
+
+
+@module.callback("access", role=Role.ADMIN)
+def open_access(ctx: AdvancedCtx) -> View:
+    return access(ctx)
+
+
+@module.view("access", parent="user", title="user_access")
+def access(ctx: AdvancedCtx, user_id: int = 0) -> View:
+    user_id = user_id or wanted_id(ctx)
+    role = ctx.users.get_role(user_id)
+    if role >= Role.ADMIN:
+        return View(text=ctx.t("access_admin"), argument=str(user_id))
+    buttons = [Button(title_of(ctx, found) + " " + (allowed_mark if ctx.access.is_allowed(
+        user_id, found.name, role, found.is_restricted) else refused_mark), "access_set", user_id, found.name)
+               for found in guarded(ctx)]
+    return View(text=ctx.t("access_text"), buttons=buttons, argument=str(user_id))
+
+
+@module.callback("access_set", role=Role.ADMIN)
+def set_access(ctx: AdvancedCtx) -> View:
+    if len(ctx.arguments) < 2 or not ctx.arguments[0].isdigit():
+        return View(ctx.t("core:not_working_buttons"), heading=None)
+    user_id, name = int(ctx.arguments[0]), ctx.arguments[1]
+    found = next((one for one in guarded(ctx) if one.name == name), None)
+    role = ctx.users.get_role(user_id)
+    if found is None or role >= Role.ADMIN or not ctx.users.exists(user_id):
+        return View(ctx.t("core:not_working_buttons"), heading=None)
+    if role == Role.USER:
+        ctx.users.set_role(user_id, Role.GUEST)
+        for one in guarded(ctx):
+            ctx.access.allow(user_id, one.name, not one.is_restricted)
+    is_allowed = not ctx.access.is_allowed(user_id, name, Role.GUEST, found.is_restricted)
+    ctx.access.allow(user_id, name, is_allowed)
+    ctx.log("Access to '" + name + "' " + ("granted to " if is_allowed else "taken from ") + str(user_id))
+    if is_allowed:
+        ctx.notify(user_id, ctx.text_for(user_id, "core:access.granted",
+                                         module=ctx.text_for(user_id, name + ":" + found.title)))
+    return access(ctx, user_id)
+
+
+@module.callback("defaults", role=Role.ADMIN)
+def open_defaults(ctx: AdvancedCtx) -> View:
+    return defaults(ctx)
+
+
+@module.view("defaults", parent="menu", title="default_access")
+def defaults(ctx: AdvancedCtx) -> View:
+    chosen = ctx.access.defaults()
+    return View(text=ctx.t("defaults_text"),
+                buttons=[Button(title_of(ctx, found) + " " + (allowed_mark if found.name in chosen else refused_mark),
+                                "defaults_set", found.name) for found in guarded(ctx)])
+
+
+@module.callback("defaults_set", role=Role.ADMIN)
+def set_default(ctx: AdvancedCtx) -> View:
+    name = ctx.arguments[0] if ctx.arguments else ""
+    if name not in [found.name for found in guarded(ctx)]:
+        return View(ctx.t("core:not_working_buttons"), heading=None)
+    is_default = name not in ctx.access.defaults()
+    ctx.access.set_default(name, is_default)
+    ctx.log("Module '" + name + "' " + ("added to" if is_default else "taken off") + " the default access")
+    return defaults(ctx)
 
 
 def wanted_id(ctx: AdvancedCtx) -> int:
@@ -221,6 +296,7 @@ def open_statistics(ctx: AdvancedCtx) -> View:
 @module.view("statistics", parent="menu", title="statistics")
 def statistics(ctx: AdvancedCtx) -> View:
     counts = ctx.users.count_by_role()
+    counts[Role.GUEST] = counts.get(Role.GUEST, 0) + counts.pop(Role.USER, 0)
     people = [labelled(ctx.t("core:" + role.key), counts.get(role, 0)) for role in reversed(manageable_roles)]
     facts = [labelled(ctx.t("labels.total"), sum(counts.values())),
              labelled(ctx.t("labels.consent"), ctx.users.count_with_consent()),

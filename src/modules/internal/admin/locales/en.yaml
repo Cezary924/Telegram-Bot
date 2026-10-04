@@ -69,3 +69,8 @@ bot_log_none: There is nothing in the log yet.
 bot_restart: Restart
 bot_restart_text: Are you sure you want to restart the Bot?
 bot_restart_done: The Bot is restarting...
+user_access: Access
+access_text: Tap a module to give or take away this person's access to it
+access_admin: An Administrator can use every module
+default_access: Default access
+defaults_text: Tap a module to give it to every new person from the start

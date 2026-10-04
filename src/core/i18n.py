@@ -11,9 +11,12 @@ default_language = "en"
 namespace_separator = ":"
 language_label_key = "language_label"
 
-core_icons = {'return_button': "🔙", 'home_button': "🏠", 'close_button': "✖️", 'notifications_label': "🤖",
+core_icons = {'access.request_button': "🙋", 'access.grant_button': "✅", 'access.refuse_button': "❌",
+              'return_button': "🔙", 'home_button': "🏠", 'close_button': "✖️", 'notifications_label': "🤖",
               'consent.agreement.title': "✋", 'consent.yes_button': "✅", 'consent.no_button': "❌"}
-core_endings = {'banned_info': "😐", 'permission_denied.text': "😭", 'permission_denied.hint': "🧑‍🔬",
+core_endings = {'access.denied': "🔒", 'access.requested': "📨", 'access.granted': "✅",
+                'access.refused': "😞", 'access.decided_grant': "✅", 'access.decided_refuse': "❌",
+                'banned_info': "😐", 'permission_denied.text': "😭", 'permission_denied.hint': "🧑‍🔬",
                 'not_working_buttons': "😥", 'unknown_command': "💔", 'unknown_message': "💔", 'bot_updated': "🙏",
                 'consent.agreement.text': "💝", 'consent.accepted.text': "💞", 'consent.accepted.ready': "🫡",
                 'consent.declined.text': "😞", 'consent.declined.goodbye': "😄"}

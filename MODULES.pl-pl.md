@@ -62,6 +62,7 @@ module = Module(
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
+    is_restricted=True,  # dostępny tylko dla osób, które admin wpuścił z imienia
     icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
     endings={'saved': "✅"})  # stawiana po nim
 ```
@@ -87,6 +88,11 @@ module = Module(
 | ```@module.job(interval=, name=, is_aligned=)```                    | uruchamia się co ```interval``` sekund we własnym wątku                   |
 
 - ```role``` domyślnie wynosi ```Role.GUEST```.
+- ```Role.USER``` oznacza „wymaga dostępu do tego modułu”. Każdy nowy człowiek jest gościem; admin daje jednej osobie
+  jeden moduł albo dopisuje moduł do listy domyślnej dla wszystkich. Bez dostępu osoba może o niego poprosić, a admini
+  dostają prośbę z przyciskami Daj dostęp i Odmów.
+- Moduł z ```is_restricted=True``` nigdy nie otwiera się niejawnie: tylko gdy admin wpuści konkretną osobę albo przez
+  listę domyślną.
 - Komenda wymagająca więcej niż ```Role.USER``` jest ukryta: nie trafia do menu komend Telegrama ani na ekran pomocy.
 - ```is_background=True``` przenosi handler na osobny wątek — używaj do wszystkiego, co trwa, jak pobieranie czy
   odpytywanie zdalnego API.
@@ -189,6 +195,7 @@ Moduły wewnętrzne dostają więcej:
 
 ```python
 ctx.users, ctx.settings, ctx.registry, ctx.config  # repozytoria rdzenia i konfiguracja
+ctx.access, ctx.can_use("reminder")  # kto może korzystać z którego modułu
 ctx.version  # wersja Bota, odczytana z gita przy starcie
 ctx.languages  # wszystkie języki Bota, jako pary (kod, etykieta)
 ctx.use_language("pl")  # zmienia język użytkownika, razem z tym kontekstem

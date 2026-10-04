@@ -62,7 +62,8 @@ def test_the_command_explains_how(app, bot):
 def test_a_guest_gets_no_conversion(app, bot):
     app.storage.users.set_role(1, Role.GUEST)
     app.router.handle_message(make_message("5 km"))
-    assert bot.last.text.startswith("Sorry, you cannot use this command")
+    assert bot.last.text.startswith("You do not have access to")
+    assert ("🙋 Ask for access", "core:request:unitconverter") in bot.last.buttons
 
 
 def test_it_speaks_polish(app, bot):

@@ -13,6 +13,19 @@ role_user: Użytkownik
 role_admin: Admin
 
 banned_info: Niestety, nie wolno Ci się ze mną komunikować
+access:
+  denied: Nie masz jeszcze dostępu do {module}
+  request_button: Poproś o dostęp
+  requested: Prośba trafiła do Administratora
+  already: Ta prośba już czeka na Administratora
+  asked: Prośba o dostęp do {module} od {name}, ID {id}
+  grant_button: Daj dostęp
+  refuse_button: Odmów
+  granted: Masz teraz dostęp do {module}
+  refused: Prośba o dostęp do {module} została odrzucona
+  answered: Ta prośba ma już odpowiedź
+  decided_grant: Dostęp przyznany
+  decided_refuse: Dostęp odrzucony
 permission_denied:
   text: Niestety, nie możesz skorzystać z tego polecenia...
   hint: Aby dostać wyższe uprawnienia skontaktuj się z administratorem
