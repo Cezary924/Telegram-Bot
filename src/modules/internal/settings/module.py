@@ -19,15 +19,19 @@ def command_settings(ctx: AdvancedCtx) -> View:
 def menu(ctx: AdvancedCtx) -> View:
     buttons = [Button(ctx.t("language"), "language"),
                Button(ctx.t("deletedata"), "deletedata")]
-    if ctx.user.role >= Role.USER:
-        buttons.insert(0, Button(ctx.t("notifications"), "notifications"))
+    buttons.insert(0, Button(ctx.t("notifications"), "notifications"))
     buttons[-1:-1] = [Button.settings(ctx.t(found.name + ":" + found.title), found.name)
                       for found in ctx.registry.modules()
-                      if found.settings_screen is not None and ctx.user.role >= found.settings_screen.role]
+                      if found.settings_screen is not None and may_open(ctx, found)]
     return View(text=ctx.t("menu") + ":", buttons=buttons)
 
 
-@module.callback("notifications", role=Role.USER)
+def may_open(ctx: AdvancedCtx, found: Module) -> bool:
+    role = found.settings_screen.role if found.settings_screen is not None else Role.ADMIN
+    return ctx.can_use(found.name) if role == Role.USER else ctx.user.role >= role
+
+
+@module.callback("notifications")
 def open_notifications(ctx: AdvancedCtx) -> View:
     return notifications(ctx)
 
@@ -54,7 +58,7 @@ def notifications(ctx: AdvancedCtx) -> View:
     return View(text=text, buttons=buttons)
 
 
-@module.callback("notifications_toggle", role=Role.USER)
+@module.callback("notifications_toggle")
 def toggle_notifications(ctx: AdvancedCtx) -> View:
     source = ctx.arguments[0] if ctx.arguments else ""
     if source not in [name for name, _ in sources(ctx)]:
@@ -65,7 +69,7 @@ def toggle_notifications(ctx: AdvancedCtx) -> View:
     return notifications(ctx)
 
 
-@module.callback("notifications_all", role=Role.USER)
+@module.callback("notifications_all")
 def set_all_notifications(ctx: AdvancedCtx) -> View:
     is_loud = bool(ctx.arguments) and ctx.arguments[0] == "1"
     ctx.notifications.set_all(ctx.user.id, [name for name, _ in sources(ctx)], is_loud)
@@ -73,7 +77,7 @@ def set_all_notifications(ctx: AdvancedCtx) -> View:
     return notifications(ctx)
 
 
-@module.callback("notifications_block", role=Role.USER)
+@module.callback("notifications_block")
 def block_notifications(ctx: AdvancedCtx) -> View:
     is_blocked = bool(ctx.arguments) and ctx.arguments[0] == "1"
     ctx.notifications.set_blocked(ctx.user.id, is_blocked)

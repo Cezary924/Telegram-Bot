@@ -62,6 +62,7 @@ module = Module(
     requires=["downloader"],  # other modules that must be loaded first
     tokens=["service_key"],  # the only secrets this module can read
     notifications="name",  # the text key its notifications are listed under in /settings
+    is_restricted=True,  # reachable only by people an admin let in by name
     icons={'name': "🔔"},  # put in front of a text, in every language
     endings={'saved': "✅"})  # put after it
 ```
@@ -88,6 +89,11 @@ module = Module(
 | ```@module.job(interval=, name=, is_aligned=)```                   | runs every ```interval``` seconds in its own thread               |
 
 - ```role``` defaults to ```Role.GUEST```.
+- ```Role.USER``` means "needs access to this module". Everyone new is a guest; an admin gives one person one module,
+  or puts a module on the default list for everybody. Without access the person is offered to ask for it, and the
+  admins get the request with Grant and Refuse buttons.
+- A module with ```is_restricted=True``` is never opened by anything implicit: only by an admin letting a person in, or
+  by the default list.
 - A command asking for more than ```Role.USER``` is hidden: it stays out of the Telegram command menu and out of the
   help screen, because both are the same for everybody.
 - ```is_background=True``` puts the handler on its own thread - use it for anything that takes time, like downloading or
@@ -191,6 +197,7 @@ Internal modules get more:
 
 ```python
 ctx.users, ctx.settings, ctx.registry, ctx.config  # the core repositories and the configuration
+ctx.access, ctx.can_use("reminder")  # who may use which module
 ctx.version  # the Bot version, read from git on start
 ctx.languages  # every language the Bot supports, as (code, label) pairs
 ctx.use_language("pl")  # changes the user's language, this context included

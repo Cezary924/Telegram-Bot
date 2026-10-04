@@ -140,7 +140,8 @@ def test_a_screen_outside_settings_keeps_its_own_tree(router, bot, services, set
 def test_settings_above_the_user_role_are_refused(router, bot, services, settled):
     services.storage.users.set_role(1, Role.GUEST)
     open_owner_settings(router, bot)
-    assert bot.last.text.startswith(core_text(services, "permission_denied.text"))
+    assert bot.last.text == "You do not have access to Owner yet 🔒"
+    assert bot.last.buttons == [("🙋 Ask for access", "core:request:owner")]
 
 
 def test_settings_of_an_unknown_module_are_refused(router, bot, services, settled):

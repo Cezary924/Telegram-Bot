@@ -141,7 +141,8 @@ def test_the_workspace_is_gone_afterwards(app, bot, monkeypatch):
 def test_a_guest_gets_nothing(downloading, bot):
     downloading.storage.users.set_role(1, Role.GUEST)
     send(downloading, link1)
-    assert bot.last.text.startswith("Sorry, you cannot use this command")
+    assert bot.last.text.startswith("You do not have access to")
+    assert ("🙋 Ask for access", "core:request:downloader") in bot.last.buttons
     assert bot.files == []
 
 

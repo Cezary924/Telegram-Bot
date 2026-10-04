@@ -43,7 +43,8 @@ def test_it_speaks_polish(app, bot):
 def test_a_guest_may_not_ask(app, bot):
     app.storage.users.set_role(1, Role.GUEST)
     app.router.handle_message(make_message("/crystalball"))
-    assert bot.last.text.startswith("Sorry, you cannot use this command")
+    assert bot.last.text.startswith("You do not have access to")
+    assert ("🙋 Ask for access", "core:request:crystalball") in bot.last.buttons
 
 
 def test_it_is_not_a_screen(app):

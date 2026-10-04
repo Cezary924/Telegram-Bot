@@ -51,6 +51,23 @@ CREATE TABLE IF NOT EXISTS user_notification_blocks (
     user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS user_module_access (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    module TEXT NOT NULL,
+    is_allowed INTEGER NOT NULL,
+    PRIMARY KEY (user_id, module)
+);
+
+CREATE TABLE IF NOT EXISTS default_module_access (
+    module TEXT PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS access_requests (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    module TEXT NOT NULL,
+    PRIMARY KEY (user_id, module)
+);
+
 CREATE TABLE IF NOT EXISTS user_module_state (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     module TEXT NOT NULL,

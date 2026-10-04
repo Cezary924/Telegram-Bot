@@ -6,13 +6,13 @@ import telebot
 from telebot.apihelper import ApiTelegramException
 
 from core import callbacks, middleware
-from core.context import User, controls_for, hub_for, create_context, heading_for, send_to, user_from_row
+from core.context import User, can_use, controls_for, hub_for, create_context, heading_for, send_to, user_from_row
 from core.i18n import core_namespace, default_language
 from core.log import print_error, print_log
 from core.module import Module, settings_hub_view
 from core.roles import Role
 from core.services import Services
-from core.ui.html import labelled
+from core.ui.html import escape, labelled
 from core.ui.keyboard import (back_action, close_action, command_action, delete_message, home_action,
                               settings_action)
 from core.ui.view import View, render
@@ -131,7 +131,7 @@ class Router:
     def run(self, module: Module, handler, role: Role, user: User,
             message: telebot.types.Message | None = None, arguments: tuple[str, ...] = (),
             is_background: bool = False, is_typed: bool = False) -> None:
-        blocked = middleware.check(self._services, user, role)
+        blocked = middleware.check(self._services, user, role, module.name)
         if blocked is not None:
             self.send(user, core_namespace, blocked)
             return
@@ -275,6 +275,10 @@ class Router:
             self.handle_command(user, screen, "/" + arguments[0])
         elif action == settings_action and arguments:
             self.open_settings(user, screen, arguments[0])
+        elif action == middleware.request_action and arguments:
+            self.request_access(user, arguments[0])
+        elif action in (middleware.grant_action, middleware.refuse_action) and len(arguments) == 2:
+            self.answer_request(user, screen, arguments, action == middleware.grant_action)
         elif action == middleware.consent_language_action and arguments:
             self.switch_consent_language(user, screen, arguments[0])
         else:
@@ -320,12 +324,69 @@ class Router:
             return
         self.open_named(user, module, name, screen)
 
+    def request_access(self, user: User, module_name: str) -> None:
+        module = self._services.registry.get(module_name)
+        if module is None or not module.is_guarded:
+            self.send_core(user, "not_working_buttons")
+            return
+        access = self._services.storage.access
+        if can_use(self._services, user, module_name):
+            self.send(user, core_namespace, View(self.module_text(user, "access.granted", module_name)))
+            return
+        if not access.ask(user.id, module_name):
+            self.send_core(user, "access.already")
+            return
+        settings = self._services.storage.settings
+        for admin in self._services.storage.users.get_by_role(Role.ADMIN):
+            language = settings.get_language(admin['id'])
+            text = self._services.catalog.text(core_namespace, "access.asked", language, name=user.first_name,
+                                               id=user.id, module=middleware.module_title(self._services,
+                                                                                          module_name, language))
+            buttons = [middleware.core_button(self._services, "access.grant_button", language,
+                                              middleware.grant_action, user.id, module_name),
+                       middleware.core_button(self._services, "access.refuse_button", language,
+                                              middleware.refuse_action, user.id, module_name)]
+            send_to(self._services, core_namespace, admin['id'], View(text, buttons=buttons, columns=2),
+                    source=core_namespace)
+        print_log("Access to '" + module_name + "' asked for: " + user.label + ".")
+        self.send_core(user, "access.requested")
+
+    def module_text(self, user: User, key: str, module_name: str) -> str:
+        title = middleware.module_title(self._services, module_name, user.language)
+        return self._services.catalog.text(core_namespace, key, user.language, module=title)
+
+    def answer_request(self, user: User, screen: telebot.types.Message, arguments: list[str],
+                       is_granted: bool) -> None:
+        asking, module_name = arguments
+        if user.role < Role.ADMIN or not asking.isdigit():
+            self.send_core(user, "not_working_buttons")
+            return
+        asker = int(asking)
+        if not self._services.storage.access.answer(asker, module_name):
+            self.send_core(user, "access.answered")
+            return
+        if is_granted:
+            self._services.storage.access.allow(asker, module_name, True)
+        language = self._services.storage.settings.get_language(asker)
+        title = middleware.module_title(self._services, module_name, language)
+        result = self._services.catalog.text(core_namespace, "access.granted" if is_granted else "access.refused",
+                                             language, module=title)
+        send_to(self._services, core_namespace, asker, View(result), source=core_namespace)
+        decision = self.core_text("access.decided_grant" if is_granted else "access.decided_refuse", user.language)
+        try:
+            self._bot.edit_message_text(escape(screen.text or "") + "\n\n" + decision, user.id, screen.message_id,
+                                        parse_mode="HTML", reply_markup=None)
+        except ApiTelegramException as error:
+            print_error("Could not mark the request as answered - " + type(error).__name__ + ".", str(error))
+        print_log("Access to '" + module_name + "' " + ("granted to " if is_granted else "refused to ")
+                  + str(asker) + ": " + user.label + ".")
+
     def open_settings(self, user: User, screen: telebot.types.Message, module_name: str) -> None:
         module = self._services.registry.get(module_name)
         if module is None or module.settings_screen is None:
             self.send_core(user, "not_working_buttons")
             return
-        blocked = middleware.check(self._services, user, module.settings_screen.role)
+        blocked = middleware.check(self._services, user, module.settings_screen.role, module.name)
         if blocked is not None:
             self.send(user, core_namespace, blocked)
             return

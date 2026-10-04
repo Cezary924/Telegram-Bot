@@ -1,4 +1,4 @@
-from core.context import User
+from core.context import User, can_use
 from core.i18n import core_namespace
 from core.roles import Role
 from core.services import Services
@@ -9,13 +9,16 @@ from core.ui.view import View
 consent_accept_action = "consent_accept"
 consent_decline_action = "consent_decline"
 consent_language_action = "consent_language"
+request_action = "request"
+grant_action = "grant"
+refuse_action = "refuse"
 
 
 def core_text(services: Services, key: str, language: str) -> str:
     return services.catalog.text(core_namespace, key, language)
 
 
-def core_button(services: Services, key: str, language: str, action: str, *arguments: str) -> Button:
+def core_button(services: Services, key: str, language: str, action: str, *arguments: str | int) -> Button:
     return Button(core_text(services, key, language), action, *arguments, module=core_namespace)
 
 
@@ -43,17 +46,33 @@ def check_consent(services: Services, user: User) -> View | None:
     return consent_view(services, user.language)
 
 
-def check_role(services: Services, user: User, required_role: Role) -> View | None:
+def module_title(services: Services, module_name: str, language: str) -> str:
+    module = services.registry.get(module_name)
+    return services.catalog.text(module_name, module.title, language) if module is not None else module_name
+
+
+def check_access(services: Services, user: User, module_name: str) -> View | None:
+    if can_use(services, user, module_name):
+        return None
+    text = services.catalog.text(core_namespace, "access.denied", user.language,
+                                 module=module_title(services, module_name, user.language))
+    return View(text, buttons=[core_button(services, "access.request_button", user.language, request_action,
+                                           module_name)])
+
+
+def check_role(services: Services, user: User, required_role: Role, module_name: str = "") -> View | None:
+    if required_role == Role.USER and module_name:
+        return check_access(services, user, module_name)
     if user.role >= required_role:
         return None
     return View(core_text(services, "permission_denied.text", user.language) + "\n\n"
                 + core_text(services, "permission_denied.hint", user.language))
 
 
-def check(services: Services, user: User, required_role: Role) -> View | None:
+def check(services: Services, user: User, required_role: Role, module_name: str = "") -> View | None:
     for blocked in [check_banned(services, user),
                     check_consent(services, user),
-                    check_role(services, user, required_role)]:
+                    check_role(services, user, required_role, module_name)]:
         if blocked is not None:
             return blocked
     return None

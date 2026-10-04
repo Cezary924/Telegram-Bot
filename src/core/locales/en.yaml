@@ -13,6 +13,19 @@ role_user: User
 role_admin: Admin
 
 banned_info: Sorry, you are not allowed to communicate with me
+access:
+  denied: You do not have access to {module} yet
+  request_button: Ask for access
+  requested: Your request has been sent to the Administrator
+  already: Your request is already waiting for the Administrator
+  asked: A request for access to {module} from {name}, ID {id}
+  grant_button: Grant
+  refuse_button: Refuse
+  granted: You now have access to {module}
+  refused: Your request for access to {module} has been refused
+  answered: This request has already been answered
+  decided_grant: Access granted
+  decided_refuse: Access refused
 permission_denied:
   text: Sorry, you cannot use this command...
   hint: Please, contact the Administrator for a higher permission level

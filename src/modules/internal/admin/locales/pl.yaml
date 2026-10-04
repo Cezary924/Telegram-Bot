@@ -69,3 +69,8 @@ bot_log_none: W logu nic jeszcze nie ma.
 bot_restart: Restart
 bot_restart_text: Czy na pewno chcesz zrestartować Bota?
 bot_restart_done: Bot się restartuje...
+user_access: Dostęp
+access_text: Stuknij moduł, żeby dać tej osobie dostęp albo go odebrać
+access_admin: Administrator może korzystać ze wszystkich modułów
+default_access: Domyślny dostęp
+defaults_text: Stuknij moduł, żeby każda nowa osoba miała go od początku

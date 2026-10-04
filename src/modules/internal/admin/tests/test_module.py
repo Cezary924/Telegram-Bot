@@ -35,7 +35,7 @@ def test_the_menu_lists_every_section(boss, bot):
     assert bot.last.text == "<b>🛠️ Admin:</b>\n\nSelect the task of the following:"
     assert [data for _, data in bot.last.buttons] == [
         "admin:users", "admin:statistics", "admin:announcement",
-        "admin:alerts", "admin:modules", "admin:bot", "core:close"]
+        "admin:alerts", "admin:modules", "admin:defaults", "admin:bot", "core:close"]
 
 
 def test_the_user_list_pages_through_people(boss, bot):
@@ -194,7 +194,8 @@ def test_statistics_count_everyone(boss, bot):
     boss.storage.users.set_consent(2, True)
     open_menu(boss)
     press(boss, "admin:statistics")
-    assert "User: <i>3</i>" in bot.last.text
+    assert "Guest: <i>3</i>" in bot.last.text
+    assert "User:" not in bot.last.text
     assert "Admin: <i>1</i>" in bot.last.text
     assert "Users in total: <i>4</i>" in bot.last.text
     assert "With the agreement: <i>2</i>" in bot.last.text
@@ -294,3 +295,104 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     assert bot.last.text.startswith("<b>🛠️ Admin:</b>")
     press(boss, "core:back")
     assert bot.last.text == "The menu has been closed"
+
+
+guarded_modules = ["crystalball", "downloader", "reminder", "topspotifyartist", "unitconverter"]
+
+
+def access_toggles(bot) -> list[str]:
+    return [text for text, data in bot.last.buttons if data.startswith("admin:access_set:")]
+
+
+def open_access(app, user_id: int = 2):
+    open_menu(app)
+    press(app, "admin:users")
+    app.router.handle_callback(make_callback("admin:user:" + str(user_id), message_id=app.services.bot.last.message_id))
+    press(app, "admin:access:" + str(user_id))
+
+
+def test_the_ranks_on_offer_are_banned_guest_and_admin(boss, bot):
+    add_people(boss, 1, Role.GUEST)
+    open_menu(boss)
+    press(boss, "admin:users")
+    boss.router.handle_callback(make_callback("admin:user:2", message_id=bot.last.message_id))
+    press(boss, "admin:role:2")
+    assert [data.split(":")[-1] for _, data in bot.last.buttons if data.startswith("admin:role_set")] == [
+        str(int(Role.BANNED)), str(int(Role.ADMIN))]
+
+
+def test_the_access_screen_lists_every_guarded_module(boss, bot):
+    add_people(boss, 1, Role.GUEST)
+    open_access(boss)
+    assert [data.split(":")[-1] for _, data in bot.last.buttons if data.startswith("admin:access_set")] == \
+        guarded_modules
+    assert all(text.endswith("❌") for text in access_toggles(bot))
+
+
+def test_a_module_is_given_in_place_and_the_person_is_told(boss, bot):
+    add_people(boss, 1, Role.GUEST)
+    open_access(boss)
+    screen = bot.last.message_id
+    press(boss, "admin:access_set:2:reminder")
+    assert bot.last.message_id == screen
+    assert "🔔 Reminders ✅" in access_toggles(bot)
+    assert boss.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+    assert any(message.chat_id == 2 and "now have access" in message.text for message in bot.sent)
+
+
+def test_a_module_is_taken_away_on_the_second_tap(boss, bot):
+    add_people(boss, 1, Role.GUEST)
+    open_access(boss)
+    press(boss, "admin:access_set:2:reminder")
+    press(boss, "admin:access_set:2:reminder")
+    assert not boss.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+
+
+def test_an_old_user_quietly_becomes_a_guest_with_the_same_access(boss, bot):
+    add_people(boss, 1, Role.USER)
+    open_access(boss)
+    assert all(text.endswith("✅") for text in access_toggles(bot))
+    press(boss, "admin:access_set:2:reminder")
+    assert boss.storage.users.get_role(2) == Role.GUEST
+    allowed = [name for name in guarded_modules if boss.storage.access.is_allowed(2, name, Role.GUEST, False)]
+    assert allowed == [name for name in guarded_modules if name != "reminder"]
+
+
+def test_an_admin_needs_no_access_screen(boss, bot):
+    add_people(boss, 1, Role.ADMIN)
+    open_access(boss)
+    assert "An Administrator can use every module" in bot.last.text
+    assert access_toggles(bot) == []
+
+
+@pytest.mark.parametrize("data", ["admin:access_set:2:help", "admin:access_set:2:nowhere",
+                                  "admin:access_set:x:reminder", "admin:access_set:99:reminder",
+                                  "admin:access_set:1:reminder"])
+def test_a_broken_or_pointless_access_change_is_refused(boss, bot, data):
+    add_people(boss, 1, Role.GUEST)
+    open_menu(boss)
+    press(boss, data)
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+    assert not boss.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+
+
+def test_a_non_admin_cannot_change_access(app, bot):
+    add_people(app, 1, Role.GUEST)
+    app.router.handle_callback(make_callback("admin:access_set:2:reminder"))
+    assert not app.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+
+
+def test_the_default_list_starts_empty_and_toggles_in_place(boss, bot):
+    open_menu(boss)
+    press(boss, "admin:defaults")
+    assert all(text.endswith("❌") for text, data in bot.last.buttons if data.startswith("admin:defaults_set"))
+    press(boss, "admin:defaults_set:crystalball")
+    assert boss.storage.access.defaults() == {"crystalball"}
+    press(boss, "admin:defaults_set:crystalball")
+    assert boss.storage.access.defaults() == set()
+
+
+def test_only_a_guarded_module_goes_on_the_default_list(boss, bot):
+    open_menu(boss)
+    press(boss, "admin:defaults_set:help")
+    assert boss.storage.access.defaults() == set()

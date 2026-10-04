@@ -9,6 +9,7 @@ import telebot
 
 from core import paths
 from core.config import Config
+from core.db.access import Access
 from core.db.module_db import ModuleDatabase
 from core.db.notifications import Notifications
 from core.db.user_settings import UserSettings
@@ -91,6 +92,12 @@ class UserNavigation:
 
     def clear(self) -> None:
         self._navigation.clear(self._user_id)
+
+
+def can_use(services: Services, user: User, module_name: str) -> bool:
+    module = services.registry.get(module_name)
+    is_restricted = module is None or module.is_restricted
+    return services.storage.access.is_allowed(user.id, module_name, user.role, is_restricted)
 
 
 def hub_for(services: Services, module: Module, name: str) -> Module | None:
@@ -303,6 +310,13 @@ class AdvancedCtx(Ctx):
     @property
     def notifications(self) -> Notifications:
         return self._services.storage.notifications
+
+    @property
+    def access(self) -> Access:
+        return self._services.storage.access
+
+    def can_use(self, module_name: str) -> bool:
+        return can_use(self._services, self.user, module_name)
 
     @property
     def registry(self) -> Registry:

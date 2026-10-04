@@ -1,5 +1,6 @@
 import os
 
+from core.db.access import Access
 from core.db.bot_state import BotState
 from core.db.connection import Database
 from core.db.module_db import ModuleDatabase
@@ -20,6 +21,7 @@ class Storage:
         self.users = Users(self.database)
         self.settings = UserSettings(self.database)
         self.notifications = Notifications(self.database, self.settings)
+        self.access = Access(self.database)
         self.navigation = Navigation(self.database)
         self.module_state = ModuleState(self.database)
         self.state = BotState(self.database)
