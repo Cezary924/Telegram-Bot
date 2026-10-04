@@ -139,9 +139,9 @@ def test_matchers_may_repeat(module):
 
 
 def test_state_is_recorded(module):
-    module.state("view1", role=Role.USER)(handler)
+    module.state("view1", role=Role.ADMIN)(handler)
     assert module.states[0].name == "view1"
-    assert module.states[0].role == Role.USER
+    assert module.states[0].role == Role.ADMIN
 
 
 def test_state_cannot_be_declared_twice(module):

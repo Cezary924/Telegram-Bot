@@ -8,10 +8,10 @@ from core.testing import FakeBot, make_callback, make_message
 reached: list[str] = []
 
 
-def build(name: str, is_restricted: bool) -> Module:
-    module = Module(name=name, is_restricted=is_restricted)
+def build(name: str) -> Module:
+    module = Module(name=name, is_guarded=True)
 
-    @module.command(name, role=Role.USER)
+    @module.command(name)
     def command(_ctx) -> View:
         reached.append(name + ":command")
         return screen(_ctx)
@@ -20,19 +20,19 @@ def build(name: str, is_restricted: bool) -> Module:
     def screen(_ctx) -> View:
         return View("screen of " + name)
 
-    @module.callback("press", role=Role.USER)
+    @module.callback("press")
     def press(_ctx) -> None:
         reached.append(name + ":callback")
 
-    @module.state("screen", role=Role.USER)
+    @module.state("screen")
     def answer(_ctx) -> None:
         reached.append(name + ":state")
 
-    @module.match(lambda text: text == "say " + name, role=Role.USER)
+    @module.match(lambda text: text == "say " + name)
     def match(_ctx) -> None:
         reached.append(name + ":matcher")
 
-    @module.settings(role=Role.USER)
+    @module.settings()
     def settings(_ctx) -> View:
         reached.append(name + ":settings")
         return View("settings of " + name)
@@ -40,8 +40,8 @@ def build(name: str, is_restricted: bool) -> Module:
     return module
 
 
-open_module = build("plain", is_restricted=False)
-secret_module = build("secret", is_restricted=True)
+open_module = build("plain")
+secret_module = build("secret")
 free_module = Module(name="free")
 
 
@@ -77,7 +77,7 @@ def person(services, user_id: int, role: Role) -> int:
     return user_id
 
 
-def every_way_in(router, bot, user_id: int, name: str) -> list[str]:
+def every_way_in(router, user_id: int, name: str) -> list[str]:
     reached.clear()
     router.handle_message(make_message("say " + name, user_id=user_id))
     router.handle_message(make_message("/" + name, user_id=user_id))
@@ -94,71 +94,66 @@ def reached_for(name: str) -> list[str]:
     return [name + ":" + way for way in everything]
 
 
-def test_a_guest_reaches_nothing_guarded(router, bot, services):
+def test_a_guest_reaches_nothing_guarded(router, services):
     user = person(services, 2, Role.GUEST)
-    assert every_way_in(router, bot, user, "plain") == []
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "plain") == []
+    assert every_way_in(router, user, "secret") == []
 
 
-def test_a_guest_still_reaches_a_free_module(router, bot, services):
+def test_a_guest_still_reaches_a_free_module(router, services):
     user = person(services, 2, Role.GUEST)
     router.handle_message(make_message("/free", user_id=user))
     assert reached == ["free:command"]
 
 
-def test_an_old_user_keeps_the_old_modules_but_never_a_restricted_one(router, bot, services):
-    user = person(services, 2, Role.USER)
-    assert every_way_in(router, bot, user, "plain") == reached_for("plain")
-    assert every_way_in(router, bot, user, "secret") == []
-
-
-def test_a_grant_opens_exactly_one_module(router, bot, services):
+def test_a_grant_opens_exactly_one_module(router, services):
     user = person(services, 2, Role.GUEST)
     services.storage.access.allow(user, "secret", True)
-    assert every_way_in(router, bot, user, "secret") == reached_for("secret")
-    assert every_way_in(router, bot, user, "plain") == []
+    assert every_way_in(router, user, "secret") == reached_for("secret")
+    assert every_way_in(router, user, "plain") == []
 
 
-def test_a_taken_away_module_closes_even_for_an_old_user(router, bot, services):
-    user = person(services, 2, Role.USER)
+def test_a_module_taken_away_again_closes(router, services):
+    user = person(services, 2, Role.GUEST)
+    services.storage.access.allow(user, "plain", True)
     services.storage.access.allow(user, "plain", False)
-    assert every_way_in(router, bot, user, "plain") == []
+    assert every_way_in(router, user, "plain") == []
 
 
-def test_the_default_list_opens_a_module_for_every_guest(router, bot, services):
+def test_the_default_list_opens_a_module_for_every_guest(router, services):
     services.storage.access.set_default("secret", True)
     user = person(services, 2, Role.GUEST)
-    assert every_way_in(router, bot, user, "secret") == reached_for("secret")
-    assert every_way_in(router, bot, user, "plain") == []
+    assert every_way_in(router, user, "secret") == reached_for("secret")
+    assert every_way_in(router, user, "plain") == []
 
 
-def test_a_taken_away_module_wins_over_the_default_list(router, bot, services):
+def test_a_taken_away_module_wins_over_the_default_list(router, services):
     services.storage.access.set_default("plain", True)
     user = person(services, 2, Role.GUEST)
     services.storage.access.allow(user, "plain", False)
-    assert every_way_in(router, bot, user, "plain") == []
+    assert every_way_in(router, user, "plain") == []
 
 
-def test_an_admin_reaches_everything(router, bot, services):
+def test_an_admin_reaches_everything(router, services):
     user = person(services, 2, Role.ADMIN)
-    assert every_way_in(router, bot, user, "plain") == reached_for("plain")
-    assert every_way_in(router, bot, user, "secret") == reached_for("secret")
+    assert every_way_in(router, user, "plain") == reached_for("plain")
+    assert every_way_in(router, user, "secret") == reached_for("secret")
 
 
-def test_a_banned_person_reaches_nothing_even_with_a_grant(router, bot, services):
+def test_a_banned_person_reaches_nothing_even_with_a_grant(router, services):
     user = person(services, 2, Role.BANNED)
     services.storage.access.allow(user, "secret", True)
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "secret") == []
 
 
-def test_a_person_without_consent_reaches_nothing_even_with_a_grant(router, bot, services):
+def test_a_person_without_consent_reaches_nothing_even_with_a_grant(router, services):
     user = person(services, 2, Role.GUEST)
     services.storage.users.set_consent(user, False)
     services.storage.access.allow(user, "secret", True)
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "secret") == []
 
 
-def test_an_answer_on_an_open_screen_is_guarded_as_well(router, bot, services):
+def test_an_answer_on_an_open_screen_is_guarded_as_well(router, services):
     user = person(services, 2, Role.GUEST)
     services.storage.access.allow(user, "secret", True)
     router.handle_message(make_message("/secret", user_id=user))
@@ -168,7 +163,7 @@ def test_an_answer_on_an_open_screen_is_guarded_as_well(router, bot, services):
     assert reached == []
 
 
-def test_an_answer_on_an_open_screen_goes_through_with_access(router, bot, services):
+def test_an_answer_on_an_open_screen_goes_through_with_access(router, services):
     user = person(services, 2, Role.GUEST)
     services.storage.access.allow(user, "secret", True)
     router.handle_message(make_message("/secret", user_id=user))
@@ -177,10 +172,11 @@ def test_an_answer_on_an_open_screen_goes_through_with_access(router, bot, servi
     assert reached == ["secret:state"]
 
 
-def test_an_unknown_module_counts_as_restricted(services):
-    user = person(services, 2, Role.USER)
+def test_an_unknown_module_stays_closed_even_with_a_grant(services):
+    user = person(services, 2, Role.GUEST)
+    services.storage.access.allow(user, "nowhere", True)
     from core.context import User, can_use
-    someone = User(user, "Person", "", "user", Role.USER, "en", True)
+    someone = User(user, "Person", "", "user", Role.GUEST, "en", True)
     assert not can_use(services, someone, "nowhere")
 
 
@@ -231,14 +227,14 @@ def test_granting_opens_the_module_and_tells_the_person(router, bot, services, b
     assert bot.edited[-1].message_id == 500 and bot.edited[-1].text.endswith("Access granted ✅")
     assert bot.edited[-1].markup is None
     assert any(message.chat_id == user and message.text == "You now have access to Secret ✅" for message in bot.sent)
-    assert every_way_in(router, bot, user, "secret") == reached_for("secret")
+    assert every_way_in(router, user, "secret") == reached_for("secret")
 
 
 def test_refusing_keeps_the_module_closed_and_tells_the_person(router, bot, services, boss):
     user = person(services, 2, Role.GUEST)
     ask(router, user)
     router.handle_callback(make_callback("core:refuse:2:secret", user_id=boss))
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "secret") == []
     assert any(message.chat_id == user and "has been refused" in message.text for message in bot.sent)
 
 
@@ -247,21 +243,21 @@ def test_a_request_is_answered_only_once(router, bot, services, boss):
     ask(router, user)
     router.handle_callback(make_callback("core:refuse:2:secret", user_id=boss))
     router.handle_callback(make_callback("core:grant:2:secret", user_id=boss))
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "secret") == []
     assert any(message.text == "This request has already been answered" for message in bot.sent)
 
 
-def test_a_forged_grant_from_a_non_admin_does_nothing(router, bot, services, boss):
+def test_a_forged_grant_from_a_non_admin_does_nothing(router, services, boss):
     user = person(services, 2, Role.GUEST)
     ask(router, user)
     router.handle_callback(make_callback("core:grant:2:secret", user_id=user))
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "secret") == []
 
 
-def test_a_grant_nobody_asked_for_does_nothing(router, bot, services, boss):
+def test_a_grant_nobody_asked_for_does_nothing(router, services, boss):
     user = person(services, 2, Role.GUEST)
     router.handle_callback(make_callback("core:grant:2:secret", user_id=boss))
-    assert every_way_in(router, bot, user, "secret") == []
+    assert every_way_in(router, user, "secret") == []
 
 
 def test_a_grant_with_a_broken_id_does_nothing(router, bot, services, boss):

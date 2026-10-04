@@ -68,6 +68,7 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 ## ✨ Feature modules
 
 - Downloader of videos, music and pictures 📥 (```/downloader```)
+- Assistant on a local language model 🤖 (```/llm```)
 - Reminders 🔔 (```/reminder```)
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)

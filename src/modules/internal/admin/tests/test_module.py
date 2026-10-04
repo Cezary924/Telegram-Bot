@@ -19,7 +19,7 @@ def press(app, data: str):
     app.router.handle_callback(make_callback(data, message_id=app.services.bot.last.message_id))
 
 
-def add_people(app, count: int, role: Role = Role.USER) -> None:
+def add_people(app, count: int, role: Role = Role.GUEST) -> None:
     for number in range(2, 2 + count):
         app.storage.users.save(number, "Person" + str(number), "Last", "user" + str(number))
         app.storage.users.set_role(number, role)
@@ -65,7 +65,7 @@ def test_searching_by_id_opens_the_user(boss, bot):
     press(boss, "admin:search")
     boss.router.handle_message(make_message("2"))
     assert "Person2 (2)" in bot.last.text
-    assert "Rank: <i>User</i>" in bot.last.text
+    assert "Rank: <i>Guest</i>" in bot.last.text
 
 
 def test_a_name_and_username_with_special_characters_are_shown_as_they_are(boss, bot):
@@ -127,8 +127,8 @@ def test_promoting_takes_effect_at_once(boss, bot):
     press(boss, "admin:user:2")
     press(boss, "admin:role:2")
     press(boss, "admin:role_set:2:1")
-    assert boss.storage.users.get_role(2) == Role.USER
-    assert "The rank has been changed to <i>User</i>" in bot.last.text
+    assert boss.storage.users.get_role(2) == Role.ADMIN
+    assert "The rank has been changed to <i>Admin</i>" in bot.last.text
 
 
 def test_the_user_is_told_about_the_new_rank(boss, bot):
@@ -141,23 +141,23 @@ def test_the_user_is_told_about_the_new_rank(boss, bot):
     bot.clear()
     boss.router.handle_callback(make_callback("admin:role_set:2:1", message_id=screen))
     told = [message for message in bot.sent if message.chat_id == 2]
-    assert told and told[0].text == "Zmieniono Twoją rangę na: <i>Użytkownik</i>"
+    assert told and told[0].text == "Zmieniono Twoją rangę na: <i>Admin</i>"
 
 
 def test_lowering_the_rank_asks_first(boss, bot):
-    add_people(boss, 1, Role.USER)
+    add_people(boss, 1, Role.ADMIN)
     open_menu(boss)
     press(boss, "admin:user:2")
     press(boss, "admin:role:2")
     press(boss, "admin:role_set:2:0")
     assert "Are you sure you want to lower the rank" in bot.last.text
-    assert boss.storage.users.get_role(2) == Role.USER
+    assert boss.storage.users.get_role(2) == Role.ADMIN
     press(boss, "admin:role_confirmed:2:0")
     assert boss.storage.users.get_role(2) == Role.GUEST
 
 
 def test_banning_asks_first(boss, bot):
-    add_people(boss, 1, Role.USER)
+    add_people(boss, 1)
     open_menu(boss)
     press(boss, "admin:user:2")
     press(boss, "admin:role:2")
@@ -168,12 +168,20 @@ def test_banning_asks_first(boss, bot):
 
 
 def test_the_current_rank_is_not_offered_again(boss, bot):
-    add_people(boss, 1, Role.USER)
+    add_people(boss, 1)
     open_menu(boss)
     press(boss, "admin:user:2")
     press(boss, "admin:role:2")
-    assert "admin:role_set:2:1" not in [data for _, data in bot.last.buttons]
-    assert len([data for _, data in bot.last.buttons if "role_set" in data]) == 3
+    assert "admin:role_set:2:0" not in [data for _, data in bot.last.buttons]
+    assert len([data for _, data in bot.last.buttons if "role_set" in data]) == 2
+
+
+def test_the_rank_that_is_gone_cannot_be_given(boss, bot):
+    add_people(boss, 1)
+    open_menu(boss)
+    press(boss, "admin:role_set:2:2")
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+    assert boss.storage.users.get_role(2) == Role.GUEST
 
 
 def test_deleting_a_user_asks_first(boss, bot):
@@ -189,7 +197,7 @@ def test_deleting_a_user_asks_first(boss, bot):
 
 
 def test_statistics_count_everyone(boss, bot):
-    add_people(boss, 3, Role.USER)
+    add_people(boss, 3)
     add_people(boss, 0)
     boss.storage.users.set_consent(2, True)
     open_menu(boss)
@@ -297,7 +305,7 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     assert bot.last.text == "The menu has been closed"
 
 
-guarded_modules = ["crystalball", "downloader", "reminder", "topspotifyartist", "unitconverter"]
+guarded_modules = ["crystalball", "downloader", "llm", "reminder", "topspotifyartist", "unitconverter"]
 
 
 def access_toggles(bot) -> list[str]:
@@ -336,7 +344,7 @@ def test_a_module_is_given_in_place_and_the_person_is_told(boss, bot):
     press(boss, "admin:access_set:2:reminder")
     assert bot.last.message_id == screen
     assert "🔔 Reminders ✅" in access_toggles(bot)
-    assert boss.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+    assert boss.storage.access.is_allowed(2, "reminder", Role.GUEST)
     assert any(message.chat_id == 2 and "now have access" in message.text for message in bot.sent)
 
 
@@ -345,17 +353,7 @@ def test_a_module_is_taken_away_on_the_second_tap(boss, bot):
     open_access(boss)
     press(boss, "admin:access_set:2:reminder")
     press(boss, "admin:access_set:2:reminder")
-    assert not boss.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
-
-
-def test_an_old_user_quietly_becomes_a_guest_with_the_same_access(boss, bot):
-    add_people(boss, 1, Role.USER)
-    open_access(boss)
-    assert all(text.endswith("✅") for text in access_toggles(bot))
-    press(boss, "admin:access_set:2:reminder")
-    assert boss.storage.users.get_role(2) == Role.GUEST
-    allowed = [name for name in guarded_modules if boss.storage.access.is_allowed(2, name, Role.GUEST, False)]
-    assert allowed == [name for name in guarded_modules if name != "reminder"]
+    assert not boss.storage.access.is_allowed(2, "reminder", Role.GUEST)
 
 
 def test_an_admin_needs_no_access_screen(boss, bot):
@@ -373,13 +371,13 @@ def test_a_broken_or_pointless_access_change_is_refused(boss, bot, data):
     open_menu(boss)
     press(boss, data)
     assert bot.last.text == "Sorry, this button does not work anymore... 😥"
-    assert not boss.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+    assert not boss.storage.access.is_allowed(2, "reminder", Role.GUEST)
 
 
 def test_a_non_admin_cannot_change_access(app, bot):
     add_people(app, 1, Role.GUEST)
     app.router.handle_callback(make_callback("admin:access_set:2:reminder"))
-    assert not app.storage.access.is_allowed(2, "reminder", Role.GUEST, False)
+    assert not app.storage.access.is_allowed(2, "reminder", Role.GUEST)
 
 
 def test_the_default_list_starts_empty_and_toggles_in_place(boss, bot):

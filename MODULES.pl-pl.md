@@ -35,10 +35,10 @@ modules/external/crystalball/
 # module.py
 from core.api import Ctx, Module, Role
 
-module = Module(name="crystalball")
+module = Module(name="crystalball", is_guarded=True)
 
 
-@module.command("crystalball", role=Role.USER)
+@module.command("crystalball")
 def crystalball(ctx: Ctx) -> str:
     return ctx.t("answer")
 ```
@@ -61,8 +61,9 @@ module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
+    config_keys=["service_url"],  # jedyne wpisy z config.yaml, które może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
-    is_restricted=True,  # dostępny tylko dla osób, które admin wpuścił z imienia
+    is_guarded=True,  # tylko dla osób wpuszczonych przez admina albo dla wszystkich z listy domyślnej (obecnie: admini)
     icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
     endings={'saved': "✅"})  # stawiana po nim
 ```
@@ -88,12 +89,14 @@ module = Module(
 | ```@module.job(interval=, name=, is_aligned=)```                    | uruchamia się co ```interval``` sekund we własnym wątku                   |
 
 - ```role``` domyślnie wynosi ```Role.GUEST```.
-- ```Role.USER``` oznacza „wymaga dostępu do tego modułu”. Każdy nowy człowiek jest gościem; admin daje jednej osobie
-  jeden moduł albo dopisuje moduł do listy domyślnej dla wszystkich. Bez dostępu osoba może o niego poprosić, a admini
-  dostają prośbę z przyciskami Daj dostęp i Odmów.
-- Moduł z ```is_restricted=True``` nigdy nie otwiera się niejawnie: tylko gdy admin wpuści konkretną osobę albo przez
-  listę domyślną.
-- Komenda wymagająca więcej niż ```Role.USER``` jest ukryta: nie trafia do menu komend Telegrama ani na ekran pomocy.
+- Są trzy rangi: ```Role.BANNED```, ```Role.GUEST``` i ```Role.ADMIN```. Każdy nowy człowiek jest gościem.
+- Moduł z ```is_guarded=True``` wymaga dostępu w całości - każda komenda, przycisk, odpowiedź i jego ustawienia. Admin
+  daje jednej osobie jeden moduł albo dopisuje moduł do listy domyślnej dla wszystkich. Bez dostępu osoba może o niego
+  poprosić, a admini dostają prośbę z przyciskami Daj dostęp i Odmów. Handler z ```role=Role.ADMIN``` wymaga do tego
+  jeszcze rangi.
+- Matcher modułu chronionego milczy wobec osób bez dostępu, a wiadomość idzie dalej, jakby modułu nie było. Prośbę o
+  dostęp proponuje tylko komenda, więc moduł łapiący zwykłe wiadomości nikogo nie zaczepia.
+- Komenda tylko dla admina jest ukryta: nie trafia do menu komend Telegrama ani na ekran pomocy.
 - ```is_background=True``` przenosi handler na osobny wątek — używaj do wszystkiego, co trwa, jak pobieranie czy
   odpytywanie zdalnego API.
 - ```is_aligned=True``` nakazuje czekać zadaniu do najbliższej pełnej wielokrotności interwału, więc sprawdzanie co 60
@@ -109,7 +112,7 @@ Widok z nazwą jest ekranem. Każdy mówi, gdzie stoi, przy pomocy pola ```paren
   przycisk powrotu i to, gdzie powrót ląduje, biorą się z drzewa, nigdy z tego, co użytkownik naciskał wcześniej.
 
 ```python
-@module.command("reminder", role=Role.USER)
+@module.command("reminder")
 def command_reminder(ctx: Ctx) -> View:
     return menu(ctx)
 
@@ -149,7 +152,7 @@ Odpowiedź, z której moduł nie umie skorzystać, nie jest osobną wiadomości�
 jeszcze raz, ale tym razem uwzględnia problem:
 
 ```python
-@module.state("set", role=Role.USER)
+@module.state("set")
 def take_content(ctx: Ctx) -> View:
     if not ctx.text.strip():
         return ctx.retry(ctx.t("set.empty"))
@@ -161,7 +164,7 @@ menu: nagłówek to, np. ```⚙️ Settings > 📥 Downloader```, a Wstecz wraca
 ustawieniach dostają ```parent="settings"```:
 
 ```python
-@module.settings(role=Role.USER)
+@module.settings()
 def settings(ctx: Ctx) -> View:
     return View(text=ctx.t("settings.text"), buttons=[Button(ctx.t("settings.format"), "format")])
 ```
@@ -181,6 +184,10 @@ ctx.state["step"] = "2"  # na użytkownika i moduł, trzymane w bazie
 ctx.nav  # gdzie jest użytkownik i co zapamiętał każdy ekran tego modułu
 ctx.db  # własne tabele tego modułu
 ctx.token("service_key")  # tylko sekrety zadeklarowane w manifeście
+ctx.has_token("service_key")  # czy zadeklarowany sekret w ogóle jest ustawiony
+ctx.setting("service_url")  # zadeklarowany wpis z config.yaml, None gdy go brak
+message_id = ctx.reply_live(tekst)  # wiadomość, którą moduł może potem przepisać
+ctx.edit(message_id, tekst)  # przepisuje ją, False gdy Telegram odmówi
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # ten sam ekran jeszcze raz
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc przepływ

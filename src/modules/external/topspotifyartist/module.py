@@ -5,9 +5,9 @@ from dataclasses import dataclass, field
 import requests
 from bs4 import BeautifulSoup
 
-from core.api import Ctx, JobCtx, Module, Role, View, labelled
+from core.api import Ctx, JobCtx, Module, View, labelled
 
-module = Module(name="topspotifyartist",
+module = Module(name="topspotifyartist", is_guarded=True,
                 endings={'how': "😁", 'wrong.text': "👎", 'correct.text': "👍", 'correct.victory': "😁",
                          'defeat.text': "😞"})
 
@@ -120,7 +120,7 @@ def refresh_chart(ctx: JobCtx) -> None:
     ctx.log("Chart refreshed with " + str(len(artists)) + " artists")
 
 
-@module.command("topspotifyartist", role=Role.USER, is_background=True)
+@module.command("topspotifyartist", is_background=True)
 def command_topspotifyartist(ctx: Ctx) -> View:
     try:
         artists = ready_chart()
@@ -137,7 +137,7 @@ def game(ctx: Ctx) -> View:
     return View(text=ctx.t("how", chances=ctx.state.get("left") or str(chances)))
 
 
-@module.state("game", role=Role.USER, is_background=True)
+@module.state("game", is_background=True)
 def guess(ctx: Ctx) -> View:
     target = int(ctx.state.get("target", "-1"))
     left = int(ctx.state.get("left", "0"))

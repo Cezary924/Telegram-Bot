@@ -13,7 +13,7 @@ def command_help(ctx: AdvancedCtx) -> View:
 
 def open_command(found: Module) -> str:
     for command in found.commands:
-        if command.role <= Role.USER:
+        if command.role < Role.ADMIN:
             return command.name
     return ""
 

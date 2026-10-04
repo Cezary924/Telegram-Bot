@@ -1,15 +1,15 @@
 import random
 
-from core.api import Ctx, Module, Role, View
+from core.api import Ctx, Module, View
 
-module = Module(name="crystalball",
+module = Module(name="crystalball", is_guarded=True,
                 icons={'name': "🔮"})
 
 verdicts = [("sure", "✅"), ("maybe", "❔"), ("nope", "❌")]
 answers_per_verdict = 5
 
 
-@module.command("crystalball", role=Role.USER)
+@module.command("crystalball")
 def command_crystalball(ctx: Ctx) -> View:
     verdict, mark = random.choice(verdicts)
     answer = random.randint(1, answers_per_verdict)

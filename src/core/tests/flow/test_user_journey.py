@@ -71,8 +71,8 @@ class TestUserJourney:
         assert app.services.bot.last.text == "Nie masz jeszcze dostępu do Demo 🔒"
         assert app.storage.navigation.current(1) is None
 
-    def test_06_a_promoted_user_gets_the_menu(self, app):
-        app.storage.users.set_role(1, Role.USER)
+    def test_06_a_person_let_in_gets_the_menu(self, app):
+        app.storage.access.allow(1, "demo", True)
         app.router.handle_message(make_message("/demo"))
         assert app.services.bot.last.text == "<b>Demo:</b>\n\n" + module_text(app, "menu.text")
         assert app.storage.navigation.current(1) is not None
@@ -119,7 +119,7 @@ class TestUserJourney:
         assert app.services.bot.last.text == core_text(app, "banned_info")
 
     def test_13_lifting_the_ban_restores_the_menu(self, app):
-        app.storage.users.set_role(1, Role.USER)
+        app.storage.users.set_role(1, Role.GUEST)
         app.router.handle_message(make_message("/demo"))
         assert app.services.bot.last.text == "<b>Demo:</b>\n\n" + module_text(app, "menu.text")
 

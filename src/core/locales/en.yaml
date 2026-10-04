@@ -9,7 +9,6 @@ notifications_label: From the Bot
 
 role_banned: Banned
 role_guest: Guest
-role_user: User
 role_admin: Admin
 
 banned_info: Sorry, you are not allowed to communicate with me

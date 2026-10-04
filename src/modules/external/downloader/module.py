@@ -14,9 +14,9 @@ from yt_dlp.networking.exceptions import RequestError
 from yt_dlp.networking.impersonate import ImpersonateTarget
 from yt_dlp.utils import DownloadError, ExtractorError
 
-from core.api import Button, Ctx, Module, Role, View, labelled
+from core.api import Button, Ctx, Module, View, labelled
 
-module = Module(name="downloader",
+module = Module(name="downloader", is_guarded=True,
                 icons={'name': "📥", 'format_video': "🎬", 'format_audio': "🎵", 'format_ask': "❓",
                        'settings_button': "⚙️"},
                 endings={'how': "😊", 'working': "⏳", 'failed': "💔", 'too_big': "💔"})
@@ -344,12 +344,12 @@ def deliver(ctx: Ctx, url: str, kind: str) -> View | None:
     return None
 
 
-@module.command("downloader", role=Role.USER)
+@module.command("downloader")
 def command_downloader(ctx: Ctx) -> View:
     return View(text=ctx.t("how"), buttons=[Button.settings(ctx.t("settings_button"), module.name)])
 
 
-@module.match(is_link, priority=priority, role=Role.USER, is_background=True)
+@module.match(is_link, priority=priority, is_background=True)
 def take_link(ctx: Ctx) -> View | None:
     url = ctx.text.strip()
     if chosen(ctx) != ask:
@@ -371,7 +371,7 @@ def choice(ctx: Ctx, asked: str = "") -> View:
                 argument=asked, columns=2)
 
 
-@module.callback("take", role=Role.USER, is_background=True)
+@module.callback("take", is_background=True)
 def take_choice(ctx: Ctx) -> View | None:
     kind, asked = (ctx.arguments + ("", ""))[:2]
     url = ctx.state.get(link_prefix + asked)
@@ -382,14 +382,14 @@ def take_choice(ctx: Ctx) -> View | None:
     return deliver(ctx, url, kind)
 
 
-@module.settings(role=Role.USER)
+@module.settings()
 def settings(ctx: Ctx) -> View:
     current = labelled(ctx.t("settings_current"), ctx.t("format_" + chosen(ctx)))
     return View(text=ctx.t("settings_text") + "\n\n" + current,
                 buttons=[Button(ctx.t("format_" + one), "format", one) for one in choices])
 
 
-@module.callback("format", role=Role.USER)
+@module.callback("format")
 def set_format(ctx: Ctx) -> View:
     wanted = ctx.arguments[0] if ctx.arguments else ""
     if wanted not in choices:

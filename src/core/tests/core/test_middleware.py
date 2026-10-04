@@ -13,12 +13,12 @@ def loaded(services):
     return services
 
 
-def person(role: Role = Role.USER, has_consent: bool = True, language: str = "en") -> User:
+def person(role: Role = Role.GUEST, has_consent: bool = True, language: str = "en") -> User:
     return User(1, "First", "Last", "username", role, language, has_consent)
 
 
 def test_a_settled_user_passes(loaded):
-    assert middleware.check(loaded, person(), Role.USER) is None
+    assert middleware.check(loaded, person(), Role.GUEST) is None
 
 
 def test_banned_user_is_stopped(loaded):
@@ -69,17 +69,14 @@ def test_missing_consent_wins_over_a_missing_role(loaded):
 
 
 def test_too_low_role_is_stopped(loaded):
-    blocked = not_none(middleware.check(loaded, person(Role.USER), Role.ADMIN))
+    blocked = not_none(middleware.check(loaded, person(Role.GUEST), Role.ADMIN))
     assert blocked.text == (loaded.catalog.text("core", "permission_denied.text", "en") + "\n\n"
                             + loaded.catalog.text("core", "permission_denied.hint", "en"))
 
 
 @pytest.mark.parametrize("role, required, is_allowed", [
     (Role.GUEST, Role.GUEST, True),
-    (Role.GUEST, Role.USER, False),
-    (Role.USER, Role.GUEST, True),
-    (Role.USER, Role.USER, True),
-    (Role.USER, Role.ADMIN, False),
+    (Role.GUEST, Role.ADMIN, False),
     (Role.ADMIN, Role.ADMIN, True),
     (Role.ADMIN, Role.GUEST, True),
 ])

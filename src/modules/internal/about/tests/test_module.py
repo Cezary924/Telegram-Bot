@@ -107,7 +107,7 @@ class Answer:
 
 
 def context_for(app) -> AdvancedCtx:
-    person = User(1, "First", "Last", "username", Role.USER, "en", True)
+    person = User(1, "First", "Last", "username", Role.GUEST, "en", True)
     return AdvancedCtx(app.services, not_none(app.registry.get("about")), person)
 
 

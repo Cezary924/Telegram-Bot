@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
-from core.api import Button, Ctx, JobCtx, Module, Role, View, escape, labelled, italic
+from core.api import Button, Ctx, JobCtx, Module, View, escape, labelled, italic
 
-module = Module(name="reminder", notifications="name",
+module = Module(name="reminder", is_guarded=True, notifications="name",
                 icons={'name': "🔔", 'previous': "⬅️", 'next': "➡️"},
                 endings={'done': "✅", 'changed': "✅", 'deleted': "✅", 'gone': "💔"})
 
@@ -46,7 +46,7 @@ def details(ctx: Ctx, content: str, date: str) -> str:
     return labelled(ctx.t("labels.content"), content) + "\n" + labelled(ctx.t("labels.date"), date)
 
 
-@module.command("reminder", role=Role.USER)
+@module.command("reminder")
 def command_reminder(ctx: Ctx) -> View:
     return menu(ctx)
 
@@ -63,7 +63,7 @@ def menu(ctx: Ctx) -> View:
 
 # ----- setting -----
 
-@module.callback("set", role=Role.USER)
+@module.callback("set")
 def open_content(ctx: Ctx) -> View:
     ctx.state.delete(content_key)
     return content_screen(ctx)
@@ -76,7 +76,7 @@ def content_screen(ctx: Ctx) -> View:
                 argument=str(reminder_id) if reminder_id else None)
 
 
-@module.state("content", role=Role.USER)
+@module.state("content")
 def take_content(ctx: Ctx) -> View:
     text = ctx.text.strip()
     if not text or len(text) > content_limit:
@@ -99,7 +99,7 @@ def save_content(ctx: Ctx, reminder_id: int, text: str) -> View:
     return View(text=ctx.t("changed") + "\n" + details(ctx, text, row['date']))
 
 
-@module.callback("date", role=Role.USER)
+@module.callback("date")
 def open_date(ctx: Ctx) -> View:
     return date_screen(ctx)
 
@@ -115,7 +115,7 @@ def example_date() -> str:
     return (datetime.now() + timedelta(days=1)).strftime(date_format)
 
 
-@module.state("date", role=Role.USER)
+@module.state("date")
 def take_date(ctx: Ctx) -> View:
     moment = parse_date(ctx.text)
     if moment is None:
@@ -155,7 +155,7 @@ def save_new(ctx: Ctx, date: str) -> View:
 
 # ----- managing -----
 
-@module.callback("manage", role=Role.USER)
+@module.callback("manage")
 def open_manage(ctx: Ctx) -> View:
     return manage(ctx)
 
@@ -185,7 +185,7 @@ def label(row) -> str:
     return (done_mark if row['is_notified'] else waiting_mark) + escape(row['content'])
 
 
-@module.callback("one", role=Role.USER)
+@module.callback("one")
 def open_one(ctx: Ctx) -> View:
     return one(ctx)
 
@@ -203,7 +203,7 @@ def one(ctx: Ctx) -> View:
                 argument=str(reminder_id))
 
 
-@module.callback("delete", role=Role.USER)
+@module.callback("delete")
 def open_delete(ctx: Ctx) -> View:
     return removal(ctx)
 
@@ -219,7 +219,7 @@ def removal(ctx: Ctx) -> View:
                 argument=str(reminder_id))
 
 
-@module.callback("delete_confirmed", role=Role.USER)
+@module.callback("delete_confirmed")
 def confirm_delete(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     if reminder_of(ctx, reminder_id) is None:

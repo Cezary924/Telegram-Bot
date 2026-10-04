@@ -218,6 +218,8 @@ class Router:
                 print_error("Matcher failed in '" + module.name + "' - " +
                             type(error).__name__ + ".", str(error))
                 continue
+            if module.is_guarded and not can_use(self._services, user, module.name):
+                continue
             self.run(module, matcher.handler, matcher.role, user, message,
                      is_background=matcher.is_background, is_typed=True)
             return True

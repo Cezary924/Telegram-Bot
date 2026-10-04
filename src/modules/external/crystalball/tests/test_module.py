@@ -1,6 +1,5 @@
 import pytest
 
-from core.api import Role
 from core.testing import make_message
 from modules.external.crystalball import module as crystalball
 
@@ -41,7 +40,7 @@ def test_it_speaks_polish(app, bot):
 
 
 def test_a_guest_may_not_ask(app, bot):
-    app.storage.users.set_role(1, Role.GUEST)
+    app.storage.access.allow(1, "crystalball", False)
     app.router.handle_message(make_message("/crystalball"))
     assert bot.last.text.startswith("You do not have access to")
     assert ("🙋 Ask for access", "core:request:crystalball") in bot.last.buttons

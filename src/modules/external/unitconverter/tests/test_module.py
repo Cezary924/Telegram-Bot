@@ -28,6 +28,7 @@ def test_anything_else_is_left_alone(text):
 
 
 def test_a_bare_number_does_not_reach_the_converter(app, bot):
+    app.storage.access.allow(1, "llm", False)
     app.router.handle_message(make_message("5"))
     assert bot.last.text == "Sorry, I do not understand... 💔"
 
@@ -60,9 +61,11 @@ def test_the_command_explains_how(app, bot):
 
 
 def test_a_guest_gets_no_conversion(app, bot):
-    app.storage.users.set_role(1, Role.GUEST)
+    app.storage.access.allow(1, "unitconverter", False)
+    app.storage.access.allow(1, "llm", False)
     app.router.handle_message(make_message("5 km"))
-    assert bot.last.text.startswith("You do not have access to")
+    assert bot.last.text == "Sorry, I do not understand... 💔"
+    app.router.handle_message(make_message("/unitconverter"))
     assert ("🙋 Ask for access", "core:request:unitconverter") in bot.last.buttons
 
 

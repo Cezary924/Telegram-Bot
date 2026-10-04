@@ -68,6 +68,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 ## ✨ Moduły funkcjonalności dodatkowych
 
 - Pobieranie filmów, muzyki i zdjęć 📥 (```/downloader```)
+- Asystent na lokalnym modelu językowym 🤖 (```/llm```)
 - Przypomnienia 🔔 (```/reminder```)
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)

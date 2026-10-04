@@ -28,7 +28,7 @@ def menu(ctx: AdvancedCtx) -> View:
 
 def may_open(ctx: AdvancedCtx, found: Module) -> bool:
     role = found.settings_screen.role if found.settings_screen is not None else Role.ADMIN
-    return ctx.can_use(found.name) if role == Role.USER else ctx.user.role >= role
+    return ctx.user.role >= role and (not found.is_guarded or role >= Role.ADMIN or ctx.can_use(found.name))
 
 
 @module.callback("notifications")

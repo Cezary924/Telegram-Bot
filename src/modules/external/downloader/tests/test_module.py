@@ -139,11 +139,13 @@ def test_the_workspace_is_gone_afterwards(app, bot, monkeypatch):
 
 
 def test_a_guest_gets_nothing(downloading, bot):
-    downloading.storage.users.set_role(1, Role.GUEST)
+    downloading.storage.access.allow(1, "downloader", False)
+    downloading.storage.access.allow(1, "llm", False)
     send(downloading, link1)
-    assert bot.last.text.startswith("You do not have access to")
-    assert ("🙋 Ask for access", "core:request:downloader") in bot.last.buttons
+    assert bot.last.text == "Sorry, I do not understand... 💔"
     assert bot.files == []
+    send(downloading, "/downloader")
+    assert ("🙋 Ask for access", "core:request:downloader") in bot.last.buttons
 
 
 def test_it_speaks_polish(downloading, bot):

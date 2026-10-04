@@ -35,10 +35,10 @@ modules/external/crystalball/
 # module.py
 from core.api import Ctx, Module, Role
 
-module = Module(name="crystalball")
+module = Module(name="crystalball", is_guarded=True)
 
 
-@module.command("crystalball", role=Role.USER)
+@module.command("crystalball")
 def crystalball(ctx: Ctx) -> str:
     return ctx.t("answer")
 ```
@@ -61,8 +61,9 @@ module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
     tokens=["service_key"],  # the only secrets this module can read
+    config_keys=["service_url"],  # the only entries of config.yaml it can read
     notifications="name",  # the text key its notifications are listed under in /settings
-    is_restricted=True,  # reachable only by people an admin let in by name
+    is_guarded=True,  # usable only by people an admin let in, or by everyone on the default list (currently: admins)
     icons={'name': "🔔"},  # put in front of a text, in every language
     endings={'saved': "✅"})  # put after it
 ```
@@ -89,13 +90,16 @@ module = Module(
 | ```@module.job(interval=, name=, is_aligned=)```                   | runs every ```interval``` seconds in its own thread               |
 
 - ```role``` defaults to ```Role.GUEST```.
-- ```Role.USER``` means "needs access to this module". Everyone new is a guest; an admin gives one person one module,
-  or puts a module on the default list for everybody. Without access the person is offered to ask for it, and the
-  admins get the request with Grant and Refuse buttons.
-- A module with ```is_restricted=True``` is never opened by anything implicit: only by an admin letting a person in, or
-  by the default list.
-- A command asking for more than ```Role.USER``` is hidden: it stays out of the Telegram command menu and out of the
-  help screen, because both are the same for everybody.
+- There are three ranks: ```Role.BANNED```, ```Role.GUEST``` and ```Role.ADMIN```. Everyone new is a guest.
+- A module with ```is_guarded=True``` needs access as a whole - every command, button, answer and its settings. An admin
+  gives one person one module, or puts the module on the default list for everybody. Without access the person is
+  offered to ask for it, and the admins get the request with Grant and Refuse buttons. A ```role=Role.ADMIN``` handler
+  still needs the rank on top.
+- A matcher of a guarded module stays silent towards people without access, and the message goes on as if the module
+  were not there. Only a command answers them with the offer to ask, so a module catching plain messages does not pester
+  anyone.
+- A command for admins only is hidden: it stays out of the Telegram command menu and out of the help screen, because
+  both are the same for everybody.
 - ```is_background=True``` puts the handler on its own thread - use it for anything that takes time, like downloading or
   calling a remote API.
 - ```is_aligned=True``` on a job makes it wait until the clock reaches the next whole interval, so a check every 60
@@ -111,7 +115,7 @@ walks it: the breadcrumb, the back button and where back lands all come from the
 before.
 
 ```python
-@module.command("reminder", role=Role.USER)
+@module.command("reminder")
 def command_reminder(ctx: Ctx) -> View:
     return menu(ctx)
 
@@ -151,7 +155,7 @@ An answer the module cannot use is not a message of its own - ```ctx.retry``` as
 problem written above the question:
 
 ```python
-@module.state("set", role=Role.USER)
+@module.state("set")
 def take_content(ctx: Ctx) -> View:
     if not ctx.text.strip():
         return ctx.retry(ctx.t("set.empty"))
@@ -163,7 +167,7 @@ under that menu: the heading reads, for example, ```⚙️ Settings > 📥 Downl
 Screens deeper in the settings take ```parent="settings"```:
 
 ```python
-@module.settings(role=Role.USER)
+@module.settings()
 def settings(ctx: Ctx) -> View:
     return View(text=ctx.t("settings.text"), buttons=[Button(ctx.t("settings.format"), "format")])
 ```
@@ -183,6 +187,10 @@ ctx.state["step"] = "2"  # per user and module, kept in the database
 ctx.nav  # where the user is, and what each screen of this module remembered
 ctx.db  # this module's own tables
 ctx.token("service_key")  # only the secrets declared in the manifest
+ctx.has_token("service_key")  # whether a declared secret is set at all
+ctx.setting("service_url")  # a declared entry of config.yaml, None when it is missing
+message_id = ctx.reply_live(text)  # a message the module can rewrite later
+ctx.edit(message_id, text)  # rewrites it, False when Telegram refuses
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # the same screen again, with the problem above the question
 ctx.close_screen()  # closes the screen the user acted on, ending the flow
@@ -221,9 +229,9 @@ menu:
   title: Reminders     # menu.title
 ```
 
-Texts hold words only. An emoji that opens or closes a text belongs in the manifest's ```icons``` and ```endings```,
-so it is written once instead of once per language, and a translation cannot drift from it. The contract refuses an
-icon or ending for a key that has no text. An emoji in the middle of a sentence stays in the text.
+Texts hold words only. An emoji that opens or closes a text belongs in the manifest's ```icons``` and ```endings```, so
+it is written once instead of once per language, and a translation cannot drift from it. The contract refuses an icon or
+ending for a key that has no text. An emoji in the middle of a sentence stays in the text.
 
 Every module needs a ```name``` and a ```description``` key - ```/help``` and ```/features``` list modules as
 ```/command - Name - Description```.
