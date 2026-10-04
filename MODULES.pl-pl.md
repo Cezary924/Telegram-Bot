@@ -61,6 +61,7 @@ module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
+    config_keys=["service_url"],  # jedyne wpisy z config.yaml, które może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
     is_restricted=True,  # dostępny tylko dla osób, które admin wpuścił z imienia
     icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
@@ -181,6 +182,10 @@ ctx.state["step"] = "2"  # na użytkownika i moduł, trzymane w bazie
 ctx.nav  # gdzie jest użytkownik i co zapamiętał każdy ekran tego modułu
 ctx.db  # własne tabele tego modułu
 ctx.token("service_key")  # tylko sekrety zadeklarowane w manifeście
+ctx.has_token("service_key")  # czy zadeklarowany sekret w ogóle jest ustawiony
+ctx.setting("service_url")  # zadeklarowany wpis z config.yaml, None gdy go brak
+message_id = ctx.reply_live(tekst)  # wiadomość, którą moduł może potem przepisać
+ctx.edit(message_id, tekst)  # przepisuje ją, False gdy Telegram odmówi
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # ten sam ekran jeszcze raz
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc przepływ

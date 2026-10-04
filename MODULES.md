@@ -61,6 +61,7 @@ module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
     tokens=["service_key"],  # the only secrets this module can read
+    config_keys=["service_url"],  # the only entries of config.yaml it can read
     notifications="name",  # the text key its notifications are listed under in /settings
     is_restricted=True,  # reachable only by people an admin let in by name
     icons={'name': "🔔"},  # put in front of a text, in every language
@@ -183,6 +184,10 @@ ctx.state["step"] = "2"  # per user and module, kept in the database
 ctx.nav  # where the user is, and what each screen of this module remembered
 ctx.db  # this module's own tables
 ctx.token("service_key")  # only the secrets declared in the manifest
+ctx.has_token("service_key")  # whether a declared secret is set at all
+ctx.setting("service_url")  # a declared entry of config.yaml, None when it is missing
+message_id = ctx.reply_live(text)  # a message the module can rewrite later
+ctx.edit(message_id, text)  # rewrites it, False when Telegram refuses
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # the same screen again, with the problem above the question
 ctx.close_screen()  # closes the screen the user acted on, ending the flow

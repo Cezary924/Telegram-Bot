@@ -79,6 +79,7 @@ class Module:
     description: str = "description"
     requires: list[str] = field(default_factory=list)
     tokens: list[str] = field(default_factory=list)
+    config_keys: list[str] = field(default_factory=list)
     notifications: str = ""
     is_restricted: bool = False
     icons: dict[str, str] = field(default_factory=dict)

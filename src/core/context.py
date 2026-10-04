@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 
 import telebot
+from telebot.apihelper import ApiTelegramException
 
 from core import paths
 from core.config import Config
@@ -220,6 +221,36 @@ class Ctx:
         if name not in self.module.tokens:
             raise PermissionError("Module '" + self.module.name + "' did not declare token '" + name + "'")
         return self._services.config.token(name)
+
+    def has_token(self, name: str) -> bool:
+        if name not in self.module.tokens:
+            raise PermissionError("Module '" + self.module.name + "' did not declare token '" + name + "'")
+        return self._services.config.has_token(name)
+
+    def setting(self, name: str) -> str | None:
+        if name not in self.module.config_keys:
+            raise PermissionError("Module '" + self.module.name + "' did not declare setting '" + name + "'")
+        try:
+            return self._services.config.setting(name)
+        except KeyError:
+            return None
+
+    def reply_live(self, text: str) -> int | None:
+        bot = not_none(self._services.bot, "the bot is not built yet")
+        try:
+            return bot.send_message(self.user.id, text, parse_mode="HTML").message_id
+        except Exception as error:
+            print_error("Could not deliver a message to " + str(self.user.id) + " - " + type(error).__name__ + ".",
+                        str(error))
+            return None
+
+    def edit(self, message_id: int, text: str) -> bool:
+        bot = not_none(self._services.bot, "the bot is not built yet")
+        try:
+            bot.edit_message_text(text, self.user.id, message_id, parse_mode="HTML")
+        except ApiTelegramException as error:
+            return "not modified" in str(error)
+        return True
 
     def reply(self, view) -> bool:
         heading = heading_for(self._services, self.module.name, view, self.user.language) \
