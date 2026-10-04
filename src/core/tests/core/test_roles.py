@@ -6,7 +6,7 @@ from core.roles import Role
 def test_values():
     assert Role.BANNED == -1
     assert Role.GUEST == 0
-    assert Role.ADMIN == 2
+    assert Role.ADMIN == 1
 
 
 def test_there_are_three_ranks():
@@ -26,9 +26,9 @@ def test_locale_keys():
 @pytest.mark.parametrize("value, expected", [
     (-1, Role.BANNED),
     (0, Role.GUEST),
-    (2, Role.ADMIN),
-    ("2", Role.ADMIN),
-    (1, Role.GUEST),
+    (1, Role.ADMIN),
+    ("1", Role.ADMIN),
+    (2, Role.GUEST),
     (7, Role.GUEST),
     (None, Role.GUEST),
 ])

@@ -4,7 +4,7 @@ from enum import IntEnum
 class Role(IntEnum):
     BANNED = -1
     GUEST = 0
-    ADMIN = 2
+    ADMIN = 1
 
     @property
     def key(self) -> str:

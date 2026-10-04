@@ -126,7 +126,7 @@ def test_promoting_takes_effect_at_once(boss, bot):
     open_menu(boss)
     press(boss, "admin:user:2")
     press(boss, "admin:role:2")
-    press(boss, "admin:role_set:2:2")
+    press(boss, "admin:role_set:2:1")
     assert boss.storage.users.get_role(2) == Role.ADMIN
     assert "The rank has been changed to <i>Admin</i>" in bot.last.text
 
@@ -139,7 +139,7 @@ def test_the_user_is_told_about_the_new_rank(boss, bot):
     press(boss, "admin:role:2")
     screen = bot.last.message_id
     bot.clear()
-    boss.router.handle_callback(make_callback("admin:role_set:2:2", message_id=screen))
+    boss.router.handle_callback(make_callback("admin:role_set:2:1", message_id=screen))
     told = [message for message in bot.sent if message.chat_id == 2]
     assert told and told[0].text == "Zmieniono Twoją rangę na: <i>Admin</i>"
 
@@ -179,7 +179,7 @@ def test_the_current_rank_is_not_offered_again(boss, bot):
 def test_the_rank_that_is_gone_cannot_be_given(boss, bot):
     add_people(boss, 1)
     open_menu(boss)
-    press(boss, "admin:role_set:2:1")
+    press(boss, "admin:role_set:2:2")
     assert bot.last.text == "Sorry, this button does not work anymore... 😥"
     assert boss.storage.users.get_role(2) == Role.GUEST
 
