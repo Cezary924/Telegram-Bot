@@ -6,14 +6,14 @@ class Access:
     def __init__(self, database: Database) -> None:
         self._db = database
 
-    def is_allowed(self, user_id: int, module: str, role: Role, is_restricted: bool) -> bool:
+    def is_allowed(self, user_id: int, module: str, role: Role) -> bool:
         if role >= Role.ADMIN:
             return True
         row = self._db.query_one("SELECT is_allowed FROM user_module_access WHERE user_id = ? AND module = ?;",
                                  (user_id, module))
         if row is not None:
             return bool(row['is_allowed'])
-        return (role == Role.USER and not is_restricted) or module in self.defaults()
+        return module in self.defaults()
 
     def allow(self, user_id: int, module: str, is_allowed: bool) -> None:
         self._db.execute("""

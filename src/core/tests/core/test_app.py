@@ -97,7 +97,7 @@ def test_the_router_answers_a_loaded_command(app):
     app.load_modules()
     app.storage.users.save(1, "First", "Last", "username")
     app.storage.users.set_consent(1, True)
-    app.storage.users.set_role(1, Role.USER)
+    app.storage.access.allow(1, "module1", True)
     app.router.handle_message(make_message("/command1"))
     assert app.services.bot.last.text == "one"
 

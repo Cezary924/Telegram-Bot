@@ -18,7 +18,7 @@ def registry():
 @pytest.fixture
 def module1():
     module = Module(name="module1")
-    module.command("command1", role=Role.USER)(handler)
+    module.command("command1", role=Role.ADMIN)(handler)
     module.callback("action1")(handler)
     module.state("view1")(handler)
     module.match(lambda text: True, priority=10)(handler)
@@ -82,7 +82,7 @@ def test_command_lookup(registry, module1):
     registry.add(module1)
     module, command = not_none(registry.command("command1"))
     assert module is module1
-    assert command.role == Role.USER
+    assert command.role == Role.ADMIN
     assert registry.command("command9") is None
 
 

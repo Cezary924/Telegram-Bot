@@ -158,8 +158,8 @@ def access(ctx: AdvancedCtx, user_id: int = 0) -> View:
     role = ctx.users.get_role(user_id)
     if role >= Role.ADMIN:
         return View(text=ctx.t("access_admin"), argument=str(user_id))
-    buttons = [Button(title_of(ctx, found) + " " + (allowed_mark if ctx.access.is_allowed(
-        user_id, found.name, role, found.is_restricted) else refused_mark), "access_set", user_id, found.name)
+    buttons = [Button(title_of(ctx, found) + " " + (allowed_mark if ctx.access.is_allowed(user_id, found.name, role)
+                                                    else refused_mark), "access_set", user_id, found.name)
                for found in guarded(ctx)]
     return View(text=ctx.t("access_text"), buttons=buttons, argument=str(user_id))
 
@@ -173,11 +173,7 @@ def set_access(ctx: AdvancedCtx) -> View:
     role = ctx.users.get_role(user_id)
     if found is None or role >= Role.ADMIN or not ctx.users.exists(user_id):
         return View(ctx.t("core:not_working_buttons"), heading=None)
-    if role == Role.USER:
-        ctx.users.set_role(user_id, Role.GUEST)
-        for one in guarded(ctx):
-            ctx.access.allow(user_id, one.name, not one.is_restricted)
-    is_allowed = not ctx.access.is_allowed(user_id, name, Role.GUEST, found.is_restricted)
+    is_allowed = not ctx.access.is_allowed(user_id, name, role)
     ctx.access.allow(user_id, name, is_allowed)
     ctx.log("Access to '" + name + "' " + ("granted to " if is_allowed else "taken from ") + str(user_id))
     if is_allowed:
@@ -296,7 +292,6 @@ def open_statistics(ctx: AdvancedCtx) -> View:
 @module.view("statistics", parent="menu", title="statistics")
 def statistics(ctx: AdvancedCtx) -> View:
     counts = ctx.users.count_by_role()
-    counts[Role.GUEST] = counts.get(Role.GUEST, 0) + counts.pop(Role.USER, 0)
     people = [labelled(ctx.t("core:" + role.key), counts.get(role, 0)) for role in reversed(manageable_roles)]
     facts = [labelled(ctx.t("labels.total"), sum(counts.values())),
              labelled(ctx.t("labels.consent"), ctx.users.count_with_consent()),

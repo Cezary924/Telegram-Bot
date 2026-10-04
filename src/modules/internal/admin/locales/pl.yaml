@@ -51,7 +51,7 @@ wipe_done: Dane użytkownika zostały usunięte
 statistics: Statystyki
 
 announcement: Ogłoszenie
-announcement_text: Napisz wiadomość, którą mają przeczytać wszyscy użytkownicy. Trafi do każdego, kto ma włączone powiadomienia.
+announcement_text: Napisz wiadomość, którą mają przeczytać wszyscy użytkownicy. Trafi do każdego oprócz osób, które zablokowały wszystkie powiadomienia, a do wyciszonych po cichu.
 announcement_done: Ogłoszenie dotarło do {reached} użytkowników
 
 alerts: Powiadomienia o nowych użytkownikach

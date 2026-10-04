@@ -659,9 +659,9 @@ def test_nothing_happens_without_a_username_in_the_config(named, services):
 def test_the_promotion_happens_only_once(named, services):
     router = named("username")
     router.handle_message(make_message("/command1", user_id=7))
-    services.storage.users.set_role(7, Role.USER)
+    services.storage.users.set_role(7, Role.GUEST)
     router.handle_message(make_message("/command1", user_id=7))
-    assert services.storage.users.get_role(7) == Role.USER
+    assert services.storage.users.get_role(7) == Role.GUEST
 
 
 def refusing_bot(services, description: str):

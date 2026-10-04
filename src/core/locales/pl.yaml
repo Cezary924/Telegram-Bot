@@ -9,7 +9,6 @@ notifications_label: Od Bota
 
 role_banned: Zbanowany
 role_guest: Gość
-role_user: Użytkownik
 role_admin: Admin
 
 banned_info: Niestety, nie wolno Ci się ze mną komunikować

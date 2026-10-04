@@ -78,16 +78,16 @@ def last_written(app, minutes: int) -> None:
 
 # ----- who may talk -----
 
-@pytest.mark.parametrize("role", [Role.GUEST, Role.USER])
-def test_without_access_a_message_never_reaches_the_model(app, bot, model, role, monkeypatch):
+def test_without_access_a_message_never_reaches_the_model(app, bot, model, monkeypatch):
+    app.storage.access.allow(1, "llm", False)
     configure(app, monkeypatch, llm_url="http://model.local/v1")
-    app.storage.users.set_role(1, role)
     say(app, "hello")
     assert model.asked == []
     assert bot.last.text == "Sorry, I do not understand... 💔"
 
 
 def test_without_access_the_command_offers_to_ask(app, bot, model):
+    app.storage.access.allow(1, "llm", False)
     app.storage.users.set_role(1, Role.GUEST)
     say(app, "/llm")
     assert bot.last.text == "You do not have access to 🤖 Assistant yet 🔒"
@@ -97,7 +97,7 @@ def test_without_access_the_command_offers_to_ask(app, bot, model):
 
 @pytest.mark.parametrize("data", ["llm:fresh", "llm:pick:new:100", "llm:thinking:1", "core:settings:llm"])
 def test_without_access_no_button_reaches_the_module(app, bot, model, data):
-    app.storage.users.set_role(1, Role.USER)
+    app.storage.access.allow(1, "llm", False)
     app.storage.module_state.set(1, "llm", "pending.100", "hello")
     app.router.handle_callback(make_callback(data))
     app.router.wait_for_tasks()
@@ -316,7 +316,7 @@ def wire(chat, monkeypatch, lines: list[str]) -> tuple[dict, list]:
         return Response(lines)
 
     monkeypatch.setattr("modules.external.llm.module.requests.post", post)
-    ctx = Ctx(chat.services, chat.registry.get("llm"), User(1, "First", "Last", "username", Role.USER, "en", True))
+    ctx = Ctx(chat.services, chat.registry.get("llm"), User(1, "First", "Last", "username", Role.GUEST, "en", True))
     return sent, list(real_stream(ctx, [{'role': "user", 'content': "hi"}], True))
 
 

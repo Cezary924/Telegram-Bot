@@ -81,7 +81,7 @@ class Module:
     tokens: list[str] = field(default_factory=list)
     config_keys: list[str] = field(default_factory=list)
     notifications: str = ""
-    is_restricted: bool = False
+    is_guarded: bool = False
     icons: dict[str, str] = field(default_factory=dict)
     endings: dict[str, str] = field(default_factory=dict)
 
@@ -99,12 +99,6 @@ class Module:
     def __post_init__(self) -> None:
         if not name_pattern.fullmatch(self.name):
             raise ValueError("Module name must be lowercase letters, digits and underscores: " + self.name)
-
-    @property
-    def is_guarded(self) -> bool:
-        handlers = [*self.commands, *self.callbacks, *self.states, *self.matchers]
-        return (any(handler.role == Role.USER for handler in handlers)
-                or (self.settings_screen is not None and self.settings_screen.role == Role.USER))
 
     @property
     def table_prefix(self) -> str:

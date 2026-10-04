@@ -1,9 +1,9 @@
-from core.api import Button, Ctx, Module, Role, View, labelled
+from core.api import Button, Ctx, Module, View, labelled
 
-module = Module(name="demo")
+module = Module(name="demo", is_guarded=True)
 
 
-@module.command("demo", role=Role.USER)
+@module.command("demo")
 def command_demo(ctx: Ctx) -> View:
     return menu(ctx)
 

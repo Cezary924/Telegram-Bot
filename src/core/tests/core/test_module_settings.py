@@ -18,10 +18,10 @@ def hub_menu(_ctx) -> View:
     return View("hub")
 
 
-owner = Module(name="owner")
+owner = Module(name="owner", is_guarded=True)
 
 
-@owner.settings(role=Role.USER)
+@owner.settings()
 def owner_settings(_ctx) -> View:
     return View("owner settings", buttons=[Button("deeper", "deeper")])
 
@@ -62,7 +62,7 @@ def router(services, bot):
 def settled(services):
     services.storage.users.save(1, "First", "Last", "username")
     services.storage.users.set_consent(1, True)
-    services.storage.users.set_role(1, Role.USER)
+    services.storage.access.allow(1, "owner", True)
     services.storage.settings.set_language(1, "en")
     return 1
 
@@ -78,7 +78,7 @@ def open_owner_settings(router, bot):
 
 def test_settings_are_a_view_of_their_own():
     assert owner.settings_screen is not None
-    assert owner.settings_screen.role == Role.USER
+    assert owner.settings_screen.role == Role.GUEST and owner.is_guarded
     assert owner.view_named("settings") is not None
 
 
@@ -137,8 +137,8 @@ def test_a_screen_outside_settings_keeps_its_own_tree(router, bot, services, set
     assert bot.last.text == core_text(services, "menu_closed")
 
 
-def test_settings_above_the_user_role_are_refused(router, bot, services, settled):
-    services.storage.users.set_role(1, Role.GUEST)
+def test_settings_without_access_are_refused(router, bot, services, settled):
+    services.storage.access.allow(1, "owner", False)
     open_owner_settings(router, bot)
     assert bot.last.text == "You do not have access to Owner yet 🔒"
     assert bot.last.buttons == [("🙋 Ask for access", "core:request:owner")]

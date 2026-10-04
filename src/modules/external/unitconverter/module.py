@@ -1,6 +1,6 @@
-from core.api import Ctx, Module, Role, View, bold, italic
+from core.api import Ctx, Module, View, bold, italic
 
-module = Module(name="unitconverter",
+module = Module(name="unitconverter", is_guarded=True,
                 icons={'name': "🧮"},
                 endings={'how': "😊"})
 
@@ -45,12 +45,12 @@ def carries_a_unit(text: str) -> bool:
     return parse(text) is not None
 
 
-@module.command("unitconverter", role=Role.USER)
+@module.command("unitconverter")
 def command_unitconverter(ctx: Ctx) -> View:
     return View(text=ctx.t("how"))
 
 
-@module.match(carries_a_unit, priority=priority, role=Role.USER)
+@module.match(carries_a_unit, priority=priority)
 def convert(ctx: Ctx) -> View | None:
     found = parse(ctx.text)
     if found is None:

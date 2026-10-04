@@ -17,7 +17,8 @@ def test_the_menu_lists_every_setting(app, bot):
     open_menu(app)
     assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect the setting of the following:"
     assert [data for _, data in bot.last.buttons] == [
-        "settings:notifications", "settings:language", "core:settings:downloader", "settings:deletedata",
+        "settings:notifications", "settings:language", "core:settings:downloader", "core:settings:llm",
+        "settings:deletedata",
         "core:close"]
 
 
@@ -148,20 +149,20 @@ def test_reopening_the_menu_does_not_stack_it(app, bot):
     assert bot.last.text == "The menu has been closed"
 
 
-def add_module_with_settings(app, role: Role) -> None:
-    extra = Module(name="extra")
+def add_module_with_settings(app, role: Role = Role.GUEST, is_guarded: bool = True) -> None:
+    extra = Module(name="extra", is_guarded=is_guarded)
     extra.settings(role=role)(lambda ctx: View("extra settings"))
     app.catalog.add("extra", "en", {'name': "🧩 Extra"})
     app.registry.add(extra)
+    app.storage.access.allow(1, "extra", True)
 
 
 def test_a_module_with_settings_is_listed_before_data_deletion(app, bot):
-    add_module_with_settings(app, Role.USER)
+    add_module_with_settings(app)
     open_menu(app)
     assert [data for _, data in bot.last.buttons] == [
         "settings:notifications", "settings:language", "core:settings:downloader", "core:settings:extra",
-        "settings:deletedata",
-        "core:close"]
+        "core:settings:llm", "settings:deletedata", "core:close"]
     assert "🧩 Extra" in [text for text, _ in bot.last.buttons]
 
 
@@ -172,7 +173,7 @@ def test_module_settings_above_the_user_role_are_not_listed(app, bot):
 
 
 def test_module_settings_open_under_the_menu(app, bot):
-    add_module_with_settings(app, Role.USER)
+    add_module_with_settings(app)
     open_menu(app)
     press(app, "core:settings:extra")
     assert bot.last.text == "<b>⚙️ Settings &gt; 🧩 Extra:</b>\n\nextra settings"

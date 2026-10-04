@@ -7,9 +7,9 @@ from datetime import datetime
 
 import requests
 
-from core.api import Button, Ctx, Module, Role, View, escape, italic, labelled
+from core.api import Button, Ctx, Module, View, escape, italic, labelled
 
-module = Module(name="llm", is_restricted=True, config_keys=["llm_url", "llm_model"], tokens=["llm_key"],
+module = Module(name="llm", is_guarded=True, config_keys=["llm_url", "llm_model"], tokens=["llm_key"],
                 icons={'name': "🤖", 'title': "🤖", 'new': "🆕", 'continue': "▶️", 'settings_button': "⚙️",
                        'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "✍️", 'thinking': "💭",
                        'reasoning': "💭"},
@@ -213,20 +213,20 @@ def answer_in(ctx: Ctx, conversation: int, text: str) -> View | None:
     return None
 
 
-@module.command("llm", role=Role.USER)
+@module.command("llm")
 def command_llm(ctx: Ctx) -> View:
     return View(text=ctx.t("how"), buttons=[Button(ctx.t("new"), "fresh"),
                                             Button.settings(ctx.t("settings_button"), module.name)])
 
 
-@module.callback("fresh", role=Role.USER)
+@module.callback("fresh")
 def start_fresh(ctx: Ctx) -> View:
     fresh(ctx)
     ctx.log("Conversation started anew")
     return View(text=ctx.t("fresh_done"))
 
 
-@module.match(is_chat, priority=priority, role=Role.USER, is_background=True)
+@module.match(is_chat, priority=priority, is_background=True)
 def take_message(ctx: Ctx) -> View | None:
     if not ctx.setting("llm_url"):
         ctx.error("There is no llm_url in config.yaml")
@@ -251,7 +251,7 @@ def choice(ctx: Ctx, asked: str = "", minutes: int = 0) -> View:
                 argument=asked, columns=2)
 
 
-@module.callback("pick", role=Role.USER, is_background=True)
+@module.callback("pick", is_background=True)
 def pick(ctx: Ctx) -> View | None:
     kind, asked = (ctx.arguments + ("", ""))[:2]
     text = ctx.state.get(pending_prefix + asked)
@@ -262,7 +262,7 @@ def pick(ctx: Ctx) -> View | None:
     return answer_in(ctx, current(ctx) if kind == "continue" else fresh(ctx), text)
 
 
-@module.settings(role=Role.USER)
+@module.settings()
 def settings(ctx: Ctx) -> View:
     now = labelled(ctx.t("settings_current"), ctx.t("thinking_on" if is_thinking(ctx) else "thinking_off"))
     return View(text=ctx.t("settings_text") + "\n\n" + now,
@@ -270,7 +270,7 @@ def settings(ctx: Ctx) -> View:
                          Button(ctx.t("thinking_on"), "thinking", "1")])
 
 
-@module.callback("thinking", role=Role.USER)
+@module.callback("thinking")
 def set_thinking(ctx: Ctx) -> View:
     wanted = ctx.arguments[0] if ctx.arguments else ""
     if wanted not in ("0", "1"):

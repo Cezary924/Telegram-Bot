@@ -16,7 +16,7 @@ def test_help_lists_every_internal_module_a_user_can_reach(app, bot):
     text = bot.last.text
     assert text.startswith("<b>📃 Help:</b>\n\nHere is what I can do for you:\n\n")
     for found in app.registry.modules():
-        open_commands = [one for one in found.commands if one.role <= Role.USER]
+        open_commands = [one for one in found.commands if one.role < Role.ADMIN]
         if found.is_internal and open_commands:
             assert "/" + open_commands[0].name + " - " in text
 

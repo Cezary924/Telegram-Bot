@@ -74,7 +74,7 @@ class App:
             commands = [telebot.types.BotCommand(command.name,
                                                  plain(self.catalog.text(module.name, command.description, language)))
                         for module, command in self.registry.commands()
-                        if command.role <= Role.USER]
+                        if command.role < Role.ADMIN]
             if not commands:
                 return
             try:

@@ -2,7 +2,6 @@ import pytest
 
 from core import paths
 from core.app import App
-from core.roles import Role
 from core.testing import FakeBot
 
 
@@ -20,7 +19,9 @@ def app(tmp_path, monkeypatch):
     application.load_modules()
     application.storage.users.save(1, "First", "Last", "username")
     application.storage.users.set_consent(1, True)
-    application.storage.users.set_role(1, Role.USER)
+    for module in application.registry.modules():
+        if module.is_guarded:
+            application.storage.access.allow(1, module.name, True)
     application.storage.settings.set_language(1, "en")
     yield application
     application.storage.close()

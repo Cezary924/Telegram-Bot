@@ -17,7 +17,7 @@ def module():
 
 @pytest.fixture
 def person():
-    return User(1, "First", "Last", "username", Role.USER, "pl")
+    return User(1, "First", "Last", "username", Role.GUEST, "pl")
 
 
 @pytest.fixture

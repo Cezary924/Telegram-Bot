@@ -1,6 +1,5 @@
 import pytest
 
-from core.api import Role
 from core.testing import make_message, not_none
 from modules.external.topspotifyartist import module as game
 
@@ -130,7 +129,7 @@ def test_a_broken_chart_says_so(app, bot, monkeypatch):
 
 
 def test_a_guest_may_not_play(app, bot):
-    app.storage.users.set_role(1, Role.GUEST)
+    app.storage.access.allow(1, "topspotifyartist", False)
     app.router.handle_message(make_message("/topspotifyartist"))
     app.router.wait_for_tasks()
     assert bot.last.text.startswith("You do not have access to")

@@ -34,7 +34,7 @@ def test_exists_and_get_for_unknown_user(storage):
 
 
 def test_role_round_trip(storage, user):
-    for role in [Role.BANNED, Role.USER, Role.ADMIN, Role.GUEST]:
+    for role in [Role.BANNED, Role.ADMIN, Role.GUEST]:
         storage.users.set_role(user, role)
         assert storage.users.get_role(user) == role
 
@@ -61,10 +61,10 @@ def test_get_by_role(storage):
 
 
 def test_count_by_role(storage):
-    for user_id, role in [(1, Role.GUEST), (2, Role.USER), (3, Role.USER), (4, Role.ADMIN)]:
+    for user_id, role in [(1, Role.GUEST), (2, Role.GUEST), (3, Role.BANNED), (4, Role.ADMIN)]:
         storage.users.save(user_id)
         storage.users.set_role(user_id, role)
-    assert storage.users.count_by_role() == {Role.GUEST: 1, Role.USER: 2, Role.ADMIN: 1}
+    assert storage.users.count_by_role() == {Role.GUEST: 2, Role.BANNED: 1, Role.ADMIN: 1}
 
 
 def test_delete_removes_the_user(storage, user):

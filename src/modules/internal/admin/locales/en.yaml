@@ -51,7 +51,7 @@ wipe_done: The User data has been deleted
 statistics: Statistics
 
 announcement: Announcement
-announcement_text: Send me the message you want every User to read. It goes out to everyone who keeps notifications on.
+announcement_text: Send me the message you want every User to read. It reaches everyone except those who blocked every notification, silently to whoever turned them down.
 announcement_done: The announcement has reached {reached} users
 
 alerts: New user alerts

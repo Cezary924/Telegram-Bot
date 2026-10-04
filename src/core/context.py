@@ -96,9 +96,9 @@ class UserNavigation:
 
 
 def can_use(services: Services, user: User, module_name: str) -> bool:
-    module = services.registry.get(module_name)
-    is_restricted = module is None or module.is_restricted
-    return services.storage.access.is_allowed(user.id, module_name, user.role, is_restricted)
+    if services.registry.get(module_name) is None:
+        return False
+    return services.storage.access.is_allowed(user.id, module_name, user.role)
 
 
 def hub_for(services: Services, module: Module, name: str) -> Module | None:

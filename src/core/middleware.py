@@ -61,7 +61,8 @@ def check_access(services: Services, user: User, module_name: str) -> View | Non
 
 
 def check_role(services: Services, user: User, required_role: Role, module_name: str = "") -> View | None:
-    if required_role == Role.USER and module_name:
+    module = services.registry.get(module_name) if module_name else None
+    if module is not None and module.is_guarded and required_role < Role.ADMIN:
         return check_access(services, user, module_name)
     if user.role >= required_role:
         return None
