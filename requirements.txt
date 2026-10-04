@@ -2,4 +2,4 @@ pyTelegramBotAPI==4.37.0
 requests==2.34.2
 PyYAML==6.0.3
 beautifulsoup4==4.15.0
-yt-dlp==2026.8.19
+yt-dlp[curl-cffi]==2026.8.19

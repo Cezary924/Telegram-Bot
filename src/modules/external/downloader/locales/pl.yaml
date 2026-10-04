@@ -1,10 +1,10 @@
 name: Pobieracz
-description: Pobiera film albo jego dźwięk z przesłanego linku
+description: Pobiera film, jego dźwięk albo zdjęcia z przesłanego linku
 
 commands.downloader: Dowiedz się, jak pobrać film
 
 title: Pobieracz
-how: Aby pobrać film albo jego dźwięk, wystarczy, że wyślesz mi do niego link
+how: Aby pobrać film, jego dźwięk albo zdjęcia, wystarczy, że wyślesz mi do nich link
 working: Już się tym zajmuję, daj mi chwilę...
 failed: Nie udało mi się nic pobrać z tego linku
 too_big: Ten film jest zbyt duży, abym mógł go wysłać
