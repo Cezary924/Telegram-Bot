@@ -53,14 +53,10 @@ class Router:
 
     def load_user(self, from_user: telebot.types.User) -> User:
         users = self._services.storage.users
-        is_new = users.save(from_user.id, from_user.first_name or "", from_user.last_name or "",
-                            from_user.username or "")
+        users.save(from_user.id, from_user.first_name or "", from_user.last_name or "", from_user.username or "")
         self.promote_first_admin(from_user)
         language = self.language_for(from_user.id, from_user.language_code)
-        user = user_from_row(not_none(users.get(from_user.id)), language)
-        if is_new:
-            self.alert_admins(user)
-        return user
+        return user_from_row(not_none(users.get(from_user.id)), language)
 
     def alert_admins(self, user: User) -> None:
         settings = self._services.storage.settings
@@ -410,6 +406,8 @@ class Router:
         self._services.storage.users.set_consent(user.id, True)
         self._services.storage.settings.set_language(user.id, user.language)
         self.send_core(user, "consent.accepted.text", "consent.accepted.ready")
+        if not user.has_consent:
+            self.alert_admins(user)
 
     def switch_consent_language(self, user: User, screen: telebot.types.Message,
                                 language: str) -> None:
