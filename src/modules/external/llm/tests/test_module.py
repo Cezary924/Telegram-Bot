@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
+from pathlib import Path
 
 import pytest
 import requests
 
-from core.api import Ctx, Role, User
+from core.api import Ctx, JobCtx, Role, User
 from core.testing import make_callback, make_message
 from modules.external.llm import module as llm
 
@@ -62,7 +63,8 @@ def say(app, text: str, message_id: int = 100):
 
 
 def press(app, data: str):
-    app.router.handle_callback(make_callback(data, message_id=app.services.bot.last.message_id))
+    sent = app.services.bot.sent
+    app.router.handle_callback(make_callback(data, message_id=sent[-1].message_id) if sent else make_callback(data))
     app.router.wait_for_tasks()
 
 
@@ -276,9 +278,9 @@ def test_the_command_explains_and_leads_to_the_settings(chat, bot, model):
 def test_thinking_is_switched_in_the_settings(chat, bot, model):
     say(chat, "/settings")
     press(chat, "core:settings:llm")
-    assert "Now: <i>⚡ Without thinking</i>" in bot.last.text
+    assert "Thinking: <i>⚡ Without thinking</i>" in bot.last.text
     press(chat, "llm:thinking:1")
-    assert "Now: <i>💭 With thinking</i>" in bot.last.text
+    assert "Thinking: <i>💭 With thinking</i>" in bot.last.text
     assert chat.storage.module_state.get(1, "llm", "thinking") == "1"
 
 
@@ -287,6 +289,268 @@ def test_an_unknown_thinking_choice_is_refused(chat, bot, model):
     press(chat, "core:settings:llm")
     press(chat, "llm:thinking:2")
     assert chat.storage.module_state.get(1, "llm", "thinking") is None
+
+
+# ----- history -----
+
+def add_conversation(app, number: int, text: str, days_ago: float = 0, user_id: int = 1) -> None:
+    app.storage.users.save(user_id, "First", "Last", "user" + str(user_id))
+    moment = (datetime.now() - timedelta(days=days_ago)).isoformat(timespec="seconds")
+    for role, content in [("user", text), ("assistant", "Answer to " + text)]:
+        app.storage.database.execute(
+            "INSERT INTO " + app.storage.for_module("llm").table("messages") +
+            " (user_id, conversation, role, content, created_at) VALUES (?, ?, ?, ?, ?);",
+            (user_id, number, role, content, moment))
+
+
+def conversations_of(app, user_id: int = 1) -> list[int]:
+    return [row['conversation'] for row in app.storage.database.query_all(
+        "SELECT DISTINCT conversation FROM " + app.storage.for_module("llm").table("messages") +
+        " WHERE user_id = ? ORDER BY conversation;", (user_id,))]
+
+
+def labels(bot) -> list[str]:
+    return [text for text, _ in bot.last.buttons]
+
+
+def forget_old(app) -> None:
+    llm.forget_old(JobCtx(app.services, app.registry.get("llm")))
+
+
+def test_the_menu_leads_to_the_history(chat, bot, model):
+    say(chat, "/llm")
+    assert ("📜 Conversation history", "llm:history") in bot.last.buttons
+
+
+def test_an_empty_history_says_so(chat, bot, model):
+    say(chat, "/llm")
+    press(chat, "llm:history")
+    assert "You have no conversations yet" in bot.last.text
+
+
+def test_the_history_lists_conversations_newest_first(chat, bot, model):
+    say(chat, "first question")
+    say(chat, "/llm")
+    press(chat, "llm:fresh")
+    say(chat, "second question")
+    say(chat, "/llm")
+    press(chat, "llm:history")
+    found = labels(bot)
+    assert "second question" in found[0] and "first question" in found[1]
+    assert bot.last.buttons[0][1] == "llm:one:2"
+    assert "Page <i>1</i> of <i>1</i>, <i>2</i> in total" in bot.last.text
+
+
+def test_a_long_first_question_is_shortened_on_its_button(chat, bot, model):
+    add_conversation(chat, 1, "word " * 30)
+    say(chat, "/llm")
+    press(chat, "llm:history")
+    assert labels(bot)[0].endswith("…") and len(labels(bot)[0]) < 70
+
+
+def test_the_history_is_split_into_pages(chat, bot, model):
+    for number in range(1, 11):
+        add_conversation(chat, number, "question " + str(number))
+    say(chat, "/llm")
+    press(chat, "llm:history")
+    assert len([data for _, data in bot.last.buttons if data.startswith("llm:one:")]) == 8
+    press(chat, "llm:history:1")
+    assert [data for _, data in bot.last.buttons if data.startswith("llm:one:")] == ["llm:one:2", "llm:one:1"]
+
+
+def test_a_conversation_shows_what_it_was_about(chat, bot, model):
+    say(chat, "hello")
+    press(chat, "llm:one:1")
+    assert "Messages: <i>2</i>" in bot.last.text
+    assert "First question: <i>hello</i>" in bot.last.text
+    assert [data for _, data in bot.last.buttons][:3] == ["llm:resume:1", "llm:export:1", "llm:delete:1"]
+
+
+def test_the_first_question_cannot_inject_markup(chat, bot, model):
+    add_conversation(chat, 1, "<b>bold</b> & co")
+    press(chat, "llm:one:1")
+    assert "&lt;b&gt;bold&lt;/b&gt; &amp; co" in bot.last.text
+
+
+def test_resuming_carries_on_an_older_conversation(chat, bot, model):
+    add_conversation(chat, 1, "old question", days_ago=3)
+    add_conversation(chat, 2, "newer question", days_ago=1)
+    press(chat, "llm:resume:1")
+    assert "Back to this conversation" in bot.last.text
+    say(chat, "more")
+    assert [one['content'] for one in model.asked[-1]] == ["old question", "Answer to old question", "more"]
+    assert conversations_of(chat) == [1, 2]
+
+
+def test_a_new_conversation_after_resuming_takes_a_new_number(chat, bot, model):
+    add_conversation(chat, 1, "old question", days_ago=3)
+    add_conversation(chat, 2, "newer question", days_ago=1)
+    press(chat, "llm:resume:1")
+    press(chat, "llm:fresh")
+    say(chat, "brand new")
+    assert model.asked[-1] == [{'role': "user", 'content': "brand new"}]
+    assert conversations_of(chat) == [1, 2, 3]
+
+
+def test_a_conversation_is_downloaded_as_a_file(chat, bot, model, monkeypatch):
+    sent = []
+    monkeypatch.setattr(Ctx, "send_file", lambda _ctx, path, _kind="document", _caption="": sent.append(
+        (Path(path).name, Path(path).read_text(encoding="utf-8"))))
+    say(chat, "zażółć")
+    press(chat, "llm:export:1")
+    name, content = sent[0]
+    assert name.endswith(".txt") and "Conversation " in name
+    assert "You\nzażółć" in content and "Assistant\nHello there" in content
+    assert content.index("zażółć") < content.index("Hello there")
+
+
+def test_deleting_a_conversation_asks_first(chat, bot, model):
+    add_conversation(chat, 1, "first")
+    add_conversation(chat, 2, "second")
+    press(chat, "llm:delete:1")
+    assert "Are you sure you want to delete this conversation?" in bot.last.text
+    assert conversations_of(chat) == [1, 2]
+    press(chat, "llm:delete_confirmed:1")
+    assert conversations_of(chat) == [2]
+    assert bot.last.text.endswith("The conversation has been deleted ✅")
+
+
+def test_after_deleting_the_current_conversation_the_next_message_starts_anew(chat, bot, model):
+    say(chat, "hello")
+    press(chat, "llm:delete_confirmed:1")
+    say(chat, "again")
+    assert model.asked[-1] == [{'role': "user", 'content': "again"}]
+
+
+@pytest.mark.parametrize("data", ["llm:delete_confirmed:1", "llm:wipe_confirmed"])
+def test_nobody_is_asked_about_a_conversation_that_is_gone(chat, bot, model, data):
+    say(chat, "hello")
+    last_written(chat, 30)
+    press(chat, data)
+    say(chat, "again")
+    assert "Carry on with that conversation" not in bot.last.text
+    assert model.asked[-1] == [{'role': "user", 'content': "again"}]
+
+
+def test_a_deleted_conversation_cannot_be_opened(chat, bot, model):
+    press(chat, "llm:one:7")
+    assert bot.last.text.endswith("This conversation is not here anymore 💔")
+
+
+@pytest.mark.parametrize("data", ["llm:one:5", "llm:resume:5", "llm:export:5", "llm:delete:5",
+                                  "llm:delete_confirmed:5"])
+def test_nobody_reaches_a_conversation_of_someone_else(chat, bot, model, data):
+    add_conversation(chat, 5, "secret", user_id=2)
+    press(chat, data)
+    assert bot.last.text.endswith("This conversation is not here anymore 💔")
+    assert conversations_of(chat, user_id=2) == [5]
+    assert bot.files == []
+    assert chat.storage.module_state.get(1, "llm", "conversation") is None
+
+
+def test_the_same_number_of_someone_else_stays_out_of_sight(chat, bot, model, monkeypatch):
+    sent = []
+    monkeypatch.setattr(Ctx, "send_file", lambda _ctx, path, _kind="document", _caption="": sent.append(
+        Path(path).read_text(encoding="utf-8")))
+    add_conversation(chat, 1, "secret", user_id=2)
+    add_conversation(chat, 1, "mine")
+    press(chat, "llm:one:1")
+    assert "First question: <i>mine</i>" in bot.last.text and "Messages: <i>2</i>" in bot.last.text
+    press(chat, "llm:export:1")
+    assert "mine" in sent[0] and "secret" not in sent[0]
+    press(chat, "llm:delete_confirmed:1")
+    assert conversations_of(chat, user_id=2) == [1]
+
+
+@pytest.mark.parametrize("data", ["llm:history", "llm:one:1", "llm:export:1", "llm:delete_confirmed:1",
+                                  "llm:wipe_confirmed", "llm:keep:7", "llm:resume:1"])
+def test_without_access_no_history_button_reaches_the_module(app, bot, model, data):
+    add_conversation(app, 1, "secret")
+    app.storage.access.allow(1, "llm", False)
+    app.router.handle_callback(make_callback(data))
+    app.router.wait_for_tasks()
+    assert bot.last.text.startswith("You do not have access to")
+    assert conversations_of(app) == [1]
+    assert bot.files == []
+
+
+# ----- keeping and wiping -----
+
+def test_wiping_the_whole_history_asks_first(chat, bot, model):
+    add_conversation(chat, 1, "first")
+    add_conversation(chat, 2, "second")
+    add_conversation(chat, 3, "theirs", user_id=2)
+    say(chat, "/settings")
+    press(chat, "core:settings:llm")
+    press(chat, "llm:wipe")
+    assert "Are you sure you want to delete all your conversations?" in bot.last.text
+    assert "Conversations: <i>2</i>" in bot.last.text
+    assert conversations_of(chat) == [1, 2]
+    press(chat, "llm:wipe_confirmed")
+    assert conversations_of(chat) == []
+    assert conversations_of(chat, user_id=2) == [3]
+    assert bot.last.text.endswith("The whole conversation history has been deleted ✅")
+
+
+def test_wiping_an_empty_history_offers_nothing(chat, bot, model):
+    press(chat, "llm:wipe")
+    assert "You have no conversations yet" in bot.last.text
+    assert "llm:wipe_confirmed" not in [data for _, data in bot.last.buttons]
+
+
+def test_after_wiping_the_next_message_starts_anew(chat, bot, model):
+    say(chat, "hello")
+    press(chat, "llm:wipe_confirmed")
+    say(chat, "again")
+    assert model.asked[-1] == [{'role': "user", 'content': "again"}]
+
+
+def test_the_history_is_kept_for_ninety_days_by_default(chat, bot, model):
+    say(chat, "/settings")
+    press(chat, "core:settings:llm")
+    assert "Deleting old conversations: <i>After 90 days</i>" in bot.last.text
+
+
+def test_the_time_of_keeping_is_chosen_in_the_settings(chat, bot, model):
+    say(chat, "/settings")
+    press(chat, "core:settings:llm")
+    press(chat, "llm:keeping")
+    assert [data for _, data in bot.last.buttons][:4] == ["llm:keep:0", "llm:keep:7", "llm:keep:30", "llm:keep:90"]
+    press(chat, "llm:keep:7")
+    assert "Deleting old conversations: <i>After 7 days</i>" in bot.last.text
+    press(chat, "llm:keep:0")
+    assert "Deleting old conversations: <i>Never</i>" in bot.last.text
+
+
+def test_an_unknown_time_of_keeping_is_refused(chat, bot, model):
+    press(chat, "llm:keep:5")
+    say(chat, "/settings")
+    press(chat, "core:settings:llm")
+    assert "After 90 days" in bot.last.text
+
+
+def test_old_conversations_are_forgotten(chat, bot, model):
+    add_conversation(chat, 1, "too old", days_ago=91)
+    add_conversation(chat, 2, "recent enough", days_ago=89)
+    forget_old(chat)
+    assert conversations_of(chat) == [2]
+
+
+def test_everyone_is_forgotten_after_their_own_time(chat, bot, model):
+    add_conversation(chat, 1, "a week and a day", days_ago=8, user_id=2)
+    add_conversation(chat, 1, "ages ago", days_ago=400, user_id=3)
+    llm_settings = chat.storage.for_module("llm").table("settings")
+    chat.storage.database.execute("INSERT INTO " + llm_settings + " (user_id, keep_days) VALUES (2, 7), (3, 0);")
+    forget_old(chat)
+    assert conversations_of(chat, user_id=2) == []
+    assert conversations_of(chat, user_id=3) == [1]
+
+
+def test_a_conversation_counts_from_its_last_message(chat, bot, model):
+    add_conversation(chat, 1, "started long ago", days_ago=100)
+    add_conversation(chat, 1, "still going", days_ago=1)
+    forget_old(chat)
+    assert conversations_of(chat) == [1]
 
 
 # ----- the wire -----

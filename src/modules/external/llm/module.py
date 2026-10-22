@@ -1,19 +1,23 @@
 import json
+import os
 import re
+import sqlite3
 import threading
 import time
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 
-from core.api import Button, Ctx, Module, View, escape, italic, labelled
+from core.api import Button, Ctx, JobCtx, Module, View, escape, italic, labelled
 
 module = Module(name="llm", is_guarded=True, config_keys=["llm_url", "llm_model"], tokens=["llm_key"],
                 icons={'name': "🤖", 'title': "🤖", 'new': "🆕", 'continue': "▶️", 'settings_button': "⚙️",
                        'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "✍️", 'thinking': "💭",
-                       'reasoning': "💭"},
-                endings={'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧", 'busy': "⏳"})
+                       'reasoning': "💭", 'history': "📜", 'resume': "▶️", 'export': "📄", 'delete': "🗑️",
+                       'keeping': "⏳", 'wipe': "🗑️", 'conversation': "💬", 'previous': "⬅️", 'next': "➡️"},
+                endings={'how': "💬", 'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧",
+                         'busy': "⏳", 'resumed': "✅", 'deleted': "✅", 'wiped': "✅", 'gone': "💔"})
 
 priority = -100
 continue_within = 15 * 60
@@ -30,12 +34,23 @@ conversation_key = "conversation"
 last_key = "last_at"
 thinking_key = "thinking"
 pending_prefix = "pending."
+page_size = 8
+title_size = 40
+opening_size = 300
+keep_choices = [0, 7, 30, 90]
+default_keep = 90
+forget_every = 60 * 60
+date_format = "%Y-%m-%d %H:%M"
 answering: set[int] = set()
 answering_lock = threading.Lock()
 
 
-def table(ctx: Ctx) -> str:
+def table(ctx: Ctx | JobCtx) -> str:
     return ctx.db.table("messages")
+
+
+def settings_table(ctx: Ctx | JobCtx) -> str:
+    return ctx.db.table("settings")
 
 
 def is_chat(text: str) -> bool:
@@ -58,7 +73,9 @@ def current(ctx: Ctx) -> int:
 
 
 def fresh(ctx: Ctx) -> int:
-    number = current(ctx) + 1
+    row = ctx.db.query_one("SELECT MAX(conversation) AS top FROM " + table(ctx) + " WHERE user_id = ?;",
+                           (ctx.user.id,))
+    number = max(current(ctx), (row['top'] if row is not None else None) or 0) + 1
     ctx.state.set(conversation_key, str(number))
     ctx.state.set(last_key, datetime.now().isoformat(timespec="seconds"))
     return number
@@ -215,13 +232,20 @@ def answer_in(ctx: Ctx, conversation: int, text: str) -> View | None:
 
 @module.command("llm")
 def command_llm(ctx: Ctx) -> View:
+    return menu(ctx)
+
+
+@module.view("menu")
+def menu(ctx: Ctx) -> View:
     return View(text=ctx.t("how"), buttons=[Button(ctx.t("new"), "fresh"),
+                                            Button(ctx.t("history"), "history"),
                                             Button.settings(ctx.t("settings_button"), module.name)])
 
 
 @module.callback("fresh")
 def start_fresh(ctx: Ctx) -> View:
     fresh(ctx)
+    ctx.close_screen()
     ctx.log("Conversation started anew")
     return View(text=ctx.t("fresh_done"))
 
@@ -262,12 +286,189 @@ def pick(ctx: Ctx) -> View | None:
     return answer_in(ctx, current(ctx) if kind == "continue" else fresh(ctx), text)
 
 
+# ----- history -----
+
+def conversations(ctx: Ctx, number: int | None = None) -> list[sqlite3.Row]:
+    only = " AND m.conversation = ?" if number is not None else ""
+    return ctx.db.query_all(
+        "SELECT m.conversation, MIN(m.created_at) AS started, MAX(m.created_at) AS last, COUNT(*) AS total, "
+        "(SELECT f.content FROM " + table(ctx) + " f WHERE f.user_id = m.user_id AND f.conversation = m.conversation "
+        "AND f.role = 'user' ORDER BY f.id LIMIT 1) AS opening FROM " + table(ctx) + " m WHERE m.user_id = ?" + only +
+        " GROUP BY m.conversation ORDER BY MAX(m.id) DESC;", (ctx.user.id,) + ((number,) if number is not None else ()))
+
+
+def conversation_of(ctx: Ctx, number: int) -> sqlite3.Row | None:
+    rows = conversations(ctx, number)
+    return rows[0] if rows else None
+
+
+def wanted_number(ctx: Ctx) -> int:
+    return int(ctx.arguments[0]) if ctx.arguments and ctx.arguments[0].isdigit() else 0
+
+
+def when(moment: str) -> str:
+    try:
+        return datetime.fromisoformat(moment).strftime(date_format)
+    except (TypeError, ValueError):
+        return moment or ""
+
+
+def shortened(text: str, size: int) -> str:
+    line = " ".join((text or "").split())
+    return line if len(line) <= size else line[:size - 1].rstrip() + "…"
+
+
+def label(row: sqlite3.Row) -> str:
+    return when(row['started']) + " · " + escape(shortened(row['opening'], title_size))
+
+
+def details(ctx: Ctx, row: sqlite3.Row) -> str:
+    return "\n".join([labelled(ctx.t("labels.started"), when(row['started'])),
+                      labelled(ctx.t("labels.last"), when(row['last'])),
+                      labelled(ctx.t("labels.messages"), row['total']),
+                      labelled(ctx.t("labels.opening"), shortened(row['opening'], opening_size))])
+
+
+def gone(ctx: Ctx) -> View:
+    ctx.close_screen()
+    return View(text=ctx.t("gone"))
+
+
+def forget(ctx: Ctx, number: int | None = None) -> int:
+    only = " AND conversation = ?" if number is not None else ""
+    removed = ctx.db.execute("DELETE FROM " + table(ctx) + " WHERE user_id = ?" + only + ";",
+                             (ctx.user.id,) + ((number,) if number is not None else ())).rowcount
+    if number is None or number == current(ctx):
+        ctx.state.delete(last_key)
+    return removed
+
+
+@module.callback("history")
+def open_history(ctx: Ctx) -> View:
+    return history_screen(ctx)
+
+
+@module.view("history", parent="menu", title="history")
+def history_screen(ctx: Ctx) -> View:
+    rows = conversations(ctx)
+    if not rows:
+        return View(text=ctx.t("history_empty"))
+    pages = max(1, -(-len(rows) // page_size))
+    page = min(wanted_number(ctx), pages - 1)
+    buttons = [Button(label(row), "one", row['conversation'])
+               for row in rows[page * page_size:(page + 1) * page_size]]
+    if pages > 1:
+        buttons.append(Button(ctx.t("previous"), "history", max(0, page - 1)))
+        buttons.append(Button(ctx.t("next"), "history", min(pages - 1, page + 1)))
+    return View(text=ctx.t("pick.text") + "\n"
+                + ctx.t("pick.page", page=italic(page + 1), pages=italic(pages), total=italic(len(rows))),
+                buttons=buttons, argument=str(page))
+
+
+@module.callback("one")
+def open_one(ctx: Ctx) -> View:
+    return one(ctx)
+
+
+@module.view("one", parent="history", title="conversation")
+def one(ctx: Ctx) -> View:
+    number = wanted_number(ctx)
+    row = conversation_of(ctx, number)
+    if row is None:
+        return gone(ctx)
+    return View(text=details(ctx, row),
+                buttons=[Button(ctx.t("resume"), "resume", number),
+                         Button(ctx.t("export"), "export", number),
+                         Button(ctx.t("delete"), "delete", number)],
+                argument=str(number))
+
+
+@module.callback("resume")
+def resume(ctx: Ctx) -> View:
+    number = wanted_number(ctx)
+    if conversation_of(ctx, number) is None:
+        return gone(ctx)
+    ctx.state.set(conversation_key, str(number))
+    ctx.state.set(last_key, datetime.now().isoformat(timespec="seconds"))
+    ctx.close_screen()
+    ctx.log("Conversation " + str(number) + " resumed")
+    return View(text=ctx.t("resumed"))
+
+
+def speaker(ctx: Ctx, role: str) -> str:
+    return ctx.t("export_you") if role == "user" else ctx.t("export_assistant")
+
+
+def transcript(ctx: Ctx, number: int) -> str:
+    rows = ctx.db.query_all("SELECT role, content, created_at FROM " + table(ctx) +
+                            " WHERE user_id = ? AND conversation = ? ORDER BY id;", (ctx.user.id, number))
+    entries = ["[" + when(row['created_at']) + "] " + speaker(ctx, row['role']) + "\n" + row['content'] for row in rows]
+    return "\n\n".join(entries) + "\n"
+
+
+@module.callback("export")
+def export(ctx: Ctx) -> View | None:
+    number = wanted_number(ctx)
+    row = conversation_of(ctx, number)
+    if row is None:
+        return gone(ctx)
+    with ctx.workspace() as path:
+        name = os.path.join(path, ctx.t("export_file") + " " + when(row['started']).replace(":", "-") + ".txt")
+        with open(name, "w", encoding="utf-8") as handle:
+            handle.write(transcript(ctx, number))
+        ctx.send_file(name, "document")
+    ctx.log("Conversation " + str(number) + " exported")
+    return None
+
+
+@module.callback("delete")
+def open_delete(ctx: Ctx) -> View:
+    return removal(ctx)
+
+
+@module.view("delete", parent="one", title="delete")
+def removal(ctx: Ctx) -> View:
+    number = wanted_number(ctx)
+    row = conversation_of(ctx, number)
+    if row is None:
+        return gone(ctx)
+    return View(text=ctx.t("sure") + "\n\n" + details(ctx, row),
+                buttons=[Button(ctx.t("core:yes_button"), "delete_confirmed", number)],
+                argument=str(number))
+
+
+@module.callback("delete_confirmed")
+def confirm_delete(ctx: Ctx) -> View:
+    number = wanted_number(ctx)
+    if conversation_of(ctx, number) is None:
+        return gone(ctx)
+    forget(ctx, number)
+    ctx.close_screen()
+    ctx.log("Conversation " + str(number) + " deleted")
+    return View(text=ctx.t("deleted"))
+
+
+# ----- settings -----
+
+def kept_days(ctx: Ctx) -> int:
+    row = ctx.db.query_one("SELECT keep_days FROM " + settings_table(ctx) + " WHERE user_id = ?;", (ctx.user.id,))
+    return row['keep_days'] if row is not None else default_keep
+
+
+def keeping_name(ctx: Ctx, days: int) -> str:
+    return ctx.t("keep_days", days=days) if days else ctx.t("keep_always")
+
+
 @module.settings()
 def settings(ctx: Ctx) -> View:
-    now = labelled(ctx.t("settings_current"), ctx.t("thinking_on" if is_thinking(ctx) else "thinking_off"))
+    now = "\n".join([labelled(ctx.t("labels.thinking"),
+                              ctx.t("thinking_on" if is_thinking(ctx) else "thinking_off")),
+                     labelled(ctx.t("labels.keeping"), keeping_name(ctx, kept_days(ctx)))])
     return View(text=ctx.t("settings_text") + "\n\n" + now,
                 buttons=[Button(ctx.t("thinking_off"), "thinking", "0"),
-                         Button(ctx.t("thinking_on"), "thinking", "1")])
+                         Button(ctx.t("thinking_on"), "thinking", "1"),
+                         Button(ctx.t("keeping"), "keeping"),
+                         Button(ctx.t("wipe"), "wipe")])
 
 
 @module.callback("thinking")
@@ -278,3 +479,66 @@ def set_thinking(ctx: Ctx) -> View:
     ctx.state.set(thinking_key, wanted)
     ctx.log("Thinking turned " + ("on" if wanted == "1" else "off"))
     return settings(ctx)
+
+
+@module.callback("keeping")
+def open_keeping(ctx: Ctx) -> View:
+    return keeping(ctx)
+
+
+@module.view("keeping", parent="settings", title="keeping")
+def keeping(ctx: Ctx) -> View:
+    now = labelled(ctx.t("labels.keeping"), keeping_name(ctx, kept_days(ctx)))
+    return View(text=ctx.t("keeping_text") + "\n\n" + now,
+                buttons=[Button(keeping_name(ctx, days), "keep", days) for days in keep_choices], columns=2)
+
+
+@module.callback("keep")
+def set_keeping(ctx: Ctx) -> View:
+    wanted = ctx.arguments[0] if ctx.arguments else ""
+    if not wanted.isdigit() or int(wanted) not in keep_choices:
+        return View(ctx.t("core:not_working_buttons"), heading=None)
+    ctx.db.execute("INSERT INTO " + settings_table(ctx) + " (user_id, keep_days) VALUES (?, ?) "
+                   "ON CONFLICT(user_id) DO UPDATE SET keep_days = excluded.keep_days;", (ctx.user.id, int(wanted)))
+    ctx.log("History kept for " + wanted + " days")
+    return settings(ctx)
+
+
+@module.callback("wipe")
+def open_wipe(ctx: Ctx) -> View:
+    return wipe(ctx)
+
+
+@module.view("wipe", parent="settings", title="wipe")
+def wipe(ctx: Ctx) -> View:
+    total = len(conversations(ctx))
+    if not total:
+        return View(text=ctx.t("history_empty"))
+    return View(text=ctx.t("wipe_sure") + "\n\n" + labelled(ctx.t("labels.conversations"), total),
+                buttons=[Button(ctx.t("core:yes_button"), "wipe_confirmed")])
+
+
+@module.callback("wipe_confirmed")
+def confirm_wipe(ctx: Ctx) -> View:
+    removed = forget(ctx)
+    ctx.close_screen()
+    ctx.log("History wiped, " + str(removed) + " messages")
+    return View(text=ctx.t("wiped"))
+
+
+# ----- forgetting -----
+
+@module.job(interval=forget_every, name="forget")
+def forget_old(ctx: JobCtx) -> None:
+    kept = {row['user_id']: row['keep_days']
+            for row in ctx.db.query_all("SELECT user_id, keep_days FROM " + settings_table(ctx) + ";")}
+    now = datetime.now()
+    removed = 0
+    for row in ctx.db.query_all("SELECT user_id, conversation, MAX(created_at) AS last FROM " + table(ctx) +
+                                " GROUP BY user_id, conversation;"):
+        days = kept.get(row['user_id'], default_keep)
+        if days and row['last'] < (now - timedelta(days=days)).isoformat(timespec="seconds"):
+            removed += ctx.db.execute("DELETE FROM " + table(ctx) + " WHERE user_id = ? AND conversation = ?;",
+                                      (row['user_id'], row['conversation'])).rowcount
+    if removed:
+        ctx.log("Forgot " + str(removed) + " old messages")

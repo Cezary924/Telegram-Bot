@@ -17,7 +17,40 @@ failed: Model językowy nie odpowiedział
 empty: Model językowy nic nie zwrócił
 not_configured: Model językowy nie jest skonfigurowany
 settings_button: Ustawienia
-settings_text: Wybierz, czy model ma myśleć przed odpowiedzią. Z myśleniem odpowiada lepiej, ale dużo dłużej
-settings_current: Teraz
+settings_text: Wybierz, czy model ma myśleć przed odpowiedzią, i jak długo mam trzymać Twoje rozmowy. Z myśleniem odpowiada lepiej, ale dużo dłużej
 thinking_on: Z myśleniem
 thinking_off: Bez myślenia
+
+history: Historia rozmów
+history_empty: Nie masz jeszcze żadnych rozmów
+pick:
+  text: Wybierz rozmowę.
+  page: Strona {page} z {pages}, łącznie {total}
+previous: Poprzednia
+next: Następna
+conversation: Rozmowa
+labels:
+  started: Zaczęta
+  last: Ostatnia wiadomość
+  messages: Wiadomości
+  opening: Pierwsze pytanie
+  thinking: Myślenie
+  keeping: Usuwanie starych rozmów
+  conversations: Rozmowy
+resume: Kontynuuj tę rozmowę
+resumed: Wracamy do tej rozmowy, napisz, co dalej
+export: Pobierz jako plik
+export_file: Rozmowa
+export_you: Ty
+export_assistant: Asystent
+delete: Usuń
+sure: Czy na pewno chcesz usunąć tę rozmowę?
+deleted: Rozmowa została usunięta
+gone: Tej rozmowy już nie ma
+keeping: Przechowywanie historii
+keeping_text: Rozmowy, w których nic się nie działo dłużej niż wybrany czas, usuwam sam
+keep_days: Po {days} dniach
+keep_always: Nigdy
+wipe: Usuń całą historię
+wipe_sure: Czy na pewno chcesz usunąć wszystkie swoje rozmowy? Tej operacji nie da się cofnąć
+wiped: Cała historia rozmów została usunięta
