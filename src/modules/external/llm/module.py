@@ -13,7 +13,7 @@ from core.api import Button, Ctx, JobCtx, Module, View, escape, italic, labelled
 
 module = Module(name="llm", is_guarded=True, config_keys=["llm_url", "llm_model"], tokens=["llm_key"],
                 icons={'name': "🤖", 'title': "🤖", 'new': "🆕", 'continue': "▶️", 'settings_button': "⚙️",
-                       'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "✍️", 'thinking': "💭",
+                       'thinking_mode': "💭", 'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "🔍", 'writing': "✍️", 'thinking': "💭",
                        'reasoning': "💭", 'history': "📜", 'resume': "▶️", 'export': "📄", 'delete': "🗑️",
                        'keeping': "⏳", 'wipe': "🗑️", 'conversation': "💬", 'previous': "⬅️", 'next': "➡️"},
                 endings={'how': "💬", 'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧",
@@ -25,6 +25,7 @@ ask_within = 60 * 60
 history_messages = 30
 history_characters = 24000
 edit_every = 3.0
+tick = 1.5
 message_limit = 4096
 part_size = 3500
 live_tail = 3500
@@ -107,6 +108,8 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool) -> Iterator[tuple[str
     headers = {'Authorization': "Bearer " + ctx.token("llm_key")} if ctx.has_token("llm_key") else {}
     payload = {'model': ctx.setting("llm_model") or "", 'messages': messages, 'stream': True,
                'chat_template_kwargs': {'enable_thinking': thinking}}
+    if not thinking:
+        payload['reasoning_effort'] = "none"
     url = (ctx.setting("llm_url") or "").rstrip("/") + "/chat/completions"
     with requests.post(url, json=payload, headers=headers, stream=True, timeout=timeouts) as response:
         response.raise_for_status()
@@ -117,9 +120,13 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool) -> Iterator[tuple[str
             data = line[len("data:"):].strip()
             if data == "[DONE]":
                 break
-            delta = ((json.loads(data).get('choices') or [{}])[0]).get('delta') or {}
-            if delta.get('reasoning_content'):
-                yield "thinking", delta['reasoning_content']
+            event = json.loads(data)
+            delta = ((event.get('choices') or [{}])[0]).get('delta') or {}
+            if delta.get('tool_calls') or event.get('type') == "mcp_tool_result":
+                yield "tool", ""
+            thought = delta.get('reasoning_content') or delta.get('reasoning') or ""
+            if thought:
+                yield "thinking", thought
             if delta.get('content'):
                 yield "answer", delta['content']
 
@@ -163,55 +170,85 @@ def tail(text: str, size: int) -> str:
     return text if len(text) <= size else "…" + text[-size:]
 
 
-def live_text(ctx: Ctx, thinking: str, answer: str, started: float) -> str:
+def live_text(ctx: Ctx, thinking: str, answer: str, frame: int) -> str:
+    dots = "." * (frame % 3 + 1)
     if answer:
-        return escape(tail(answer, live_tail))
-    waited = " (" + str(int(time.monotonic() - started)) + " s)"
+        return ctx.t("writing") + dots + "\n\n" + escape(tail(answer, live_tail))
     if thinking:
-        return ctx.t("thinking") + "…" + waited + "\n" + italic(tail(thinking.strip(), thinking_tail))
-    return ctx.t("waiting") + "…" + waited
+        return ctx.t("thinking") + dots + "\n\n" + italic(tail(thinking.strip(), thinking_tail))
+    return ctx.t("waiting") + dots
 
 
-def folded(ctx: Ctx, thinking: str, seconds: int, room: int) -> str:
+def folded(ctx: Ctx, thinking: str, room: int) -> str:
     if not thinking.strip() or room < 200:
         return ""
-    title = ctx.t("reasoning") + " (" + str(seconds) + " s)"
+    title = ctx.t("reasoning")
     return "<blockquote expandable>" + escape(title + "\n" + tail(thinking.strip(), room - len(title) - 60)) + \
         "</blockquote>\n"
 
 
+def delivered(ctx: Ctx, thinking: str, answer: str) -> list[str]:
+    parts = [to_html(part) for part in parts_of(answer.strip())]
+    return [folded(ctx, thinking, message_limit - len(parts[0]) - 100) + parts[0]] + parts[1:]
+
+
 def talk(ctx: Ctx, conversation: int) -> None:
-    live = ctx.reply_live(ctx.t("waiting") + "…")
-    started, edited = time.monotonic(), 0.0
-    thinking, answer = "", ""
-    try:
-        for kind, piece in stream(ctx, history(ctx, conversation), is_thinking(ctx)):
-            if kind == "thinking":
-                thinking += piece
-            else:
-                answer += piece
-            if live is not None and time.monotonic() - edited >= edit_every:
-                ctx.edit(live, live_text(ctx, thinking, answer, started))
-                edited = time.monotonic()
-    except (requests.RequestException, ValueError) as error:
-        ctx.error("The language model did not answer - " + type(error).__name__, str(error))
+    live = ctx.reply_live(live_text(ctx, "", "", 0), is_silent=True)
+    messages, thinks = history(ctx, conversation), is_thinking(ctx)
+    rounds, failures = [{'thinking': "", 'answer': ""}], []
+
+    def read() -> None:
+        try:
+            for kind, piece in stream(ctx, messages, thinks):
+                latest = rounds[-1]
+                if kind != "tool":
+                    latest[kind] += piece
+                elif latest['answer'].strip():
+                    rounds.append({'thinking': "", 'answer': ""})
+                elif latest['thinking'].strip() and not latest['thinking'].endswith("\n\n"):
+                    latest['thinking'] = latest['thinking'].rstrip() + "\n\n"
+        except (requests.RequestException, ValueError) as error:
+            failures.append(error)
+
+    reader = threading.Thread(target=read, daemon=True)
+    reader.start()
+    shown, frame, edited = 0, 0, time.monotonic()
+    while True:
+        reader.join(tick)
+        if not reader.is_alive():
+            break
+        frame += 1
+        if shown < len(rounds) - 1:
+            finish(ctx, live, delivered(ctx, rounds[shown]['thinking'], rounds[shown]['answer']))
+            shown += 1
+            live, edited = ctx.reply_live(live_text(ctx, "", "", frame), is_silent=True), time.monotonic()
+            continue
+        showing = rounds[shown]
+        if live is not None and (not showing['answer'] or time.monotonic() - edited >= edit_every):
+            ctx.edit(live, live_text(ctx, showing['thinking'], showing['answer'], frame))
+            edited = time.monotonic()
+    if failures:
+        ctx.error("The language model did not answer - " + type(failures[0]).__name__, str(failures[0]))
         finish(ctx, live, [ctx.t("failed")])
         return
-    if not answer.strip():
+    answers = [each['answer'].strip() for each in rounds if each['answer'].strip()]
+    if not answers:
         finish(ctx, live, [ctx.t("empty")])
         return
-    remember(ctx, conversation, "assistant", answer)
-    parts = [to_html(part) for part in parts_of(answer.strip())]
-    quote = folded(ctx, thinking, int(time.monotonic() - started), message_limit - len(parts[0]) - 100)
-    finish(ctx, live, [quote + parts[0]] + parts[1:])
+    remember(ctx, conversation, "assistant", "\n\n".join(answers))
+    for index, left in enumerate(rounds[shown:]):
+        target = live if index == 0 else None
+        if left['answer'].strip():
+            finish(ctx, target, delivered(ctx, left['thinking'], left['answer']))
+        elif target is not None:
+            finish(ctx, target, [ctx.t("empty")])
     ctx.log("Answered in conversation " + str(conversation))
 
 
 def finish(ctx: Ctx, live: int | None, parts: list[str]) -> None:
-    first, rest = parts[0], parts[1:]
-    if live is None or not ctx.edit(live, first):
-        rest = parts
-    for part in rest:
+    if live is not None and not ctx.remove(live) and ctx.edit(live, parts[0]):
+        parts = parts[1:]
+    for part in parts:
         ctx.reply_live(part)
 
 
@@ -465,10 +502,22 @@ def settings(ctx: Ctx) -> View:
                               ctx.t("thinking_on" if is_thinking(ctx) else "thinking_off")),
                      labelled(ctx.t("labels.keeping"), keeping_name(ctx, kept_days(ctx)))])
     return View(text=ctx.t("settings_text") + "\n\n" + now,
-                buttons=[Button(ctx.t("thinking_off"), "thinking", "0"),
-                         Button(ctx.t("thinking_on"), "thinking", "1"),
+                buttons=[Button(ctx.t("thinking_mode"), "thinking_mode"),
                          Button(ctx.t("keeping"), "keeping"),
                          Button(ctx.t("wipe"), "wipe")])
+
+
+@module.callback("thinking_mode")
+def open_thinking_mode(ctx: Ctx) -> View:
+    return thinking_mode(ctx)
+
+
+@module.view("thinking_mode", parent="settings", title="thinking_mode")
+def thinking_mode(ctx: Ctx) -> View:
+    now = labelled(ctx.t("labels.thinking"), ctx.t("thinking_on" if is_thinking(ctx) else "thinking_off"))
+    return View(text=ctx.t("thinking_mode_text") + "\n\n" + now,
+                buttons=[Button(ctx.t("thinking_off"), "thinking", "0"),
+                         Button(ctx.t("thinking_on"), "thinking", "1")], columns=2)
 
 
 @module.callback("thinking")

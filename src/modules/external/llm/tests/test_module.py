@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -73,6 +74,10 @@ def stored(app) -> list[tuple[int, str, str]]:
         "SELECT * FROM " + app.storage.for_module("llm").table("messages") + " ORDER BY id;")]
 
 
+def answers(bot) -> list[str]:
+    return [message.text for message in bot.sent if not message.is_silent]
+
+
 def last_written(app, minutes: int) -> None:
     moment = (datetime.now() - timedelta(minutes=minutes)).isoformat(timespec="seconds")
     app.storage.module_state.set(1, "llm", "last_at", moment)
@@ -130,12 +135,21 @@ def test_a_link_still_goes_to_the_downloader(chat, bot, model, monkeypatch):
 
 # ----- answering -----
 
-def test_a_message_is_answered_in_one_message_rewritten_in_place(chat, bot, model):
+def test_a_quiet_status_gives_way_to_the_answer_in_a_new_message(chat, bot, model):
     say(chat, "hello")
     assert model.asked == [[{'role': "user", 'content': "hello"}]]
-    assert len(bot.sent) == 1
-    assert bot.last.text == "Hello there"
+    status = bot.sent[0]
+    assert status.is_silent and status.text == "🔍 Analyzing."
+    assert bot.deleted == [(1, status.message_id)]
+    assert answers(bot) == ["Hello there"]
     assert stored(chat) == [(1, "user", "hello"), (1, "assistant", "Hello there")]
+
+
+def test_the_status_is_rewritten_when_it_cannot_be_deleted(chat, bot, model, monkeypatch):
+    monkeypatch.setattr(Ctx, "remove", lambda *_args: False)
+    say(chat, "hello")
+    assert len(bot.sent) == 1 and bot.sent[0].is_silent
+    assert bot.edited[-1].text == "Hello there"
 
 
 def test_thinking_is_off_by_default_and_on_when_chosen(chat, bot, model):
@@ -149,15 +163,73 @@ def test_thinking_is_folded_above_the_answer(chat, bot, model):
     chat.storage.module_state.set(1, "llm", "thinking", "1")
     model.answer = [("thinking", "Two and <two>"), ("answer", "Four")]
     say(chat, "2+2?")
-    assert bot.last.text.startswith("<blockquote expandable>💭 Reasoning (")
+    assert bot.last.text.startswith("<blockquote expandable>💭 Reasoning\n")
     assert "Two and &lt;two&gt;</blockquote>\nFour" in bot.last.text
     assert stored(chat)[-1] == (1, "assistant", "Four")
+
+
+def test_the_dots_move_while_the_model_is_silent(chat, bot, monkeypatch):
+    def slow(_ctx, _messages, _thinking):
+        time.sleep(0.1)
+        yield "thinking", "hmm"
+        time.sleep(0.1)
+        yield "answer", "Fo"
+        time.sleep(0.1)
+        yield "answer", "ur"
+
+    monkeypatch.setattr(llm, "stream", slow)
+    monkeypatch.setattr(llm, "tick", 0.01)
+    monkeypatch.setattr(llm, "edit_every", 0.01)
+    say(chat, "2+2?")
+    shown = [message.text for message in bot.edited]
+    assert {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."} <= set(shown)
+    assert {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"} <= set(shown)
+    assert {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"} <= set(shown)
+    assert bot.last.text.endswith("</blockquote>\nFour")
+
+
+def test_text_before_a_search_stays_in_its_own_message(chat, bot, model):
+    model.answer = [("answer", "Let me check."), ("tool", ""), ("tool", ""), ("answer", "Found it")]
+    say(chat, "who was it?")
+    assert [message.text for message in bot.shown[-2:]] == ["Let me check.", "Found it"]
+    assert stored(chat)[-1] == (1, "assistant", "Let me check.\n\nFound it")
+
+
+def test_a_search_before_any_text_keeps_one_message(chat, bot, model):
+    model.answer = [("tool", ""), ("answer", "Found it")]
+    say(chat, "who was it?")
+    assert answers(bot) == ["Found it"]
+
+
+def test_a_new_message_waits_for_the_search_while_it_runs(chat, bot, monkeypatch):
+    def slow(_ctx, _messages, _thinking):
+        yield "answer", "Let me check."
+        yield "tool", ""
+        time.sleep(0.1)
+        yield "answer", "Found it"
+
+    monkeypatch.setattr(llm, "stream", slow)
+    monkeypatch.setattr(llm, "tick", 0.01)
+    say(chat, "who was it?")
+    shown = [message.text for message in bot.shown]
+    assert answers(bot) == ["Let me check.", "Found it"]
+    assert shown[shown.index("Let me check.") + 1].startswith("🔍 Analyzing.")
+    assert shown[-1] == "Found it"
+
+
+def test_thinking_around_a_search_is_parted_by_a_blank_line(chat, bot, model):
+    chat.storage.module_state.set(1, "llm", "thinking", "1")
+    model.answer = [("thinking", "First I search."), ("tool", ""), ("tool", ""), ("thinking", "Now I know."),
+                    ("answer", "Four")]
+    say(chat, "2+2?")
+    assert len(answers(bot)) == 1
+    assert "First I search.\n\nNow I know.</blockquote>\nFour" in bot.last.text
 
 
 def test_a_long_answer_comes_in_several_messages(chat, bot, model):
     model.answer = [("answer", ("a" * 3000 + "\n\n") * 3)]
     say(chat, "write a lot")
-    assert len(bot.sent) == 3
+    assert len(answers(bot)) == 3
     assert all(len(message.text) <= llm.message_limit for message in bot.shown)
 
 
@@ -279,6 +351,8 @@ def test_thinking_is_switched_in_the_settings(chat, bot, model):
     say(chat, "/settings")
     press(chat, "core:settings:llm")
     assert "Thinking: <i>⚡ Without thinking</i>" in bot.last.text
+    press(chat, "llm:thinking_mode")
+    assert [data for _, data in bot.last.buttons][:2] == ["llm:thinking:0", "llm:thinking:1"]
     press(chat, "llm:thinking:1")
     assert "Thinking: <i>💭 With thinking</i>" in bot.last.text
     assert chat.storage.module_state.get(1, "llm", "thinking") == "1"
@@ -572,7 +646,7 @@ class Response:
         return iter(line.encode("utf-8") for line in self.lines)
 
 
-def wire(chat, monkeypatch, lines: list[str]) -> tuple[dict, list]:
+def wire(chat, monkeypatch, lines: list[str], thinking: bool = True) -> tuple[dict, list]:
     sent = {}
 
     def post(url, json, headers, stream, timeout):
@@ -581,7 +655,7 @@ def wire(chat, monkeypatch, lines: list[str]) -> tuple[dict, list]:
 
     monkeypatch.setattr("modules.external.llm.module.requests.post", post)
     ctx = Ctx(chat.services, chat.registry.get("llm"), User(1, "First", "Last", "username", Role.GUEST, "en", True))
-    return sent, list(real_stream(ctx, [{'role': "user", 'content': "hi"}], True))
+    return sent, list(real_stream(ctx, [{'role': "user", 'content': "hi"}], thinking))
 
 
 def test_the_stream_is_read_as_server_sent_events(chat, monkeypatch):
@@ -592,6 +666,22 @@ def test_the_stream_is_read_as_server_sent_events(chat, monkeypatch):
     assert sent['url'] == "http://model.local/v1/chat/completions"
     assert sent['json']['model'] == "small" and sent['json']['stream'] is True
     assert sent['json']['chat_template_kwargs'] == {'enable_thinking': True}
+    assert "reasoning_effort" not in sent['json']
+
+
+def test_thinking_off_is_asked_for_in_both_ways(chat, monkeypatch):
+    sent, _ = wire(chat, monkeypatch, ["data: [DONE]"], thinking=False)
+    assert sent['json']['chat_template_kwargs'] == {'enable_thinking': False}
+    assert sent['json']['reasoning_effort'] == "none"
+
+
+def test_a_stream_with_tool_events_and_reasoning_is_read_too(chat, monkeypatch):
+    _, pieces = wire(chat, monkeypatch, [
+        'data: {"choices":[{"delta":{"reasoning":"so"}}]}',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"search"}}]}}]}',
+        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
+        'data: {"choices":[{"delta":{"content":"Hi"}}]}', "data: [DONE]"])
+    assert pieces == [("thinking", "so"), ("tool", ""), ("tool", ""), ("answer", "Hi")]
 
 
 def test_the_stream_is_read_as_utf_8_whatever_the_server_claims(chat, monkeypatch):

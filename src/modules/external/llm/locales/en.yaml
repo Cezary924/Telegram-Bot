@@ -9,7 +9,8 @@ new: New conversation
 fresh_done: A new conversation has started
 continue: Continue
 ask: Your last message was {minutes} minutes ago. Carry on with that conversation or start a new one?
-waiting: Writing
+waiting: Analyzing
+writing: Writing
 thinking: Thinking
 reasoning: Reasoning
 busy: I am still answering your previous message, please wait a moment
@@ -17,7 +18,9 @@ failed: The language model did not answer
 empty: The language model returned nothing
 not_configured: The language model is not set up
 settings_button: Settings
-settings_text: Choose whether the model thinks before it answers, and how long I keep your conversations. Thinking gives better answers but takes much longer
+settings_text: Choose whether the model thinks before it answers, and how long I keep your conversations
+thinking_mode: Model thinking
+thinking_mode_text: With thinking the model answers better, but takes much longer
 thinking_on: With thinking
 thinking_off: Without thinking
 

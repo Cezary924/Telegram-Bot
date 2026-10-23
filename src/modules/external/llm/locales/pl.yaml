@@ -9,7 +9,8 @@ new: Nowa rozmowa
 fresh_done: Zaczęła się nowa rozmowa
 continue: Kontynuuj
 ask: Ostatnia wiadomość była {minutes} minut temu. Kontynuować tamtą rozmowę czy zacząć nową?
-waiting: Piszę
+waiting: Analizuję
+writing: Piszę
 thinking: Myślę
 reasoning: Rozumowanie
 busy: Jeszcze odpowiadam na poprzednią wiadomość, chwilkę
@@ -17,7 +18,9 @@ failed: Model językowy nie odpowiedział
 empty: Model językowy nic nie zwrócił
 not_configured: Model językowy nie jest skonfigurowany
 settings_button: Ustawienia
-settings_text: Wybierz, czy model ma myśleć przed odpowiedzią, i jak długo mam trzymać Twoje rozmowy. Z myśleniem odpowiada lepiej, ale dużo dłużej
+settings_text: Wybierz, czy model ma myśleć przed odpowiedzią, i jak długo mam trzymać Twoje rozmowy
+thinking_mode: Myślenie modelu
+thinking_mode_text: Z myśleniem model odpowiada lepiej, ale dużo dłużej
 thinking_on: Z myśleniem
 thinking_off: Bez myślenia
 

@@ -189,8 +189,9 @@ ctx.db  # this module's own tables
 ctx.token("service_key")  # only the secrets declared in the manifest
 ctx.has_token("service_key")  # whether a declared secret is set at all
 ctx.setting("service_url")  # a declared entry of config.yaml, None when it is missing
-message_id = ctx.reply_live(text)  # a message the module can rewrite later
+message_id = ctx.reply_live(text)  # a message the module can rewrite later, is_silent=True sends it quietly
 ctx.edit(message_id, text)  # rewrites it, False when Telegram refuses
+ctx.remove(message_id)  # deletes it, False when Telegram refuses
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # the same screen again, with the problem above the question
 ctx.close_screen()  # closes the screen the user acted on, ending the flow

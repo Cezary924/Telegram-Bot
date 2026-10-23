@@ -235,10 +235,11 @@ class Ctx:
         except KeyError:
             return None
 
-    def reply_live(self, text: str) -> int | None:
+    def reply_live(self, text: str, is_silent: bool = False) -> int | None:
         bot = not_none(self._services.bot, "the bot is not built yet")
         try:
-            return bot.send_message(self.user.id, text, parse_mode="HTML").message_id
+            return bot.send_message(self.user.id, text, parse_mode="HTML",
+                                    disable_notification=is_silent).message_id
         except Exception as error:
             print_error("Could not deliver a message to " + str(self.user.id) + " - " + type(error).__name__ + ".",
                         str(error))
@@ -250,6 +251,14 @@ class Ctx:
             bot.edit_message_text(text, self.user.id, message_id, parse_mode="HTML")
         except ApiTelegramException as error:
             return "not modified" in str(error)
+        return True
+
+    def remove(self, message_id: int) -> bool:
+        bot = not_none(self._services.bot, "the bot is not built yet")
+        try:
+            bot.delete_message(self.user.id, message_id)
+        except ApiTelegramException:
+            return False
         return True
 
     def reply(self, view) -> bool:

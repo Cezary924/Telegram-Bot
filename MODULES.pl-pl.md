@@ -186,8 +186,9 @@ ctx.db  # własne tabele tego modułu
 ctx.token("service_key")  # tylko sekrety zadeklarowane w manifeście
 ctx.has_token("service_key")  # czy zadeklarowany sekret w ogóle jest ustawiony
 ctx.setting("service_url")  # zadeklarowany wpis z config.yaml, None gdy go brak
-message_id = ctx.reply_live(tekst)  # wiadomość, którą moduł może potem przepisać
+message_id = ctx.reply_live(tekst)  # wiadomość, którą moduł może potem przepisać, is_silent=True wysyła ją po cichu
 ctx.edit(message_id, tekst)  # przepisuje ją, False gdy Telegram odmówi
+ctx.remove(message_id)  # usuwa ją, False gdy Telegram odmówi
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # ten sam ekran jeszcze raz
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc przepływ
