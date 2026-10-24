@@ -46,8 +46,8 @@ def api_url(ctx: AdvancedCtx, path: str) -> str:
             + ctx.config.github_repo + path)
 
 
-def published_commits(ctx: AdvancedCtx) -> int:
-    links = fetch(api_url(ctx, "/commits?per_page=1")).links
+def published_commits(ctx: AdvancedCtx, tag: str) -> int:
+    links = fetch(api_url(ctx, "/commits?per_page=1&sha=" + tag)).links
     return int(parse_qs(urlparse(links["last"]["url"]).query)["page"][0])
 
 
@@ -57,12 +57,12 @@ def published_tag(ctx: AdvancedCtx) -> str:
 
 def version_status(ctx: AdvancedCtx) -> str:
     try:
-        published = published_commits(ctx)
-        if published == ctx.version.commits:
-            return ctx.t("up_to_date")
-        newest = Version(published_tag(ctx), published)
+        tag = published_tag(ctx)
+        newest = Version(tag, published_commits(ctx, tag))
     except Exception as error:
         ctx.error("Could not read the published version - " + type(error).__name__, str(error))
         return ctx.t("core:error")
-    key = "ahead" if ctx.version.commits > published else "behind"
+    if newest.commits == ctx.version.commits:
+        return ctx.t("up_to_date")
+    key = "ahead" if ctx.version.commits > newest.commits else "behind"
     return ctx.t(key, version=str(newest))

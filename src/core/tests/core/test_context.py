@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from core import paths
+from core import paths, version
 from core.context import AdvancedCtx, Ctx, User, create_context, user_from_row
 from core.module import Module
 from core.roles import Role
@@ -330,6 +330,13 @@ def test_the_version_reaches_an_internal_module(services, module, person):
     module.is_internal = True
     services.version = Version("v1.2", 100)
     assert str(AdvancedCtx(services, module, person).version) == "v1.2 (100)"
+
+
+def test_the_version_shows_a_tag_given_after_the_start(services, module, person, monkeypatch):
+    module.is_internal = True
+    services.version = Version("", 905, "abc123")
+    monkeypatch.setattr(version, "run_git", lambda *arguments: "2.3.0-0-gabc123")
+    assert str(AdvancedCtx(services, module, person).version) == "2.3.0 (905)"
 
 
 def test_a_forwarded_message_reveals_its_sender(services, module, person):
