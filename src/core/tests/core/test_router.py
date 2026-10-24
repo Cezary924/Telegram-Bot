@@ -69,6 +69,14 @@ def matcher1(_ctx) -> str:
     return "matcher1"
 
 
+@module1.match(lambda text: False, media=("photo",))
+def photos(ctx) -> str:
+    return "photos got a " + ctx.kind + " with " + ctx.text
+
+
+photo = {'file_id': "photo1", 'file_unique_id': "p1", 'width': 90, 'height': 60}
+voice = {'file_id': "voice1", 'file_unique_id': "v1", 'duration': 3}
+
 slow_started = threading.Event()
 slow_may_finish = threading.Event()
 slow_thread_names: list[str] = []
@@ -336,6 +344,27 @@ def test_unmatched_message_falls_back(router, bot, services, settled):
     assert bot.last.text == core_text(services, "unknown_message")
 
 
+def test_a_matcher_takes_the_kinds_of_media_it_names_whatever_the_caption(router, bot, settled):
+    router.handle_message(make_message("caption1", media={'photo': [photo]}))
+    assert bot.last.text == "photos got a photo with caption1"
+
+
+def test_media_nobody_takes_falls_back(router, bot, services, settled):
+    router.handle_message(make_message("https://example.com", media={'voice': voice}))
+    assert bot.last.text == core_text(services, "unknown_message")
+
+
+def test_a_caption_is_never_a_command(router, bot, services, settled):
+    router.handle_message(make_message("/menu", media={'voice': voice}))
+    assert bot.last.text == core_text(services, "unknown_message")
+
+
+def test_media_skips_the_screen_waiting_for_text(router, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_message(make_message("caption1", media={'photo': [photo]}))
+    assert bot.last.text == "photos got a photo with caption1"
+
+
 def test_an_unknown_callback_is_refused(router, bot, services, settled):
     router.handle_callback(make_callback("module1:action9"))
     assert bot.last.text == core_text(services, "not_working_buttons")
@@ -539,7 +568,7 @@ def test_register_hooks_the_router_into_telebot(services, bot):
     router.register(real_bot)
     assert len(real_bot.message_handlers) == 1
     assert len(real_bot.callback_query_handlers) == 1
-    assert real_bot.message_handlers[0]['filters']['content_types'] == ['text']
+    assert {"text", "photo", "voice", "location"} <= set(real_bot.message_handlers[0]['filters']['content_types'])
 
 
 def test_a_command_starts_a_fresh_navigation(router, bot, services, settled):

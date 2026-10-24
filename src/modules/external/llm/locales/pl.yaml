@@ -4,7 +4,7 @@ description: Rozmawia z Tobą przez lokalny model językowy
 commands.llm: Dowiedz się, jak rozmawiać z asystentem
 
 title: Asystent
-how: Po prostu do mnie napisz - każda wiadomość, która nie jest komendą ani linkiem, trafia do modelu językowego. Rozmowa trwa, dopóki piszesz, a godzina ciszy zaczyna nową
+how: Po prostu do mnie napisz albo wyślij zdjęcie, głosówkę, film czy plik tekstowy - każda wiadomość, która nie jest komendą ani linkiem, trafia do modelu językowego. Rozmowa trwa, dopóki piszesz, a godzina ciszy zaczyna nową
 new: Nowa rozmowa
 fresh_done: Zaczęła się nowa rozmowa
 continue: Kontynuuj
@@ -57,3 +57,25 @@ keep_always: Nigdy
 wipe: Usuń całą historię
 wipe_sure: Czy na pewno chcesz usunąć wszystkie swoje rozmowy? Tej operacji nie da się cofnąć
 wiped: Cała historia rozmów została usunięta
+
+too_big: Ten plik jest za duży - Telegram pozwala mi pobrać najwyżej 20 MB
+unreadable: Nie udało mi się odczytać tej wiadomości
+unsupported: Nie umiem jeszcze przeczytać takiego pliku
+media:
+  photo: Zdjęcie
+  document: Plik
+  sticker: Naklejka
+  animation: GIF
+  video: Film
+  video_note: Wiadomość wideo
+  voice: Wiadomość głosowa
+  audio: Nagranie
+  location: Lokalizacja
+  venue: Miejsce
+  contact: Kontakt
+  poll: Ankieta
+  dice: Rzut
+describe:
+  picture: Opisz w jednym lub dwóch zdaniach, co jest na tym obrazie. Odpowiedz samym opisem.
+  film: Opisz w jednym lub dwóch zdaniach, co dzieje się na tym filmie - to jego kolejne klatki, czasem też dźwięk. Odpowiedz samym opisem.
+  sound: Napisz w jednym lub dwóch zdaniach, co jest powiedziane na tym nagraniu albo co na nim słychać. Odpowiedz samym opisem.

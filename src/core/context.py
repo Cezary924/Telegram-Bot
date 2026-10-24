@@ -5,8 +5,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
 
+import requests
 import telebot
-from telebot.apihelper import ApiTelegramException
+from telebot.apihelper import ApiException, ApiTelegramException
 
 from core import paths
 from core.config import Config
@@ -161,6 +162,7 @@ def send_to(services: Services, module_name: str, user_id: int, view,
 file_senders = {'audio': "send_audio", 'document': "send_document", 'photo': "send_photo",
                 'video': "send_video", 'voice': "send_voice"}
 file_limit = 50 * 1024 * 1024
+download_limit = 20 * 1024 * 1024
 album_limit = 10
 
 
@@ -212,7 +214,11 @@ class Ctx:
 
     @property
     def text(self) -> str:
-        return (self.message.text or "") if self.message is not None else ""
+        return (self.message.text or self.message.caption or "") if self.message is not None else ""
+
+    @property
+    def kind(self) -> str:
+        return self.message.content_type if self.message is not None else "text"
 
     def t(self, key: str, /, **values) -> Html:
         return self._services.catalog.text(self.module.name, key, self.user.language, **values)
@@ -253,6 +259,16 @@ class Ctx:
             return "not modified" in str(error)
         return True
 
+    def download(self, file_id: str) -> bytes | None:
+        bot = not_none(self._services.bot, "the bot is not built yet")
+        try:
+            path = bot.get_file(file_id).file_path
+            return bot.download_file(path) if path else None
+        except (ApiException, requests.RequestException) as error:
+            print_error("Could not download a file from " + str(self.user.id) + " - " + type(error).__name__ + ".",
+                        str(error))
+            return None
+
     def remove(self, message_id: int) -> bool:
         bot = not_none(self._services.bot, "the bot is not built yet")
         try:
@@ -275,6 +291,10 @@ class Ctx:
     @property
     def file_limit(self) -> int:
         return file_limit
+
+    @property
+    def download_limit(self) -> int:
+        return download_limit
 
     def retry(self, problem: str) -> View:
         current = self.nav.current()

@@ -1,6 +1,8 @@
+import base64
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 import requests
@@ -75,6 +77,10 @@ def stored(app) -> list[tuple[int, str, str]]:
 
 
 def answers(bot) -> list[str]:
+    return [message.text for message in bot.sent if (message.chat_id, message.message_id) not in bot.deleted]
+
+
+def loud(bot) -> list[str]:
     return [message.text for message in bot.sent if not message.is_silent]
 
 
@@ -192,6 +198,7 @@ def test_text_before_a_search_stays_in_its_own_message(chat, bot, model):
     model.answer = [("answer", "Let me check."), ("tool", ""), ("tool", ""), ("answer", "Found it")]
     say(chat, "who was it?")
     assert [message.text for message in bot.shown[-2:]] == ["Let me check.", "Found it"]
+    assert loud(bot) == ["Found it"]
     assert stored(chat)[-1] == (1, "assistant", "Let me check.\n\nFound it")
 
 
@@ -213,6 +220,7 @@ def test_a_new_message_waits_for_the_search_while_it_runs(chat, bot, monkeypatch
     say(chat, "who was it?")
     shown = [message.text for message in bot.shown]
     assert answers(bot) == ["Let me check.", "Found it"]
+    assert loud(bot) == ["Found it"]
     assert shown[shown.index("Let me check.") + 1].startswith("🔍 Analyzing.")
     assert shown[-1] == "Found it"
 
@@ -230,6 +238,7 @@ def test_a_long_answer_comes_in_several_messages(chat, bot, model):
     model.answer = [("answer", ("a" * 3000 + "\n\n") * 3)]
     say(chat, "write a lot")
     assert len(answers(bot)) == 3
+    assert loud(bot) == answers(bot)[-1:]
     assert all(len(message.text) <= llm.message_limit for message in bot.shown)
 
 
@@ -267,6 +276,178 @@ def test_a_second_message_waits_for_the_first_answer(chat, bot, model):
         llm.answering.discard(1)
     assert model.asked == []
     assert bot.last.text.endswith("\n\nI am still answering your previous message, please wait a moment ⏳")
+
+
+# ----- media -----
+
+def send(app, media: dict, caption: str = "", message_id: int = 100):
+    app.router.handle_message(make_message(caption, message_id=message_id, media=media))
+    app.router.wait_for_tasks()
+
+
+def photo(file_id: str = "photo1", size: int = 100) -> dict:
+    return {'photo': [{'file_id': file_id, 'file_unique_id': file_id, 'width': 90, 'height': 60, 'file_size': size}]}
+
+
+def picture(data: bytes, mime: str = "image/jpeg") -> dict:
+    return {'type': "image_url", 'image_url': {'url': "data:" + mime + ";base64," + base64.b64encode(data).decode()}}
+
+
+def test_a_photo_goes_to_the_model_with_its_caption(chat, bot, model):
+    bot.downloads["photo1"] = b"jpeg1"
+    send(chat, photo(), "what is it?")
+    assert model.asked[0][-1]['content'] == [{'type': "text", 'text': "[Photo]\nwhat is it?"}, picture(b"jpeg1")]
+    assert answers(bot) == ["Hello there"]
+
+
+def test_a_photo_is_kept_in_the_history_as_a_short_description(chat, bot, model):
+    bot.downloads["photo1"] = b"jpeg1"
+    send(chat, photo())
+    asked_for = model.asked[1][0]['content']
+    assert asked_for[0]['text'].startswith("Describe in one or two sentences what is in this picture")
+    assert asked_for[1] == picture(b"jpeg1")
+    assert stored(chat) == [(1, "user", "[Photo: Hello there]"), (1, "assistant", "Hello there")]
+
+
+def test_the_next_message_sees_the_description_not_the_photo(chat, bot, model):
+    bot.downloads["photo1"] = b"jpeg1"
+    send(chat, photo(), "what is it?")
+    say(chat, "and the colour?")
+    assert model.asked[-1][0] == {'role': "user", 'content': "[Photo: Hello there]\nwhat is it?"}
+
+
+def test_a_location_goes_as_words(chat, bot, model):
+    send(chat, {'location': {'latitude': 51.15, 'longitude': 21.65}})
+    assert model.asked == [[{'role': "user", 'content': "[Location: 51.15000, 21.65000]"}]]
+    assert stored(chat)[0] == (1, "user", "[Location: 51.15000, 21.65000]")
+
+
+def test_a_poll_goes_as_words(chat, bot, model):
+    send(chat, {'poll': {'id': "1", 'question': "Tea?", 'type': "regular", 'total_voter_count': 0,
+                         'is_closed': False, 'is_anonymous': True, 'allows_multiple_answers': False,
+                         'options': [{'persistent_id': "1", 'text': "Yes", 'voter_count': 0},
+                                     {'persistent_id': "2", 'text': "No", 'voter_count': 0}]}})
+    assert model.asked[0][-1]['content'] == "[Poll: Tea?: Yes / No]"
+
+
+def test_an_animated_sticker_goes_as_its_emoji(chat, bot, model):
+    send(chat, {'sticker': {'file_id': "s1", 'file_unique_id': "s1", 'type': "regular", 'width': 512,
+                            'height': 512, 'is_animated': True, 'is_video': False, 'emoji': "😀"}})
+    assert model.asked[0][-1]['content'] == "[Sticker: 😀]"
+
+
+def test_a_text_file_is_read_into_the_message(chat, bot, model):
+    bot.downloads["doc1"] = "line one\nżółw".encode()
+    send(chat, {'document': {'file_id': "doc1", 'file_unique_id': "doc1", 'file_name': "notes.txt",
+                             'mime_type': "text/plain", 'file_size': 15}}, "sum it up")
+    assert model.asked[0][-1]['content'] == "[File: notes.txt]\nline one\nżółw\nsum it up"
+    assert len(model.asked) == 1
+
+
+def test_a_file_it_cannot_read_is_refused(chat, bot, model):
+    bot.downloads["doc1"] = b"%PDF-1.7\0\1\2"
+    send(chat, {'document': {'file_id': "doc1", 'file_unique_id': "doc1", 'file_name': "a.pdf",
+                             'mime_type': "application/pdf", 'file_size': 12}})
+    assert answers(bot) == ["I cannot read this kind of file yet 🤷"]
+    assert model.asked == [] and stored(chat) == []
+
+
+def test_a_file_too_big_to_download_is_refused(chat, bot, model):
+    send(chat, photo(size=21 * 1024 * 1024))
+    assert answers(bot) == ["This file is too big - Telegram lets me download at most 20 MB 📦"]
+    assert model.asked == []
+
+
+def test_a_file_telegram_will_not_give_is_unreadable(chat, bot, model):
+    send(chat, photo("missing"))
+    assert answers(bot) == ["I could not read this message 💔"]
+    assert model.asked == []
+
+
+def test_a_voice_message_goes_as_sound(chat, bot, model, monkeypatch):
+    bot.downloads["voice1"] = b"ogg1"
+    seen = []
+
+    def convert(_ctx, data, arguments, output):
+        seen.append((data, output, arguments))
+        return [b"wav1"]
+
+    monkeypatch.setattr(llm, "converted", convert)
+    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    assert seen[0][:2] == (b"ogg1", "sound.wav") and "16000" in seen[0][2]
+    assert model.asked[0][-1]['content'][1] == {'type': "input_audio",
+                                                'input_audio': {'data': base64.b64encode(b"wav1").decode(),
+                                                                'format': "wav"}}
+    assert model.asked[1][0]['content'][0]['text'].startswith("Write in one or two sentences what is said")
+
+
+def test_a_video_goes_as_frames_and_its_sound(chat, bot, model, monkeypatch):
+    bot.downloads["video1"] = b"mp4"
+    monkeypatch.setattr(llm, "converted", lambda _ctx, _data, _arguments, output:
+                        [b"f1", b"f2"] if output.startswith("frame") else [b"wav1"])
+    send(chat, {'video': {'file_id': "video1", 'file_unique_id': "video1", 'width': 9, 'height': 6, 'duration': 8}})
+    kinds = [part['type'] for part in model.asked[0][-1]['content']]
+    assert kinds == ["text", "image_url", "image_url", "input_audio"]
+
+
+def test_a_video_without_sound_still_goes_as_frames(chat, bot, model, monkeypatch):
+    bot.downloads["video1"] = b"mp4"
+
+    def convert(_ctx, _data, _arguments, output):
+        if output == "sound.wav":
+            raise llm.Unreadable("no audio stream")
+        return [b"f1"]
+
+    monkeypatch.setattr(llm, "converted", convert)
+    send(chat, {'video': {'file_id': "video1", 'file_unique_id': "video1", 'width': 9, 'height': 6, 'duration': 8}})
+    assert [part['type'] for part in model.asked[0][-1]['content']] == ["text", "image_url"]
+
+
+def test_a_conversion_that_fails_is_unreadable(chat, bot, model, monkeypatch):
+    bot.downloads["voice1"] = b"ogg1"
+    monkeypatch.setattr(llm.subprocess, "run", lambda *_args, **_values: SimpleNamespace(returncode=1,
+                                                                                        stderr=b"bad data"))
+    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    assert answers(bot) == ["I could not read this message 💔"]
+    assert model.asked == []
+
+
+def test_a_conversion_without_ffmpeg_is_unreadable(chat, bot, model, monkeypatch):
+    def missing(*_args, **_values):
+        raise FileNotFoundError("ffmpeg")
+
+    bot.downloads["voice1"] = b"ogg1"
+    monkeypatch.setattr(llm.subprocess, "run", missing)
+    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    assert answers(bot) == ["I could not read this message 💔"]
+
+
+def test_an_album_is_one_message(chat, bot, model, monkeypatch):
+    monkeypatch.setattr(llm, "album_wait", 0.2)
+    bot.downloads.update(photo1=b"jpeg1", photo2=b"jpeg2")
+    for number, file_id in enumerate(["photo1", "photo2"]):
+        chat.router.handle_message(make_message("both?" if number == 0 else "", message_id=100 + number,
+                                                media=photo(file_id) | {'media_group_id': "g1"}))
+    chat.router.wait_for_tasks()
+    assert model.asked[0][-1]['content'] == [{'type': "text", 'text': "[Photo]\nboth?\n[Photo]"},
+                                            picture(b"jpeg1"), picture(b"jpeg2")]
+    assert len(answers(bot)) == 1
+
+
+def test_a_photo_waiting_for_the_choice_is_kept(chat, bot, model):
+    bot.downloads["photo1"] = b"jpeg1"
+    say(chat, "first")
+    last_written(chat, 30)
+    send(chat, photo(), "and this?", message_id=200)
+    press(chat, "llm:pick:continue:200")
+    assert model.asked[-2][-1]['content'] == [{'type': "text", 'text': "[Photo]\nand this?"}, picture(b"jpeg1")]
+
+
+def test_a_text_waiting_from_before_still_works(chat, bot, model):
+    say(chat, "first")
+    chat.storage.module_state.set(1, "llm", "pending.200", "older")
+    press(chat, "llm:pick:new:200")
+    assert model.asked[-1] == [{'role': "user", 'content': "older"}]
 
 
 # ----- conversations -----

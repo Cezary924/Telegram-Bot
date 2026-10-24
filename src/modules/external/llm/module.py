@@ -1,7 +1,9 @@
+import base64
 import json
 import os
 import re
 import sqlite3
+import subprocess
 import threading
 import time
 from collections.abc import Iterator
@@ -13,11 +15,13 @@ from core.api import Button, Ctx, JobCtx, Module, View, escape, italic, labelled
 
 module = Module(name="llm", is_guarded=True, config_keys=["llm_url", "llm_model"], tokens=["llm_key"],
                 icons={'name': "🤖", 'title': "🤖", 'new': "🆕", 'continue': "▶️", 'settings_button': "⚙️",
-                       'thinking_mode': "💭", 'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "🔍", 'writing': "✍️", 'thinking': "💭",
-                       'reasoning': "💭", 'history': "📜", 'resume': "▶️", 'export': "📄", 'delete': "🗑️",
+                       'thinking_mode': "💭", 'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "🔍",
+                       'writing': "✍️", 'thinking': "💭", 'reasoning': "💭", 'history': "📜", 'resume': "▶️",
+                       'export': "📄", 'delete': "🗑️",
                        'keeping': "⏳", 'wipe': "🗑️", 'conversation': "💬", 'previous': "⬅️", 'next': "➡️"},
                 endings={'how': "💬", 'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧",
-                         'busy': "⏳", 'resumed': "✅", 'deleted': "✅", 'wiped': "✅", 'gone': "💔"})
+                         'busy': "⏳", 'resumed': "✅", 'deleted': "✅", 'wiped': "✅", 'gone': "💔",
+                         'too_big': "📦", 'unreadable': "💔", 'unsupported': "🤷"})
 
 priority = -100
 continue_within = 15 * 60
@@ -42,8 +46,21 @@ keep_choices = [0, 7, 30, 90]
 default_keep = 90
 forget_every = 60 * 60
 date_format = "%Y-%m-%d %H:%M"
+media_kinds = ("photo", "document", "sticker", "animation", "video", "video_note", "voice", "audio", "location",
+               "venue", "contact", "poll", "dice")
+filed_kinds = ("animation", "video", "video_note", "voice", "audio", "document")
+frames_per_film = 4
+frame_scale = "scale='min(768,iw)':-2"
+sound_seconds = 180
+writing_size = 1024 * 1024
+writing_characters = 12000
+description_size = 300
+album_wait = 1.5
+convert_timeout = 120
 answering: set[int] = set()
 answering_lock = threading.Lock()
+albums: dict[str, list[dict]] = {}
+albums_lock = threading.Lock()
 
 
 def table(ctx: Ctx | JobCtx) -> str:
@@ -82,10 +99,11 @@ def fresh(ctx: Ctx) -> int:
     return number
 
 
-def remember(ctx: Ctx, conversation: int, role: str, content: str) -> None:
-    ctx.db.execute("INSERT INTO " + table(ctx) + " (user_id, conversation, role, content, created_at) "
-                   "VALUES (?, ?, ?, ?, ?);",
-                   (ctx.user.id, conversation, role, content, datetime.now().isoformat(timespec="seconds")))
+def remember(ctx: Ctx, conversation: int, role: str, content: str) -> int:
+    return ctx.db.execute("INSERT INTO " + table(ctx) + " (user_id, conversation, role, content, created_at) "
+                          "VALUES (?, ?, ?, ?, ?);",
+                          (ctx.user.id, conversation, role, content,
+                           datetime.now().isoformat(timespec="seconds"))).lastrowid or 0
 
 
 def history(ctx: Ctx, conversation: int) -> list[dict]:
@@ -98,6 +116,175 @@ def history(ctx: Ctx, conversation: int) -> list[dict]:
             break
         kept.append({'role': row['role'], 'content': row['content']})
     return list(reversed(kept))
+
+
+# ----- media -----
+
+class Unreadable(Exception):
+    pass
+
+
+class TooBig(Exception):
+    pass
+
+
+class Unsupported(Exception):
+    pass
+
+
+def coordinates(location) -> str:
+    return format(location.latitude, ".5f") + ", " + format(location.longitude, ".5f")
+
+
+def item_of(ctx: Ctx) -> dict:
+    kind = ctx.kind
+    item: dict = {'kind': kind, 'text': ctx.text.strip()}
+    if ctx.message is None or kind == "text":
+        return item
+    sent = getattr(ctx.message, kind)
+    if kind == "photo":
+        item.update(file_id=sent[-1].file_id, size=sent[-1].file_size or 0)
+    elif kind == "sticker":
+        item.update(file_id=sent.file_id, size=sent.file_size or 0, emoji=sent.emoji or "",
+                    form="video" if sent.is_video else "animated" if sent.is_animated else "static")
+    elif kind in filed_kinds:
+        item.update(file_id=sent.file_id, size=sent.file_size or 0, mime=getattr(sent, 'mime_type', None) or "",
+                    name=getattr(sent, 'file_name', None) or "", duration=getattr(sent, 'duration', None) or 0)
+    elif kind == "location":
+        item['details'] = coordinates(sent)
+    elif kind == "venue":
+        item['details'] = ", ".join(part for part in (sent.title, sent.address, coordinates(sent.location)) if part)
+    elif kind == "contact":
+        item['details'] = " ".join(part for part in (sent.first_name, sent.last_name, sent.phone_number) if part)
+    elif kind == "poll":
+        item['details'] = sent.question + ": " + " / ".join(option.text for option in sent.options)
+    elif kind == "dice":
+        item['details'] = sent.emoji + " " + str(sent.value)
+    return item
+
+
+def family(item: dict) -> str:
+    kind, mime = item['kind'], item.get('mime', "")
+    if kind == "photo" or (kind == "sticker" and item['form'] == "static") or \
+            (kind == "document" and mime.startswith("image/")):
+        return "picture"
+    if kind in ("video", "animation", "video_note") or (kind == "sticker" and item['form'] == "video") or \
+            (kind == "document" and mime.startswith("video/")):
+        return "film"
+    if kind in ("voice", "audio") or (kind == "document" and mime.startswith("audio/")):
+        return "sound"
+    return "file" if kind == "document" else "words"
+
+
+def gathered(ctx: Ctx) -> list[dict]:
+    item = item_of(ctx)
+    group = ctx.message.media_group_id if ctx.message is not None else None
+    if not group:
+        return [item]
+    with albums_lock:
+        is_first = group not in albums
+        albums.setdefault(group, []).append(item)
+    if not is_first:
+        return []
+    time.sleep(album_wait)
+    with albums_lock:
+        return albums.pop(group)
+
+
+def pending_items(stored: str) -> list[dict]:
+    try:
+        items = json.loads(stored)
+    except ValueError:
+        items = None
+    return items if isinstance(items, list) else [{'kind': "text", 'text': stored}]
+
+
+def note(ctx: Ctx, item: dict, description: str = "", body: str = "") -> str:
+    if item['kind'] == "text":
+        return item['text']
+    about = ", ".join(part for part in (item.get('emoji', ""), item.get('name', ""), item.get('details', ""),
+                                        description) if part)
+    head = "[" + str(ctx.t("media." + item['kind'])) + (": " + about if about else "") + "]"
+    return "\n".join(part for part in (head, body, item['text']) if part)
+
+
+def converted(ctx: Ctx, data: bytes, arguments: list[str], output: str) -> list[bytes]:
+    with ctx.workspace() as path:
+        source = os.path.join(path, "source")
+        with open(source, "wb") as handle:
+            handle.write(data)
+        try:
+            done = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", source, *arguments,
+                                   os.path.join(path, output)], capture_output=True, timeout=convert_timeout)
+        except (OSError, subprocess.SubprocessError) as error:
+            raise Unreadable(type(error).__name__ + " " + str(error)) from error
+        if done.returncode != 0:
+            raise Unreadable(done.stderr.decode("utf-8", "replace")[-300:])
+        results = []
+        for name in sorted(os.listdir(path)):
+            if name != "source":
+                with open(os.path.join(path, name), "rb") as handle:
+                    results.append(handle.read())
+        return results
+
+
+def picture_part(data: bytes, mime: str) -> dict:
+    return {'type': "image_url", 'image_url': {'url': "data:" + mime + ";base64," + base64.b64encode(data).decode()}}
+
+
+def sound_part(data: bytes) -> dict:
+    return {'type': "input_audio", 'input_audio': {'data': base64.b64encode(data).decode(), 'format': "wav"}}
+
+
+def sound_of(ctx: Ctx, data: bytes) -> list[dict]:
+    return [sound_part(sound) for sound in converted(ctx, data, ["-vn", "-ac", "1", "-ar", "16000",
+                                                                  "-t", str(sound_seconds)], "sound.wav")]
+
+
+def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:
+    kind, what = item['kind'], family(item)
+    if what == "words":
+        return note(ctx, item), []
+    if item.get('size', 0) > ctx.download_limit:
+        raise TooBig(kind)
+    data = ctx.download(item['file_id'])
+    if data is None:
+        raise Unreadable("Telegram gave no file")
+    if what == "picture":
+        if kind == "photo" or item.get('mime') in ("image/jpeg", "image/png"):
+            return note(ctx, item), [picture_part(data, item.get('mime') or "image/jpeg")]
+        return note(ctx, item), [picture_part(picture, "image/png") for picture in
+                                 converted(ctx, data, ["-frames:v", "1", "-vf", frame_scale], "picture.png")]
+    if what == "film":
+        rate = "fps=" + str(frames_per_film) + "/" + str(item['duration']) if item.get('duration') else "fps=2"
+        frames = converted(ctx, data, ["-vf", rate + "," + frame_scale, "-frames:v", str(frames_per_film)],
+                           "frame%d.jpg")
+        parts = [picture_part(frame, "image/jpeg") for frame in frames]
+        if kind in ("video", "video_note", "document"):
+            try:
+                parts += sound_of(ctx, data)
+            except Unreadable:
+                pass
+        return note(ctx, item), parts
+    if what == "sound":
+        return note(ctx, item), sound_of(ctx, data)
+    if len(data) > writing_size or b"\0" in data:
+        raise Unsupported(item.get('mime') or kind)
+    try:
+        writing = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise Unsupported(item.get('mime') or kind) from error
+    return note(ctx, item, body=writing[:writing_characters]), []
+
+
+def describe(ctx: Ctx, item: dict, parts: list[dict]) -> str:
+    asked = [{'role': "user", 'content': [{'type': "text", 'text': str(ctx.t("describe." + family(item)))}] + parts}]
+    try:
+        said = "".join(piece for kind, piece in stream(ctx, asked, False) if kind == "answer")
+    except (requests.RequestException, ValueError) as error:
+        ctx.error("The language model did not describe a " + item['kind'] + " - " + type(error).__name__, str(error))
+        return ""
+    return " ".join(said.split())[:description_size]
 
 
 def is_thinking(ctx: Ctx) -> bool:
@@ -192,9 +379,10 @@ def delivered(ctx: Ctx, thinking: str, answer: str) -> list[str]:
     return [folded(ctx, thinking, message_limit - len(parts[0]) - 100) + parts[0]] + parts[1:]
 
 
-def talk(ctx: Ctx, conversation: int) -> None:
-    live = ctx.reply_live(live_text(ctx, "", "", 0), is_silent=True)
+def talk(ctx: Ctx, conversation: int, live: int | None, attached: list[dict]) -> None:
     messages, thinks = history(ctx, conversation), is_thinking(ctx)
+    if attached and messages:
+        messages[-1]['content'] = [{'type': "text", 'text': messages[-1]['content']}] + attached
     rounds, failures = [{'thinking': "", 'answer': ""}], []
 
     def read() -> None:
@@ -219,7 +407,7 @@ def talk(ctx: Ctx, conversation: int) -> None:
             break
         frame += 1
         if shown < len(rounds) - 1:
-            finish(ctx, live, delivered(ctx, rounds[shown]['thinking'], rounds[shown]['answer']))
+            finish(ctx, live, delivered(ctx, rounds[shown]['thinking'], rounds[shown]['answer']), is_final=False)
             shown += 1
             live, edited = ctx.reply_live(live_text(ctx, "", "", frame), is_silent=True), time.monotonic()
             continue
@@ -236,35 +424,55 @@ def talk(ctx: Ctx, conversation: int) -> None:
         finish(ctx, live, [ctx.t("empty")])
         return
     remember(ctx, conversation, "assistant", "\n\n".join(answers))
-    for index, left in enumerate(rounds[shown:]):
+    left = rounds[shown:]
+    ending = max(index for index, each in enumerate(left) if index == 0 or each['answer'].strip())
+    for index, each in enumerate(left):
         target = live if index == 0 else None
-        if left['answer'].strip():
-            finish(ctx, target, delivered(ctx, left['thinking'], left['answer']))
+        if each['answer'].strip():
+            finish(ctx, target, delivered(ctx, each['thinking'], each['answer']), is_final=index == ending)
         elif target is not None:
-            finish(ctx, target, [ctx.t("empty")])
+            finish(ctx, target, [ctx.t("empty")], is_final=index == ending)
     ctx.log("Answered in conversation " + str(conversation))
 
 
-def finish(ctx: Ctx, live: int | None, parts: list[str]) -> None:
+def finish(ctx: Ctx, live: int | None, parts: list[str], is_final: bool = True) -> None:
     if live is not None and not ctx.remove(live) and ctx.edit(live, parts[0]):
         parts = parts[1:]
-    for part in parts:
-        ctx.reply_live(part)
+    for number, part in enumerate(parts, 1):
+        ctx.reply_live(part, is_silent=not is_final or number < len(parts))
 
 
-def answer_in(ctx: Ctx, conversation: int, text: str) -> View | None:
+def answer_in(ctx: Ctx, conversation: int, items: list[dict]) -> View | None:
     with answering_lock:
         if ctx.user.id in answering:
             return View(text=ctx.t("busy"))
         answering.add(ctx.user.id)
     try:
-        remember(ctx, conversation, "user", text)
-        ctx.state.set(last_key, datetime.now().isoformat(timespec="seconds"))
-        talk(ctx, conversation)
+        answered = respond(ctx, conversation, items)
     finally:
         with answering_lock:
             answering.discard(ctx.user.id)
+    if answered is not None and any(parts for _, _, parts in answered[1]):
+        asked, prepared = answered
+        texts = [note(ctx, item, describe(ctx, item, parts)) if parts else text for item, text, parts in prepared]
+        ctx.db.execute("UPDATE " + table(ctx) + " SET content = ? WHERE id = ?;", ("\n".join(texts), asked))
     return None
+
+
+def respond(ctx: Ctx, conversation: int, items: list[dict]) -> tuple[int, list[tuple[dict, str, list[dict]]]] | None:
+    live = ctx.reply_live(live_text(ctx, "", "", 0), is_silent=True)
+    try:
+        prepared = [(item, *parts_for(ctx, item)) for item in items]
+    except (TooBig, Unsupported, Unreadable) as error:
+        problem = "too_big" if isinstance(error, TooBig) else \
+            "unsupported" if isinstance(error, Unsupported) else "unreadable"
+        ctx.error("Could not take a " + items[0]['kind'] + " - " + type(error).__name__, str(error))
+        finish(ctx, live, [ctx.t(problem)])
+        return None
+    asked = remember(ctx, conversation, "user", "\n".join(text for _, text, _ in prepared))
+    ctx.state.set(last_key, datetime.now().isoformat(timespec="seconds"))
+    talk(ctx, conversation, live, [part for _, _, parts in prepared for part in parts])
+    return asked, prepared
 
 
 @module.command("llm")
@@ -287,19 +495,21 @@ def start_fresh(ctx: Ctx) -> View:
     return View(text=ctx.t("fresh_done"))
 
 
-@module.match(is_chat, priority=priority, is_background=True)
+@module.match(is_chat, priority=priority, is_background=True, media=media_kinds)
 def take_message(ctx: Ctx) -> View | None:
     if not ctx.setting("llm_url"):
         ctx.error("There is no llm_url in config.yaml")
         return View(text=ctx.t("not_configured"))
-    text = ctx.text.strip()
+    items = gathered(ctx)
+    if not items:
+        return None
     since = seconds_since(ctx)
     if since is None or since > ask_within:
-        return answer_in(ctx, fresh(ctx), text)
+        return answer_in(ctx, fresh(ctx), items)
     if since < continue_within:
-        return answer_in(ctx, current(ctx), text)
+        return answer_in(ctx, current(ctx), items)
     asked = str(ctx.message.message_id) if ctx.message is not None else "0"
-    ctx.state.set(pending_prefix + asked, text)
+    ctx.state.set(pending_prefix + asked, json.dumps(items, ensure_ascii=False))
     return choice(ctx, asked, int(since // 60))
 
 
@@ -315,12 +525,12 @@ def choice(ctx: Ctx, asked: str = "", minutes: int = 0) -> View:
 @module.callback("pick", is_background=True)
 def pick(ctx: Ctx) -> View | None:
     kind, asked = (ctx.arguments + ("", ""))[:2]
-    text = ctx.state.get(pending_prefix + asked)
-    if kind not in ("continue", "new") or not text:
+    stored = ctx.state.get(pending_prefix + asked)
+    if kind not in ("continue", "new") or not stored:
         return View(ctx.t("core:not_working_buttons"), heading=None)
     ctx.state.delete(pending_prefix + asked)
     ctx.close_screen()
-    return answer_in(ctx, current(ctx) if kind == "continue" else fresh(ctx), text)
+    return answer_in(ctx, current(ctx) if kind == "continue" else fresh(ctx), pending_items(stored))
 
 
 # ----- history -----

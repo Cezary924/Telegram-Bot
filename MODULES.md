@@ -95,6 +95,9 @@ module = Module(
   gives one person one module, or puts the module on the default list for everybody. Without access the person is
   offered to ask for it, and the admins get the request with Grant and Refuse buttons. A ```role=Role.ADMIN``` handler
   still needs the rank on top.
+- A message that is not text - a photo, a voice message, a location and so on - skips commands and screens, and goes
+  only to matchers naming its kind in ```media```, as in ```media=("photo", "voice")```, without the predicate. When
+  nobody takes it, the person hears that the Bot does not understand.
 - A matcher of a guarded module stays silent towards people without access, and the message goes on as if the module
   were not there. Only a command answers them with the offer to ask, so a module catching plain messages does not pester
   anyone.
@@ -180,7 +183,8 @@ Every handler takes one argument.
 ctx.t("key", name="value")  # this module's texts, in the user's language
 ctx.t("core:yes_button")  # another namespace, named explicitly
 ctx.user  # id, name, role, language, consent
-ctx.text  # the incoming message text
+ctx.text  # the incoming message text, or the caption of a photo, a video and so on
+ctx.kind  # what came: "text", "photo", "voice", "location"... as Telegram names it
 ctx.forwarded_from  # who wrote a forwarded message, if they let it show
 ctx.arguments  # arguments from the callback data
 ctx.state["step"] = "2"  # per user and module, kept in the database
@@ -198,6 +202,8 @@ ctx.close_screen()  # closes the screen the user acted on, ending the flow
 ctx.send_file(path, "video")  # audio, document, photo, video or voice
 ctx.send_album(pictures)  # pictures as albums of up to ten
 ctx.file_limit  # the largest file Telegram lets a bot upload
+ctx.download(file_id)  # the bytes of a file the person sent, None when Telegram refuses
+ctx.download_limit  # the largest file Telegram lets a bot download
 with ctx.workspace() as path:  # a temporary directory, removed even after a failure
     ...
 ```

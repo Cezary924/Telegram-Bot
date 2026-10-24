@@ -94,6 +94,9 @@ module = Module(
   daje jednej osobie jeden moduł albo dopisuje moduł do listy domyślnej dla wszystkich. Bez dostępu osoba może o niego
   poprosić, a admini dostają prośbę z przyciskami Daj dostęp i Odmów. Handler z ```role=Role.ADMIN``` wymaga do tego
   jeszcze rangi.
+- Wiadomość, która nie jest tekstem - zdjęcie, głosówka, lokalizacja i tak dalej - omija komendy i ekrany, i trafia
+  tylko do matcherów, które wymieniają jej rodzaj w ```media```, np. ```media=("photo", "voice")```, bez predykatu. Gdy
+  nikt jej nie weźmie, użytkownik słyszy, że Bot jej nie rozumie.
 - Matcher modułu chronionego milczy wobec osób bez dostępu, a wiadomość idzie dalej, jakby modułu nie było. Prośbę o
   dostęp proponuje tylko komenda, więc moduł łapiący zwykłe wiadomości nikogo nie zaczepia.
 - Komenda tylko dla admina jest ukryta: nie trafia do menu komend Telegrama ani na ekran pomocy.
@@ -177,7 +180,8 @@ Każdy handler przyjmuje jeden argument.
 ctx.t("klucz", name="wartość")  # teksty tego modułu, w języku użytkownika
 ctx.t("core:yes_button")  # inna przestrzeń nazw, wskazana wprost
 ctx.user  # id, imię, ranga, język, zgoda
-ctx.text  # treść przychodzącej wiadomości
+ctx.text  # treść przychodzącej wiadomości albo podpis zdjęcia, filmu i tak dalej
+ctx.kind  # co przyszło: "text", "photo", "voice", "location"... tak, jak nazywa to Telegram
 ctx.forwarded_from  # kto napisał przesłaną wiadomość, o ile użytkownik na to pozwolił
 ctx.arguments  # argumenty z danych callbacku
 ctx.state["step"] = "2"  # na użytkownika i moduł, trzymane w bazie
@@ -195,6 +199,8 @@ ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc 
 ctx.send_file(path, "video")  # audio, document, photo, video albo voice
 ctx.send_album(pictures)  # zdjęcia w albumach po maksymalnie dziesięć
 ctx.file_limit  # największy plik, jaki Telegram pozwala wysłać botowi
+ctx.download(file_id)  # bajty pliku, który przysłał użytkownik, None gdy Telegram odmówi
+ctx.download_limit  # największy plik, jaki Telegram pozwala botowi pobrać
 with ctx.workspace() as path:  # katalog tymczasowy, kasowany także po błędzie
     ...
 ```
