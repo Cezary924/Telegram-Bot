@@ -24,7 +24,7 @@ def offline(monkeypatch):
 
 
 def use_published(monkeypatch, commits: int, tag: str = "v1.3"):
-    monkeypatch.setattr(about, "published_commits", lambda ctx: commits)
+    monkeypatch.setattr(about, "published_commits", lambda ctx, release: commits)
     monkeypatch.setattr(about, "published_tag", lambda ctx: tag)
 
 
@@ -54,6 +54,23 @@ def test_about_reports_being_up_to_date(known_version, monkeypatch):
     known_version.router.handle_message(make_message("/about"))
     known_version.router.wait_for_tasks()
     assert "Version status: <i>Up-to-date 😊</i>" in known_version.services.bot.last.text
+
+
+def test_commits_after_the_release_do_not_make_it_outdated(known_version, monkeypatch):
+    monkeypatch.setattr(about, "fetch", github_with_commits_after_the_release)
+    known_version.router.handle_message(make_message("/about"))
+    known_version.router.wait_for_tasks()
+    assert "Version status: <i>Up-to-date 😊</i>" in known_version.services.bot.last.text
+
+
+def test_a_build_past_the_release_shows_how_far(known_version, monkeypatch):
+    known_version.services.version = Version("v1.2", 102, ahead=2)
+    use_published(monkeypatch, 100, "v1.2")
+    known_version.router.handle_message(make_message("/about"))
+    known_version.router.wait_for_tasks()
+    text = known_version.services.bot.last.text
+    assert "Version: <i>v1.2+2 (102)</i>" in text
+    assert "Version status: <i>Beta (Stable v1.2 (100))</i>" in text
 
 
 def test_about_reports_being_behind(known_version, monkeypatch):
@@ -106,6 +123,13 @@ class Answer:
         return self._payload
 
 
+def github_with_commits_after_the_release(url: str):
+    if url.endswith("/releases/latest"):
+        return Answer(payload={'tag_name': "v1.2"})
+    page = 100 if url.endswith("&sha=v1.2") else 102
+    return Answer(links={'last': {'url': "https://api.github.com/repositories/1/commits?page=" + str(page)}})
+
+
 def context_for(app) -> AdvancedCtx:
     person = User(1, "First", "Last", "username", Role.GUEST, "en", True)
     return AdvancedCtx(app.services, not_none(app.registry.get("about")), person)
@@ -114,7 +138,15 @@ def context_for(app) -> AdvancedCtx:
 def test_published_commits_reads_the_last_page_number(app, monkeypatch):
     link = "https://api.github.com/repositories/1/commits?per_page=1&page=851"
     monkeypatch.setattr(about, "fetch", lambda url: Answer(links={'last': {'url': link}}))
-    assert about.published_commits(context_for(app)) == 851
+    assert about.published_commits(context_for(app), "v15.2") == 851
+
+
+def test_published_commits_are_counted_up_to_the_release(app, monkeypatch):
+    asked = []
+    link = "https://api.github.com/repositories/1/commits?per_page=1&page=851"
+    monkeypatch.setattr(about, "fetch", lambda url: asked.append(url) or Answer(links={'last': {'url': link}}))
+    about.published_commits(context_for(app), "v15.2")
+    assert asked == ["https://api.github.com/repos/someone/repo/commits?per_page=1&sha=v15.2"]
 
 
 def test_published_tag_reads_the_release_name(app, monkeypatch):

@@ -99,7 +99,7 @@ class App:
         user = self.config.github_username
         repository = self.config.github_repo
         tag = self.services.version.tag
-        if not user or not repository or not tag:
+        if not user or not repository or not tag or self.services.version.ahead:
             return ""
         return "\n\n" + "https://github.com/" + user + "/" + repository + "/releases/tag/" + tag
 

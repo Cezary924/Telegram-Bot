@@ -336,6 +336,14 @@ def test_the_update_message_links_to_the_release(app, bot):
     assert bot.last.text.endswith("\n\nhttps://github.com/someone/repo/releases/tag/v1.2")
 
 
+def test_a_build_past_a_release_carries_no_link(app, bot):
+    app.storage.state.set("version", "2.3.1 (907)")
+    app.services.version = Version("2.3.1", 909, ahead=2)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert "https://" not in bot.last.text
+
+
 def test_an_unknown_version_carries_no_link(app, bot):
     app.storage.state.set("version", "v1.1 (80)")
     app.services.version = Version()

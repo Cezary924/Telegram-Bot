@@ -335,7 +335,7 @@ def test_the_version_reaches_an_internal_module(services, module, person):
 def test_the_version_shows_a_tag_given_after_the_start(services, module, person, monkeypatch):
     module.is_internal = True
     services.version = Version("", 905, "abc123")
-    monkeypatch.setattr(version, "run_git", lambda *arguments: "2.3.0")
+    monkeypatch.setattr(version, "run_git", lambda *arguments: "2.3.0-0-gabc123")
     assert str(AdvancedCtx(services, module, person).version) == "2.3.0 (905)"
 
 
