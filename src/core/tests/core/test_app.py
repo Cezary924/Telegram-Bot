@@ -293,6 +293,23 @@ def test_an_unchanged_version_says_nothing(app, bot):
     assert bot.sent == []
 
 
+def test_a_tag_given_to_the_same_build_says_nothing(app, bot):
+    app.storage.state.set("version", "905")
+    app.services.version = Version("2.3.0", 905)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert bot.sent == []
+    assert app.storage.state.get("version") == "2.3.0 (905)"
+
+
+def test_a_build_with_more_commits_is_announced_without_a_tag(app, bot):
+    app.storage.state.set("version", "2.3.0 (905)")
+    app.services.version = Version("", 909)
+    app.storage.users.save(2, "Other", "Person", "other")
+    app.announce_update()
+    assert [message.chat_id for message in bot.sent] == [2]
+
+
 def test_a_user_with_notifications_off_is_told_silently(app, bot):
     app.storage.state.set("version", "v1.1 (80)")
     app.services.version = Version("v1.2", 100)
