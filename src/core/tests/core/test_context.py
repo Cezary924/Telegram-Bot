@@ -369,8 +369,8 @@ def test_a_message_that_cannot_be_delivered_is_reported_not_raised(services, mod
 
 
 def test_a_caption_is_the_text_of_media(services, module, person, user):
-    message = make_message("caption1", media={'photo': [{'file_id': "f1", 'file_unique_id': "u1", 'width': 9,
-                                                          'height': 6}]})
+    photo = {'file_id': "f1", 'file_unique_id': "u1", 'width': 9, 'height': 6}
+    message = make_message("caption1", media={'photo': [photo]})
     ctx = Ctx(services, module, person, message)
     assert (ctx.kind, ctx.text) == ("photo", "caption1")
 

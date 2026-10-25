@@ -237,8 +237,8 @@ def sound_part(data: bytes) -> dict:
 
 
 def sound_of(ctx: Ctx, data: bytes) -> list[dict]:
-    return [sound_part(sound) for sound in converted(ctx, data, ["-vn", "-ac", "1", "-ar", "16000",
-                                                                  "-t", str(sound_seconds)], "sound.wav")]
+    arguments = ["-vn", "-ac", "1", "-ar", "16000", "-t", str(sound_seconds)]
+    return [sound_part(sound) for sound in converted(ctx, data, arguments, "sound.wav")]
 
 
 def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:

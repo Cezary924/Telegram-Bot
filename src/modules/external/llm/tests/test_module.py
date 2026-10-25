@@ -405,8 +405,8 @@ def test_a_video_without_sound_still_goes_as_frames(chat, bot, model, monkeypatc
 
 def test_a_conversion_that_fails_is_unreadable(chat, bot, model, monkeypatch):
     bot.downloads["voice1"] = b"ogg1"
-    monkeypatch.setattr(llm.subprocess, "run", lambda *_args, **_values: SimpleNamespace(returncode=1,
-                                                                                        stderr=b"bad data"))
+    failed = SimpleNamespace(returncode=1, stderr=b"bad data")
+    monkeypatch.setattr(llm.subprocess, "run", lambda *_args, **_values: failed)
     send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
     assert answers(bot) == ["I could not read this message 💔"]
     assert model.asked == []
@@ -429,8 +429,8 @@ def test_an_album_is_one_message(chat, bot, model, monkeypatch):
         chat.router.handle_message(make_message("both?" if number == 0 else "", message_id=100 + number,
                                                 media=photo(file_id) | {'media_group_id': "g1"}))
     chat.router.wait_for_tasks()
-    assert model.asked[0][-1]['content'] == [{'type': "text", 'text': "[Photo]\nboth?\n[Photo]"},
-                                            picture(b"jpeg1"), picture(b"jpeg2")]
+    both = [{'type': "text", 'text': "[Photo]\nboth?\n[Photo]"}, picture(b"jpeg1"), picture(b"jpeg2")]
+    assert model.asked[0][-1]['content'] == both
     assert len(answers(bot)) == 1
 
 
