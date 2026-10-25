@@ -26,7 +26,7 @@ from core.ui.html import Html
 from core.ui.keyboard import Button, delete_message
 from core.ui.view import View
 from core.utils import not_none
-from core.version import Version
+from core.version import Version, tagged
 
 
 @dataclass(frozen=True)
@@ -388,7 +388,7 @@ class AdvancedCtx(Ctx):
 
     @property
     def version(self) -> Version:
-        return self._services.version
+        return tagged(self._services.version)
 
     @property
     def uptime(self) -> timedelta:

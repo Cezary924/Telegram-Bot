@@ -19,7 +19,7 @@ from core.services import Services
 from core.ui.html import escape, plain
 from core.ui.view import View
 from core.utils import not_none, without_secrets
-from core.version import read as read_version
+from core.version import Version, read as read_version
 
 version_key = "version"
 stopped_key = "stopped_at"
@@ -83,14 +83,12 @@ class App:
                 print_error("Could not publish the command list - " + type(error).__name__ + ".", str(error))
 
     def announce_update(self) -> None:
-        current = str(self.services.version)
+        current = self.services.version
         previous = self.storage.state.get(version_key)
-        if previous == current:
+        self.storage.state.set(version_key, str(current))
+        if previous is None or Version.parse(previous).commits == current.commits:
             return
-        self.storage.state.set(version_key, current)
-        if previous is None:
-            return
-        print_log("The version changed from " + previous + " to " + current + ".")
+        print_log("The version changed from " + previous + " to " + str(current) + ".")
         link = self.release_url()
         for row in self.storage.users.get_all():
             text = self.catalog.text(core_namespace, "bot_updated",
@@ -101,7 +99,7 @@ class App:
         user = self.config.github_username
         repository = self.config.github_repo
         tag = self.services.version.tag
-        if not user or not repository or not tag:
+        if not user or not repository or not tag or self.services.version.ahead:
             return ""
         return "\n\n" + "https://github.com/" + user + "/" + repository + "/releases/tag/" + tag
 
