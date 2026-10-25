@@ -168,14 +168,15 @@ class Router:
         if message.from_user is None:
             return
         user = self.load_user(message.from_user)
-        text = message.text or ""
-        print_log("Message: " + user.label + ".", text)
+        text = message.text or message.caption or ""
+        is_text = message.content_type == "text"
+        print_log("Message: " + user.label + ".", text if is_text else "[" + message.content_type + "] " + text)
         if not self.gate(user):
             return
-        if text.startswith("/"):
+        if is_text and text.startswith("/"):
             self.handle_command(user, message, text)
             return
-        if self.handle_state(user, message):
+        if is_text and self.handle_state(user, message):
             return
         if self.handle_matchers(user, message):
             return
@@ -207,8 +208,10 @@ class Router:
 
     def handle_matchers(self, user: User, message: telebot.types.Message) -> bool:
         for module, matcher in self._services.registry.matchers():
+            if message.content_type != "text" and message.content_type not in matcher.media:
+                continue
             try:
-                if not matcher.predicate(message.text or ""):
+                if message.content_type == "text" and not matcher.predicate(message.text or ""):
                     continue
             except Exception as error:
                 print_error("Matcher failed in '" + module.name + "' - " +
@@ -430,4 +433,4 @@ class Router:
     def register(self, bot: telebot.TeleBot) -> None:
         bot.callback_query_handler(func=lambda callback: True)(self.guarded(self.handle_callback))
         bot.message_handler(func=lambda message: True,
-                            content_types=['text'])(self.guarded(self.handle_message))
+                            content_types=telebot.util.content_type_media)(self.guarded(self.handle_message))

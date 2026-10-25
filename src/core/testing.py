@@ -2,6 +2,7 @@ import os
 from dataclasses import dataclass
 
 import telebot
+from telebot.apihelper import ApiTelegramException
 
 from core.context import file_senders
 from core.db.storage import Storage
@@ -23,13 +24,19 @@ reachable_date = 1681470948
 
 def make_message(text: str, user_id: int = 1, message_id: int = 100,
                  language_code: str = "en", forward_from: int | None = None,
-                 is_forwarded: bool = False) -> telebot.types.Message:
+                 is_forwarded: bool = False, media: dict | None = None) -> telebot.types.Message:
     payload: dict = {
         'message_id': message_id,
         'from': {'id': user_id, 'is_bot': False, 'first_name': "First", 'last_name': "Last",
                  'username': "username", 'language_code': language_code},
         'chat': {'id': user_id, 'type': "private", 'first_name': "First"},
-        'date': reachable_date, 'text': text}
+        'date': reachable_date}
+    if media is None:
+        payload['text'] = text
+    else:
+        payload.update(media)
+        if text:
+            payload['caption'] = text
     if forward_from is not None:
         payload['forward_origin'] = {
             'type': "user", 'date': reachable_date,
@@ -97,6 +104,7 @@ class FakeBot:
         self.deleted: list[tuple[int, int]] = []
         self.answered: list[tuple[str, str | None]] = []
         self.commands: dict[str, list[str]] = {}
+        self.downloads: dict[str, bytes] = {}
         self.is_polling = True
         self._message_id = 1000
 
@@ -117,6 +125,14 @@ class FakeBot:
 
     def delete_message(self, chat_id: int, message_id: int) -> None:
         self.deleted.append((chat_id, message_id))
+
+    def get_file(self, file_id: str) -> telebot.types.File:
+        if file_id not in self.downloads:
+            raise ApiTelegramException("getFile", "", {'error_code': 400, 'description': "file not found"})
+        return telebot.types.File(file_id, file_id, len(self.downloads[file_id]), "files/" + file_id)
+
+    def download_file(self, file_path: str) -> bytes:
+        return self.downloads[file_path.removeprefix("files/")]
 
     def answer_callback_query(self, callback_query_id: str, text: str | None = None) -> None:
         self.answered.append((callback_query_id, text))

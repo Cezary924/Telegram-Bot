@@ -6,3 +6,8 @@ CREATE TABLE IF NOT EXISTS module_llm_messages (
     content TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS module_llm_settings (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    keep_days INTEGER NOT NULL
+);

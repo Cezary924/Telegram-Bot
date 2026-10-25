@@ -4,12 +4,13 @@ description: Talks with you using a local language model
 commands.llm: Learn how to talk with the assistant
 
 title: Assistant
-how: Just write to me - every message that is neither a command nor a link goes to the language model. A conversation goes on while you write, and an hour of silence starts a new one
+how: Just write to me or send a photo, a voice message, a video or a text file - every message that is neither a command nor a link goes to the language model. A conversation goes on while you write, and an hour of silence starts a new one
 new: New conversation
 fresh_done: A new conversation has started
 continue: Continue
 ask: Your last message was {minutes} minutes ago. Carry on with that conversation or start a new one?
-waiting: Writing
+waiting: Analyzing
+writing: Writing
 thinking: Thinking
 reasoning: Reasoning
 busy: I am still answering your previous message, please wait a moment
@@ -17,7 +18,64 @@ failed: The language model did not answer
 empty: The language model returned nothing
 not_configured: The language model is not set up
 settings_button: Settings
-settings_text: Choose whether the model thinks before it answers. Thinking gives better answers but takes much longer
-settings_current: Now
+settings_text: Choose whether the model thinks before it answers, and how long I keep your conversations
+thinking_mode: Model thinking
+thinking_mode_text: With thinking the model answers better, but takes much longer
 thinking_on: With thinking
 thinking_off: Without thinking
+
+history: Conversation history
+history_empty: You have no conversations yet
+pick:
+  text: Pick a conversation.
+  page: Page {page} of {pages}, {total} in total
+previous: Previous
+next: Next
+conversation: Conversation
+labels:
+  started: Started
+  last: Last message
+  messages: Messages
+  opening: First question
+  thinking: Thinking
+  keeping: Deleting old conversations
+  conversations: Conversations
+resume: Carry on with this conversation
+resumed: Back to this conversation, write what comes next
+export: Download as a file
+export_file: Conversation
+export_you: You
+export_assistant: Assistant
+delete: Delete
+sure: Are you sure you want to delete this conversation?
+deleted: The conversation has been deleted
+gone: This conversation is not here anymore
+keeping: Keeping the history
+keeping_text: Conversations with nothing new for longer than the chosen time are deleted on their own
+keep_days: After {days} days
+keep_always: Never
+wipe: Delete the whole history
+wipe_sure: Are you sure you want to delete all your conversations? This cannot be undone
+wiped: The whole conversation history has been deleted
+
+too_big: This file is too big - Telegram lets me download at most 20 MB
+unreadable: I could not read this message
+unsupported: I cannot read this kind of file yet
+media:
+  photo: Photo
+  document: File
+  sticker: Sticker
+  animation: GIF
+  video: Video
+  video_note: Video message
+  voice: Voice message
+  audio: Recording
+  location: Location
+  venue: Place
+  contact: Contact
+  poll: Poll
+  dice: Roll
+describe:
+  picture: Describe in one or two sentences what is in this picture. Answer with the description only.
+  film: Describe in one or two sentences what happens in this video - these are its frames in order, sometimes with its sound. Answer with the description only.
+  sound: Write in one or two sentences what is said in this recording or what can be heard in it. Answer with the description only.

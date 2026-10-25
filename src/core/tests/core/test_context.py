@@ -1,5 +1,6 @@
 import os
 import pytest
+from telebot.apihelper import ApiTelegramException
 
 from core import paths, version
 from core.context import AdvancedCtx, Ctx, User, create_context, user_from_row
@@ -372,6 +373,47 @@ def test_a_message_that_cannot_be_delivered_is_reported_not_raised(services, mod
     services.storage.users.save(2, "Other", "Person", "other")
     assert AdvancedCtx(services, module, person).notify(2, "text1") is False
     assert "Could not deliver a message to 2 - RuntimeError." in capsys.readouterr().out
+
+
+def test_a_caption_is_the_text_of_media(services, module, person, user):
+    photo = {'file_id': "f1", 'file_unique_id': "u1", 'width': 9, 'height': 6}
+    message = make_message("caption1", media={'photo': [photo]})
+    ctx = Ctx(services, module, person, message)
+    assert (ctx.kind, ctx.text) == ("photo", "caption1")
+
+
+def test_a_plain_message_is_text(ctx):
+    assert ctx.kind == "text" and ctx.text == ""
+
+
+def test_a_file_the_user_sent_is_downloaded(ctx, services):
+    services.bot = FakeBot()
+    services.bot.downloads["f1"] = b"bytes1"
+    assert ctx.download("f1") == b"bytes1"
+    assert ctx.download_limit == 20 * 1024 * 1024
+
+
+def test_a_file_telegram_will_not_give_is_none(ctx, services, capsys):
+    services.bot = FakeBot()
+    assert ctx.download("missing") is None
+    assert "Could not download a file from 1 - ApiTelegramException." in capsys.readouterr().out
+
+
+def test_a_live_message_can_be_sent_quietly_and_removed(ctx, services):
+    services.bot = FakeBot()
+    message_id = not_none(ctx.reply_live("text1", is_silent=True))
+    assert services.bot.sent[0].is_silent
+    assert ctx.remove(message_id) is True
+    assert services.bot.deleted == [(1, message_id)]
+
+
+def test_a_live_message_telegram_will_not_remove_says_so(ctx, services):
+    def refuse(*_args, **_kwargs):
+        raise ApiTelegramException("deleteMessage", "", {'error_code': 400, 'description': "can't be deleted"})
+
+    services.bot = FakeBot()
+    services.bot.delete_message = refuse
+    assert ctx.remove(500) is False
 
 
 def test_a_delivered_message_says_so(services, module, person, user):
