@@ -146,3 +146,13 @@ def test_view_lookup(registry, module1):
     assert module is module1 and view.name == "view1"
     assert registry.view("module1", "view9") is None
     assert registry.view("module9", "view1") is None
+
+
+def test_two_modules_cannot_share_a_tool_name(registry):
+    first, second = Module(name="module1"), Module(name="module1_add")
+    first.action("add_one")(handler)
+    second.action("one")(handler)
+    registry.add(first)
+    with pytest.raises(ValueError):
+        registry.add(second)
+    assert registry.get("module1_add") is None

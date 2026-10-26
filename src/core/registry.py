@@ -5,6 +5,7 @@ class Registry:
     def __init__(self) -> None:
         self._modules: dict[str, Module] = {}
         self._commands: dict[str, Module] = {}
+        self._tools: dict[str, Module] = {}
 
     def add(self, module: Module) -> None:
         if module.name in self._modules:
@@ -14,9 +15,16 @@ class Registry:
             if owner is not None:
                 raise ValueError("Command '" + command.name + "' is declared by '" + owner.name +
                                  "' and '" + module.name + "'")
+        for action in module.actions:
+            owner = self._tools.get(action.tool)
+            if owner is not None:
+                raise ValueError("Action '" + action.tool + "' is declared by '" + owner.name +
+                                 "' and '" + module.name + "'")
         self._modules[module.name] = module
         for command in module.commands:
             self._commands[command.name] = module
+        for action in module.actions:
+            self._tools[action.tool] = module
 
     def get(self, name: str) -> Module | None:
         return self._modules.get(name)

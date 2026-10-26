@@ -64,6 +64,7 @@ module = Module(
     config_keys=["service_url"],  # jedyne wpisy z config.yaml, które może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
     is_guarded=True,  # tylko dla osób wpuszczonych przez admina albo dla wszystkich z listy domyślnej (obecnie: admini)
+    is_assistant=True,  # może przekazać akcje i kontekst innych modułów modelowi językowemu
     icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
     endings={'saved': "✅"})  # stawiana po nim
 ```
@@ -78,15 +79,17 @@ module = Module(
 
 ## 🧩 Deklaracje
 
-| Dekorator                                                           | Co robi                                                                   |
-|---------------------------------------------------------------------|---------------------------------------------------------------------------|
-| ```@module.command("nazwa", role=, description=, is_background=)``` | rejestruje ```/nazwa``` i dodaje ją do menu komend w Telegramie           |
-| ```@module.callback("akcja", role=, is_background=)```              | obsługuje przycisk ```moduł:akcja:argumenty```                            |
-| ```@module.view("nazwa", parent=, title=)```                        | buduje ekran, umieszczony pod ```parent``` w drzewie modułu               |
-| ```@module.settings(role=)```                                       | buduje ekran ustawień modułu, widoczny w ```/settings```                  |
-| ```@module.state("nazwa", role=, is_background=)```                 | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
-| ```@module.match(predykat, priority=, role=, is_background=)```     | przejmuje wiadomości pasujące do ```predykat(text)```                     |
-| ```@module.job(interval=, name=, is_aligned=)```                    | uruchamia się co ```interval``` sekund we własnym wątku                   |
+| Dekorator                                                                                 | Co robi                                                                   |
+|-------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
+| ```@module.command("nazwa", role=, description=, is_background=)```                       | rejestruje ```/nazwa``` i dodaje ją do menu komend w Telegramie           |
+| ```@module.callback("akcja", role=, is_background=)```                                    | obsługuje przycisk ```moduł:akcja:argumenty```                            |
+| ```@module.view("nazwa", parent=, title=)```                                              | buduje ekran, umieszczony pod ```parent``` w drzewie modułu               |
+| ```@module.settings(role=)```                                                             | buduje ekran ustawień modułu, widoczny w ```/settings```                  |
+| ```@module.state("nazwa", role=, is_background=)```                                       | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
+| ```@module.match(predykat, priority=, role=, is_background=)```                           | przejmuje wiadomości pasujące do ```predykat(text)```                     |
+| ```@module.job(interval=, name=, is_aligned=)```                                          | uruchamia się co ```interval``` sekund we własnym wątku                   |
+| ```@module.action("nazwa", parameters=, optional=, description=, role=, is_confirmed=)``` | pozwala asystentowi zrobić ```nazwa``` za użytkownika                     |
+| ```@module.context()```                                                                   | mówi asystentowi, co moduł wie o użytkowniku                              |
 
 - ```role``` domyślnie wynosi ```Role.GUEST```.
 - Są trzy rangi: ```Role.BANNED```, ```Role.GUEST``` i ```Role.ADMIN```. Każdy nowy człowiek jest gościem.
@@ -171,6 +174,61 @@ ustawieniach dostają ```parent="settings"```:
 def settings(ctx: Ctx) -> View:
     return View(text=ctx.t("settings.text"), buttons=[Button(ctx.t("settings.format"), "format")])
 ```
+
+## 🤖 Asystent
+
+Moduł może pozwolić asystentowi - modułowi ```llm``` - działać w sobie w imieniu osoby, która z nim rozmawia. Akcja to
+funkcja, którą model językowy może wywołać, z argumentami, które sam uzupełnia:
+
+```python
+from core.api import Ctx, Module, Outcome
+
+
+@module.action("add", parameters={'content': str, 'date': str}, is_confirmed=True)
+def act_add(ctx: Ctx, content: str, date: str) -> Outcome:
+    problem = wrong_content(ctx, content)
+    if problem:
+        return Outcome.refused(problem)
+    return Outcome.ask(ctx.t("add_sure") + "\n" + details(ctx, content, date), lambda: added(ctx, content, date))
+
+
+@module.action("list")
+def act_list(ctx: Ctx) -> Outcome:
+    return Outcome.done([{'id': row['id'], 'date': row['date']} for row in reminders_of(ctx)])
+```
+
+- Akcja działa z ```Ctx``` osoby, która rozmawia, jak każdy handler. Model wybiera tylko argumenty, nigdy osobę, więc
+  nic, co wyśle, nie dosięgnie cudzych danych.
+- Argumenty to ```str```, ```int```, ```float``` albo ```bool``` i każdy jest wymagany, chyba że jest wymieniony w
+  ```optional=["date"]``` - wtedy ten, którego model nie poda, przychodzi jako ```None```. Rdzeń zamienia ```"3"``` na
+  ```3``` i odrzuca to, co nie pasuje, zanim moduł to zobaczy.
+- Moduł sprawdza wartości tymi samymi funkcjami, których używają jego ekrany. To, co ```ctx.retry``` pokazuje na
+  ekranie, ```Outcome.refused``` oddaje modelowi, a ten może dopytać osobę jeszcze raz.
+- ```Outcome.done(result)``` to odpowiedź - krótki tekst albo lista lub słownik prostych wartości do przeczytania przez
+  model.
+- ```Outcome.ask(question, then)``` mówi, co by się stało. Z ```is_confirmed=True``` osoba dostaje pytanie z przyciskami
+  ✅ i ❌. ✅ uruchamia akcję jeszcze raz od początku, więc wszystko jest sprawdzane ponownie, i dopiero wtedy wywołuje
+  ```then()```, którego tekst zajmuje miejsce pytania. Bez ```is_confirmed``` rdzeń wywołuje ```then()``` od razu.
+- Akcja jest oferowana tylko osobom, które mogą korzystać z jej modułu, a z ```role=``` tylko tym z odpowiednią rangą.
+  Moduł wyłączony albo taki, który się nie załadował, nie oferuje nic.
+- Model zna akcję jako ```moduł_akcja```, np. ```reminder_add```. To, co o niej czyta, to teksty jak wszystkie inne:
+  ```actions.add``` opisuje akcję, a ```parameters.content``` parametr, wspólny dla wszystkich akcji modułu.
+  ```description=``` wskazuje inny klucz dla akcji.
+
+Moduł może też powiedzieć asystentowi, co wie o osobie - kilka linijek, które ten może sam poruszyć:
+
+```python
+@module.context()
+def summary(ctx: Ctx) -> str:
+    return "\n".join(escape(row['date'] + " - " + row['content']) for row in upcoming(ctx))
+```
+
+Podsumowanie jest znacznikami jak każdy inny tekst, więc wszystko, co napisał użytkownik, jest escapowane. Rdzeń zamienia
+je na zwykły tekst i zostawia najwyżej pięć linijek. W ustawieniach asystenta osoba decyduje, w których modułach może on
+czytać i działać.
+
+> Tylko moduł z ```is_assistant=True``` w manifeście dostaje ```ctx.assistant```: ```modules()```, ```actions()```,
+> ```act(module, action, arguments, is_confirmed=)``` i ```context(module)```, zawsze dla ```ctx.user```.
 
 ## 🎒 Kontekst
 
@@ -343,6 +401,7 @@ youtube: false
 - nazwa w manifeście zgadza się z katalogiem, nic nie wymaga samego siebie,
 - jest jeden plik językowy na każdy język Bota, każdy z tymi samymi kluczami co ```en.yaml```, w tym ```name```,
   ```description``` oraz klucz opisu każdej komendy,
+- każda akcja ma tekst, który ją opisuje, i tekst dla każdego swojego parametru,
 - każdy tekst to jedna goła linijka, bez cudzysłowów, łamania linii, tagów i Markdownu,
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,

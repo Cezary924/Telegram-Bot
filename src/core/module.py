@@ -9,6 +9,8 @@ from core.ui.view import View
 name_pattern = re.compile(r"[a-z][a-z0-9_]*")
 action_pattern = re.compile(r"[a-z][a-z0-9_]*")
 command_pattern = re.compile(r"[a-z][a-z0-9_]*")
+parameter_pattern = re.compile(r"[a-z][a-z0-9_]*")
+parameter_types: dict[type, str] = {str: "string", int: "integer", float: "number", bool: "boolean"}
 
 settings_view = "settings"
 settings_hub = "settings"
@@ -66,6 +68,44 @@ class ViewHandler:
 
 
 @dataclass(frozen=True)
+class Outcome:
+    status: str
+    result: str | list | dict = ""
+    then: Callable[[], str] | None = None
+
+    @classmethod
+    def done(cls, result: str | list | dict) -> "Outcome":
+        return cls("done", result)
+
+    @classmethod
+    def refused(cls, problem: str) -> "Outcome":
+        return cls("refused", problem)
+
+    @classmethod
+    def ask(cls, question: str, then: Callable[[], str]) -> "Outcome":
+        return cls("asking", question, then)
+
+
+@dataclass(frozen=True)
+class Action:
+    name: str
+    handler: Callable
+    tool: str
+    parameters: dict[str, type]
+    description: str
+    role: Role
+    is_confirmed: bool
+    optional: tuple[str, ...] = ()
+
+    @staticmethod
+    def key(parameter: str) -> str:
+        return "parameters." + parameter
+
+    def type_of(self, parameter: str) -> str:
+        return parameter_types[self.parameters[parameter]]
+
+
+@dataclass(frozen=True)
 class Job:
     name: str
     handler: Callable
@@ -83,6 +123,7 @@ class Module:
     config_keys: list[str] = field(default_factory=list)
     notifications: str = ""
     is_guarded: bool = False
+    is_assistant: bool = False
     icons: dict[str, str] = field(default_factory=dict)
     endings: dict[str, str] = field(default_factory=dict)
 
@@ -92,7 +133,9 @@ class Module:
     states: list[State] = field(default_factory=list, init=False)
     views: list[ViewHandler] = field(default_factory=list, init=False)
     jobs: list[Job] = field(default_factory=list, init=False)
+    actions: list[Action] = field(default_factory=list, init=False)
     settings_screen: SettingsScreen | None = field(default=None, init=False)
+    summary: Callable | None = field(default=None, init=False)
 
     is_internal: bool = field(default=False, init=False)
     path: str = field(default="", init=False)
@@ -207,6 +250,36 @@ class Module:
 
         def decorator(handler: Callable) -> Callable:
             self.jobs.append(Job(name or handler.__name__, handler, interval, is_aligned))
+            return handler
+
+        return decorator
+
+    def action(self, name: str, parameters: dict[str, type] | None = None, description: str | None = None,
+               role: Role = Role.GUEST, is_confirmed: bool = False, optional: list[str] | None = None) -> Callable:
+        if not action_pattern.fullmatch(name):
+            raise ValueError("Action name must be lowercase letters, digits and underscores: " + name)
+        if any(action.name == name for action in self.actions):
+            raise ValueError("Module '" + self.name + "' declares action '" + name + "' twice")
+        for parameter, kind in (parameters or {}).items():
+            if not parameter_pattern.fullmatch(parameter) or kind not in parameter_types:
+                raise ValueError("Action '" + name + "' in '" + self.name + "' has a wrong parameter: " + parameter)
+        for parameter in optional or []:
+            if parameter not in (parameters or {}):
+                raise ValueError("Action '" + name + "' in '" + self.name + "' has no parameter: " + parameter)
+
+        def decorator(handler: Callable) -> Callable:
+            self.actions.append(Action(name, handler, self.name + "_" + name, dict(parameters or {}),
+                                       description or "actions." + name, role, is_confirmed, tuple(optional or [])))
+            return handler
+
+        return decorator
+
+    def context(self) -> Callable:
+        if self.summary is not None:
+            raise ValueError("Module '" + self.name + "' declares context twice")
+
+        def decorator(handler: Callable) -> Callable:
+            self.summary = handler
             return handler
 
         return decorator

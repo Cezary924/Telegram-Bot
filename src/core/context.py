@@ -4,6 +4,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 import requests
 import telebot
@@ -27,6 +28,9 @@ from core.ui.keyboard import Button, delete_message
 from core.ui.view import View
 from core.utils import not_none
 from core.version import Version, tagged
+
+if TYPE_CHECKING:
+    from core.assistant import Assistant
 
 
 @dataclass(frozen=True)
@@ -211,6 +215,13 @@ class Ctx:
         if isinstance(origin, telebot.types.MessageOriginUser):
             return origin.sender_user.id
         return None
+
+    @property
+    def assistant(self) -> "Assistant":
+        if not self.module.is_assistant:
+            raise PermissionError("Module '" + self.module.name + "' is not an assistant")
+        from core.assistant import Assistant
+        return Assistant(self._services, self.user)
 
     @property
     def text(self) -> str:

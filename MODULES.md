@@ -64,6 +64,7 @@ module = Module(
     config_keys=["service_url"],  # the only entries of config.yaml it can read
     notifications="name",  # the text key its notifications are listed under in /settings
     is_guarded=True,  # usable only by people an admin let in, or by everyone on the default list (currently: admins)
+    is_assistant=True,  # may hand other modules' actions and context to a language model
     icons={'name': "🔔"},  # put in front of a text, in every language
     endings={'saved': "✅"})  # put after it
 ```
@@ -79,15 +80,17 @@ module = Module(
 
 ## 🧩 Declarations
 
-| Decorator                                                          | What it does                                                      |
-|--------------------------------------------------------------------|-------------------------------------------------------------------|
-| ```@module.command("name", role=, description=, is_background=)``` | registers ```/name``` and adds it to the Telegram command menu    |
-| ```@module.callback("action", role=, is_background=)```            | handles the button ```module:action:arguments```                  |
-| ```@module.view("name", parent=, title=)```                        | builds a screen, placed under ```parent``` in the module tree     |
-| ```@module.settings(role=)```                                      | builds the module's settings screen, listed in ```/settings```    |
-| ```@module.state("name", role=, is_background=)```                 | takes plain messages while the user sits on the screen ```name``` |
-| ```@module.match(predicate, priority=, role=, is_background=)```   | takes messages matching ```predicate(text)```                     |
-| ```@module.job(interval=, name=, is_aligned=)```                   | runs every ```interval``` seconds in its own thread               |
+| Decorator                                                                                | What it does                                                      |
+|------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| ```@module.command("name", role=, description=, is_background=)```                       | registers ```/name``` and adds it to the Telegram command menu    |
+| ```@module.callback("action", role=, is_background=)```                                  | handles the button ```module:action:arguments```                  |
+| ```@module.view("name", parent=, title=)```                                              | builds a screen, placed under ```parent``` in the module tree     |
+| ```@module.settings(role=)```                                                            | builds the module's settings screen, listed in ```/settings```    |
+| ```@module.state("name", role=, is_background=)```                                       | takes plain messages while the user sits on the screen ```name``` |
+| ```@module.match(predicate, priority=, role=, is_background=)```                         | takes messages matching ```predicate(text)```                     |
+| ```@module.job(interval=, name=, is_aligned=)```                                         | runs every ```interval``` seconds in its own thread               |
+| ```@module.action("name", parameters=, optional=, description=, role=, is_confirmed=)``` | lets the assistant do ```name``` for the user                     |
+| ```@module.context()```                                                                  | tells the assistant what the module knows about the user          |
 
 - ```role``` defaults to ```Role.GUEST```.
 - There are three ranks: ```Role.BANNED```, ```Role.GUEST``` and ```Role.ADMIN```. Everyone new is a guest.
@@ -174,6 +177,60 @@ Screens deeper in the settings take ```parent="settings"```:
 def settings(ctx: Ctx) -> View:
     return View(text=ctx.t("settings.text"), buttons=[Button(ctx.t("settings.format"), "format")])
 ```
+
+## 🤖 Assistant
+
+A module can let the assistant - the ```llm``` module - work in it for the person talking to it. An action is a function
+the language model may call, with arguments it fills in itself:
+
+```python
+from core.api import Ctx, Module, Outcome
+
+
+@module.action("add", parameters={'content': str, 'date': str}, is_confirmed=True)
+def act_add(ctx: Ctx, content: str, date: str) -> Outcome:
+    problem = wrong_content(ctx, content)
+    if problem:
+        return Outcome.refused(problem)
+    return Outcome.ask(ctx.t("add_sure") + "\n" + details(ctx, content, date), lambda: added(ctx, content, date))
+
+
+@module.action("list")
+def act_list(ctx: Ctx) -> Outcome:
+    return Outcome.done([{'id': row['id'], 'date': row['date']} for row in reminders_of(ctx)])
+```
+
+- An action runs with the ```Ctx``` of the person talking, like any handler. The model chooses the arguments only, never
+  the person, so nothing it sends reaches anybody else's data.
+- Arguments are ```str```, ```int```, ```float``` or ```bool```, and each one is required, unless it is named in
+  ```optional=["date"]``` - then one the model leaves out comes as ```None```. The core turns ```"3"``` into ```3``` and
+  refuses what does not fit before the module sees it.
+- The module checks the values with the same functions its screens use. What ```ctx.retry``` shows on a screen,
+  ```Outcome.refused``` gives to the model, which can then ask the person again.
+- ```Outcome.done(result)``` is the answer - a short text, or a list or a dict of plain values for the model to read.
+- ```Outcome.ask(question, then)``` says what would happen. With ```is_confirmed=True``` the person gets the question
+  with ✅ and ❌ buttons. ✅ runs the action again from the start, so everything is checked once more, and only then calls
+  ```then()```, whose text takes the place of the question. Without ```is_confirmed``` the core calls ```then()``` at
+  once.
+- An action is offered only to people who may use its module, and with ```role=``` only to those with the rank. A module
+  turned off, or one that did not load, offers nothing.
+- The model knows an action as ```module_action```, like ```reminder_add```. What it reads about it are texts like any
+  other: ```actions.add``` describes the action and ```parameters.content``` a parameter, shared by every action of the
+  module. ```description=``` names another key for the action.
+
+A module can also tell the assistant what it knows about the person - a few lines it may bring up on its own:
+
+```python
+@module.context()
+def summary(ctx: Ctx) -> str:
+    return "\n".join(escape(row['date'] + " - " + row['content']) for row in upcoming(ctx))
+```
+
+The summary is markup like every other text, so whatever the user wrote is escaped. The core turns it into plain text
+and keeps five lines at most. In the assistant's settings the person decides which modules it may read and act in.
+
+> Only a module with ```is_assistant=True``` in its manifest gets ```ctx.assistant```: ```modules()```, ```actions()```,
+> ```act(module, action, arguments, is_confirmed=)``` and ```context(module)```, always for ```ctx.user```.
 
 ## 🎒 Context
 
@@ -345,6 +402,7 @@ youtube: false
 - the manifest name matches the directory and nothing requires itself,
 - there is one language file per language the Bot supports, each with the same keys as ```en.yaml```, including
   ```name```, ```description``` and a description key for every command,
+- every action has a text describing it and a text for each of its parameters,
 - every text is one bare line, with no quotes, line breaks, tags or Markdown,
 - callback names leave room for arguments within Telegram's 64 byte limit,
 - ```schema.sql``` creates objects carrying the module prefix only,
