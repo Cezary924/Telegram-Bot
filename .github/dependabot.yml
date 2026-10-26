@@ -1,9 +1,16 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/"
+    directories:
+      - "/"
+      - "/src/modules/*/*"
     schedule:
       interval: "daily"
+    groups:
+      every-copy:
+        group-by: dependency-name
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
