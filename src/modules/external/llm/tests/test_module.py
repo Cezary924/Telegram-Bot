@@ -1,5 +1,8 @@
 import base64
+import json
+import re
 import time
+from dataclasses import replace
 from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -7,26 +10,46 @@ from types import SimpleNamespace
 import pytest
 import requests
 
-from core.api import Ctx, JobCtx, Role, User
-from core.testing import make_callback, make_message
+from core.api import Ctx, JobCtx, Module, Outcome, Role, User
+from core.testing import make_callback, make_message, not_none
 from modules.external.llm import module as llm
 
 real_stream = llm.stream
+stamp = re.compile(r"^\[(?:Now it is|Teraz jest): [^\n\]]*]\n")
+
+
+def unstamped(message: dict, clocks: list[str]) -> dict:
+    content = message['content']
+    if message['role'] != "user":
+        return dict(message)
+    text = content if isinstance(content, str) else content[0]['text']
+    found = stamp.match(text)
+    if found is None:
+        return dict(message)
+    clocks.append(found.group(0))
+    rest = text[found.end():]
+    return message | {'content': rest if isinstance(content, str) else [content[0] | {'text': rest}] + content[1:]}
 
 
 class Model:
     def __init__(self):
         self.asked: list[list[dict]] = []
+        self.systems: list[str] = []
+        self.clocks: list[str] = []
+        self.tools: list[list[dict] | None] = []
         self.thinking: list[bool] = []
-        self.answer: list[tuple[str, str]] = [("answer", "Hello there")]
+        self.answer: list[tuple] = [("answer", "Hello there")]
+        self.script: list[list[tuple]] = []
         self.error: Exception | None = None
 
-    def stream(self, _ctx, messages, thinking):
-        self.asked.append([dict(one) for one in messages])
+    def stream(self, _ctx, messages, thinking, tools=None):
+        self.systems += [one['content'] for one in messages if one['role'] == "system"]
+        self.asked.append([unstamped(one, self.clocks) for one in messages if one['role'] != "system"])
+        self.tools.append(tools)
         self.thinking.append(thinking)
         if self.error is not None:
             raise self.error
-        yield from self.answer
+        yield from self.script.pop(0) if self.script else self.answer
 
 
 @pytest.fixture
@@ -174,8 +197,26 @@ def test_thinking_is_folded_above_the_answer(chat, bot, model):
     assert stored(chat)[-1] == (1, "assistant", "Four")
 
 
+def test_thinking_keeps_quiet_about_the_instructions():
+    thinking = ("The user asks about the weather. The system prompt says I must not show ids. I will answer briefly.\n"
+                "- According to the instructions, dates only when asked.\n- Answer in Polish.\n\n"
+                "Użytkownik pyta o pogodę. Zgodnie z instrukcjami nie podaję godziny. Odpowiem krótko.")
+    assert llm.discreet(thinking) == ("The user asks about the weather. I will answer briefly.\n- Answer in Polish.\n\n"
+                                      "Użytkownik pyta o pogodę. Odpowiem krótko.")
+
+
+def test_shown_thinking_leaves_out_the_instructions(chat, bot, model):
+    chat.storage.module_state.set(1, "llm", "thinking", "1")
+    model.answer = [("thinking", "Adding up. The system prompt tells me to be brief."), ("answer", "Four")]
+    say(chat, "2+2?")
+    assert "Adding up.</blockquote>\nFour" in bot.last.text and "prompt" not in bot.last.text
+    model.answer = [("thinking", "My instructions say to be brief."), ("answer", "Four")]
+    say(chat, "2+2?")
+    assert bot.last.text == "Four"
+
+
 def test_the_dots_move_while_the_model_is_silent(chat, bot, monkeypatch):
-    def slow(_ctx, _messages, _thinking):
+    def slow(_ctx, _messages, _thinking, _tools=None):
         time.sleep(0.1)
         yield "thinking", "hmm"
         time.sleep(0.1)
@@ -209,7 +250,7 @@ def test_a_search_before_any_text_keeps_one_message(chat, bot, model):
 
 
 def test_a_new_message_waits_for_the_search_while_it_runs(chat, bot, monkeypatch):
-    def slow(_ctx, _messages, _thinking):
+    def slow(_ctx, _messages, _thinking, _tools=None):
         yield "answer", "Let me check."
         yield "tool", ""
         time.sleep(0.1)
@@ -830,8 +871,8 @@ class Response:
 def wire(chat, monkeypatch, lines: list[str], thinking: bool = True) -> tuple[dict, list]:
     sent = {}
 
-    def post(url, json, headers, stream, timeout):
-        sent.update(url=url, json=json, headers=headers, stream=stream, timeout=timeout)
+    def post(url, **options):
+        sent.update(url=url, **options)
         return Response(lines)
 
     monkeypatch.setattr("modules.external.llm.module.requests.post", post)
@@ -887,3 +928,553 @@ def test_a_broken_line_from_the_server_counts_as_no_answer(chat, bot, monkeypatc
                         lambda *_args, **_values: Response(["data: {not json"]))
     say(chat, "hello")
     assert bot.last.text == "The language model did not answer 💔"
+
+
+def test_our_tool_calls_are_gathered_when_the_round_ends_for_them(chat, monkeypatch):
+    sent, pieces = wire(chat, monkeypatch, [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_7","type":"function",'
+        '"function":{"name":"reminder_add","arguments":"{\\"content\\": \\"Buy"}}]}}]}',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":" milk\\"}"}}]}}]}',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":1,"function":{"name":"reminder_list"}}]}}]}',
+        'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}', "data: [DONE]"])
+    first, second = pieces[-1][1]
+    assert first == {'id': "call_7", 'name': "reminder_add", 'arguments': '{"content": "Buy milk"}'}
+    assert second['id'].startswith("call_") and (second['name'], second['arguments']) == ("reminder_list", "")
+    assert pieces[:-1] == [("tool", "")] * 3
+
+
+def test_a_tool_call_without_an_index_is_still_read(chat, monkeypatch):
+    _, pieces = wire(chat, monkeypatch, [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":null,"id":"c1","function":{"name":"reminder_list",'
+        '"arguments":"{}"}}]},"finish_reason":"tool_calls"}]}', "data: [DONE]"])
+    assert pieces[-1] == ("calls", [{'id': "c1", 'name': "reminder_list", 'arguments': "{}"}])
+
+
+def test_tool_calls_of_the_server_itself_are_never_handed_over(chat, monkeypatch):
+    _, pieces = wire(chat, monkeypatch, [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s1","function":{"name":"search",'
+        '"arguments":"{}"}}]},"finish_reason":"tool_calls"}]}',
+        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
+        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":"stop"}]}', "data: [DONE]"])
+    assert pieces == [("tool", ""), ("tool", ""), ("answer", "Hi")]
+
+
+def test_tool_calls_count_only_when_the_round_ends_for_them(chat, monkeypatch):
+    _, pieces = wire(chat, monkeypatch, [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"reminder_list"}}]}}]}',
+        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":"stop"}]}', "data: [DONE]"])
+    assert [kind for kind, _ in pieces] == ["tool", "answer"]
+
+
+def test_tools_are_sent_only_when_there_are_some(chat, monkeypatch):
+    sent = {}
+
+    def post(_url, **options):
+        sent.clear()
+        sent.update(options['json'])
+        return Response(["data: [DONE]"])
+
+    monkeypatch.setattr("modules.external.llm.module.requests.post", post)
+    ctx = Ctx(chat.services, chat.registry.get("llm"), User(1, "First", "Last", "username", Role.GUEST, "en", True))
+    list(real_stream(ctx, [], False, [{'type': "function"}]))
+    assert sent['tools'] == [{'type': "function"}]
+    list(real_stream(ctx, [], False, []))
+    assert "tools" not in sent
+
+
+# ----- the assistant -----
+
+def calls(*wanted: tuple[str, dict | str]) -> list[tuple]:
+    return [("tool", ""), ("calls", [{'id': "call_" + str(number), 'name': name,
+                                      'arguments': given if isinstance(given, str) else json.dumps(given)}
+                                     for number, (name, given) in enumerate(wanted)])]
+
+
+def reminders(app, user_id: int = 1) -> list[tuple[str, str]]:
+    return [(row['content'], row['date']) for row in app.storage.database.query_all(
+        "SELECT * FROM " + app.storage.for_module("reminder").table("reminders") + " WHERE user_id = ? ORDER BY id;",
+        (user_id,))]
+
+
+def tomorrow() -> str:
+    return (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d") + " 15:00"
+
+
+def results(model, request: int = 1) -> list[dict]:
+    return [json.loads(one['content']) for one in model.asked[request] if one['role'] == "tool"]
+
+
+def tool_names(model, request: int = 0) -> list[str]:
+    return [tool['function']['name'] for tool in model.tools[request] or []]
+
+
+def add_reminder(model, content: str = "Collect the results", date: str = "") -> None:
+    model.script = [calls(("reminder_add", {'content': content, 'date': date or tomorrow()})), []]
+
+
+def test_the_system_prompt_tells_the_modules_the_user_and_the_time(chat, bot, model):
+    say(chat, "hello")
+    system = model.systems[0]
+    assert "/reminder - 🔔 Reminders - Reminds you about anything at the time you set" in system
+    assert "/llm" not in system and "/admin" not in system
+    assert "The user: First Last, 🇬🇧 English" in system
+    assert "Now it is" not in system
+    assert model.asked[0] == [{'role': "user", 'content': "hello"}]
+
+
+def test_the_time_comes_with_the_message_and_stays_out_of_the_history(chat, bot, model):
+    say(chat, "hello")
+    assert model.clocks[0].startswith("[Now it is: " + datetime.now().strftime("%Y-%m-%d"))
+    assert model.clocks[0].endswith(")]\n")
+    assert stored(chat)[0] == (1, "user", "hello")
+    say(chat, "again")
+    assert len(model.clocks) == 2
+
+
+def test_the_time_comes_with_a_photo_too(chat, bot, model):
+    bot.downloads["photo1"] = b"jpeg1"
+    send(chat, photo(), "what is it?")
+    assert model.clocks[0].startswith("[Now it is: ")
+    assert model.asked[0][-1]['content'][0] == {'type': "text", 'text': "[Photo]\nwhat is it?"}
+
+
+def test_the_configured_prompt_comes_first(chat, bot, model, monkeypatch):
+    configure(chat, monkeypatch, llm_url="http://model.local/v1", llm_model="small", llm_prompt="You are Gemma.\n")
+    say(chat, "hello")
+    system = model.systems[0]
+    assert system.startswith("You are Gemma.\n\nModules of this Telegram bot")
+
+
+def test_the_prompt_is_in_the_language_of_the_user(chat, bot, model):
+    chat.storage.settings.set_language(1, "pl")
+    say(chat, "cześć")
+    assert "Użytkownik: First Last, 🇵🇱 Polski" in model.systems[0]
+    assert "/reminder - 🔔 Przypomnienia - " in model.systems[0]
+
+
+def test_the_actions_go_as_tools(chat, bot, model):
+    say(chat, "hello")
+    assert tool_names(model) == ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
+    adding = not_none(model.tools[0])[0]['function']
+    assert adding['description'] == "Sets a reminder for the user, who confirms it with a button"
+    assert adding['parameters'] == {
+        'type': "object", 'required': ["content", "date"],
+        'properties': {'content': {'type': "string", 'description': "What to remind about, up to 200 characters"},
+                       'date': {'type': "string",
+                                'description': "When to remind, in the local time, as YYYY-MM-DD HH:MM"}}}
+    assert "With the tools you act in these modules" in model.systems[0]
+    editing = not_none(model.tools[0])[2]['function']['parameters']
+    assert list(editing['properties']) == ["reminder_id", "content", "date"]
+    assert editing['required'] == ["reminder_id"]
+
+
+def test_an_edit_leaves_out_what_stays_the_same(chat, bot, model):
+    table = chat.storage.for_module("reminder").table("reminders")
+    chat.storage.database.execute("INSERT INTO " + table + " (user_id, date, content) VALUES (1, ?, 'Buy milk');",
+                                  (tomorrow(),))
+    model.script = [calls(("reminder_edit", {'reminder_id': 1, 'content': "Buy bread"})), [("answer", "Confirm.")]]
+    say(chat, "bread, not milk")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    assert reminders(chat) == [("Buy bread", tomorrow())]
+
+
+def test_the_context_of_the_modules_goes_into_the_prompt(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Collect <the> results", 'date': tomorrow()})),
+                    [("answer", "Confirm.")]]
+    say(chat, "remind me")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    say(chat, "what is next?")
+    assert "What the modules know about the user:\n[🔔 Reminders]\nThe next reminders:\n" + tomorrow() + \
+        " - Collect <the> results" in model.systems[-1]
+
+
+def test_a_read_only_action_runs_and_its_result_goes_back(chat, bot, model):
+    chat.storage.database.execute("INSERT INTO " + chat.storage.for_module("reminder").table("reminders") +
+                                  " (user_id, date, content) VALUES (1, ?, 'Buy milk');", (tomorrow(),))
+    model.script = [calls(("reminder_list", "")), [("answer", "You have one.")]]
+    say(chat, "what reminders do I have?")
+    assert len(model.asked) == 2
+    assert model.asked[1][-2] == {'role': "assistant", 'content': None,
+                                  'tool_calls': [{'id': "call_0", 'type': "function",
+                                                  'function': {'name': "reminder_list", 'arguments': "{}"}}]}
+    assert model.asked[1][-1]['tool_call_id'] == "call_0" and model.asked[1][-1]['name'] == "reminder_list"
+    listed = [{'reminder_id': 1, 'date': tomorrow(), 'content': "Buy milk", 'is_sent': False}]
+    assert results(model) == [{'status': "done", 'result': listed}]
+    assert answers(bot) == ["You have one."]
+
+
+def test_a_call_to_a_tool_that_is_not_ours_is_left_alone(chat, bot, model):
+    model.script = [calls(("search", {'query': "x"})) + [("answer", "Found it")]]
+    say(chat, "look it up")
+    assert len(model.asked) == 1
+    assert answers(bot) == ["Found it"]
+
+
+def test_text_before_our_tool_stays_in_its_own_message(chat, bot, model):
+    model.script = [[("answer", "Let me check.")] + calls(("reminder_list", {})), [("answer", "Nothing there.")]]
+    say(chat, "anything?")
+    assert answers(bot) == ["Let me check.", "Nothing there."]
+    assert loud(bot) == ["Nothing there."]
+
+
+def pending_key_or_none(app) -> str | None:
+    return next((key for key in app.storage.module_state.get_all(1, "llm") if key.startswith("action.")), None)
+
+
+def pending_key(app) -> str:
+    return not_none(pending_key_or_none(app))[len("action."):]
+
+
+def test_adding_a_reminder_waits_for_the_buttons(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow at 3 pm to collect the results")
+    assert len(model.asked) == 2 and model.tools[1] is None
+    assert reminders(chat) == []
+    asked = bot.sent[-1]
+    assert asked.text == ("<b>🔔 Reminders:</b>\n\nDo you want me to set this reminder?\nContent: <i>Collect the "
+                          "results</i>\nDate: <i>" + tomorrow() + "</i>")
+    key = pending_key(chat)
+    assert asked.buttons == [("✅ Yes", "llm:confirm:" + key), ("❌ No", "llm:cancel:" + key)]
+    assert answers(bot)[-2] == "Confirm it with the buttons below 👇"
+    assert loud(bot) == [asked.text]
+
+
+def test_yes_sets_the_reminder_and_says_so_in_place(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    asked = bot.sent[-1].message_id
+    press(chat, "llm:confirm:" + pending_key(chat))
+    assert reminders(chat) == [("Collect the results", tomorrow())]
+    assert bot.edited[-1].message_id == asked and bot.edited[-1].markup is None
+    assert bot.edited[-1].text == ("<b>🔔 Reminders:</b>\n\nThe reminder has been set ✅\nContent: <i>Collect the "
+                                   "results</i>\nDate: <i>" + tomorrow() + "</i>")
+    assert pending_key_or_none(chat) is None
+
+
+def test_no_cancels_and_sets_nothing(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    press(chat, "llm:cancel:" + pending_key(chat))
+    assert reminders(chat) == []
+    assert bot.edited[-1].text.endswith("</i>\n\nCancelled ❌")
+    assert pending_key_or_none(chat) is None
+
+
+def test_a_button_works_only_once(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    key = pending_key(chat)
+    press(chat, "llm:confirm:" + key)
+    chat.router.handle_callback(make_callback("llm:confirm:" + key, message_id=bot.sent[-1].message_id))
+    chat.router.wait_for_tasks()
+    assert len(reminders(chat)) == 1
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+
+
+def test_yes_checks_everything_again(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    key = pending_key(chat)
+    pending = json.loads(chat.storage.module_state.get(1, "llm", "action." + key))
+    pending['arguments']['date'] = "2020-01-01 10:00"
+    chat.storage.module_state.set(1, "llm", "action." + key, json.dumps(pending))
+    press(chat, "llm:confirm:" + key)
+    assert reminders(chat) == []
+    assert bot.edited[-1].text == "<b>🔔 Reminders:</b>\n\nI cannot remind you about something in the past"
+
+
+def test_a_reminder_deleted_meanwhile_cannot_be_deleted_by_yes(chat, bot, model):
+    table = chat.storage.for_module("reminder").table("reminders")
+    chat.storage.database.execute("INSERT INTO " + table + " (user_id, date, content) VALUES (1, ?, 'Buy milk');",
+                                  (tomorrow(),))
+    model.script = [calls(("reminder_delete", {'reminder_id': 1})), [("answer", "Confirm.")]]
+    say(chat, "delete the milk one")
+    assert bot.sent[-1].text.startswith("<b>🔔 Reminders:</b>\n\nDo you really want to delete this reminder?")
+    chat.storage.database.execute("DELETE FROM " + table + ";")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    assert bot.edited[-1].text == ("<b>🔔 Reminders:</b>\n\nThere is no such reminder - it may have been deleted or "
+                                   "the number is wrong")
+
+
+def test_a_wrong_value_goes_back_to_the_model_to_ask_again(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Results", 'date': "tomorrow at 3"})),
+                    [("answer", "When exactly?")]]
+    say(chat, "remind me tomorrow")
+    problem = results(model)[0]
+    assert problem['status'] == "refused"
+    assert problem['problem'].startswith("I do not understand this date, write it like this: ")
+    assert pending_key_or_none(chat) is None and reminders(chat) == []
+    assert answers(bot) == ["When exactly?"]
+
+
+@pytest.mark.parametrize("given", ["{not json", '["Results"]', {'content': "Results"}])
+def test_arguments_the_action_cannot_take_go_back_too(chat, bot, model, given):
+    model.script = [calls(("reminder_add", given)), [("answer", "Sorry.")]]
+    say(chat, "remind me")
+    problem = "These arguments do not fit, the action takes content (string), date (string)"
+    assert results(model) == [{'status': "refused", 'problem': problem}]
+
+
+def test_without_access_to_a_module_its_actions_and_context_stay_away(chat, bot, model):
+    chat.storage.access.allow(1, "reminder", False)
+    model.script = [calls(("reminder_list", {})), [("answer", "No.")]]
+    say(chat, "list them")
+    assert tool_names(model) == []
+    assert "/reminder" not in model.systems[0] and "With the tools" not in model.systems[0]
+    assert len(model.asked) == 1
+
+
+def test_access_taken_away_before_yes_stops_the_action(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    chat.storage.access.allow(1, "reminder", False)
+    press(chat, "llm:confirm:" + pending_key(chat))
+    assert reminders(chat) == []
+    assert bot.edited[-1].text.endswith("The Bot has no such action for you")
+
+
+def test_a_module_switched_off_in_the_settings_gives_nothing(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    say(chat, "/settings")
+    press(chat, "core:settings:llm")
+    press(chat, "llm:modules")
+    assert bot.last.buttons[0] == ("✅ 🔔 Reminders", "llm:share:reminder")
+    press(chat, "llm:share:reminder")
+    assert bot.last.buttons[0] == ("⬜ 🔔 Reminders", "llm:share:reminder")
+    say(chat, "what is next?")
+    assert tool_names(model, -1) == [] and "The next reminders" not in model.systems[-1]
+    press(chat, "llm:share:reminder")
+    say(chat, "and now?")
+    assert tool_names(model, -1) == ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
+    assert "The next reminders" in model.systems[-1]
+
+
+def test_only_a_module_with_something_for_the_assistant_can_be_switched(chat, bot, model):
+    press(chat, "llm:share:crystalball")
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+    assert chat.storage.module_state.get(1, "llm", "off.crystalball") is None
+
+
+def test_the_rounds_of_tools_are_capped(chat, bot, model):
+    model.answer = calls(("reminder_list", {}))
+    say(chat, "loop")
+    assert len(model.asked) == llm.tool_rounds + 1
+    assert [bool(tools) for tools in model.tools] == [True] * llm.tool_rounds + [False]
+    assert answers(bot) == ["The language model returned nothing 🤷"]
+
+
+def acted(app) -> list[tuple[str, dict, dict]]:
+    return [(done['tool'], done['arguments'], done['said']) for done in
+            (json.loads(content) for _, role, content in stored(app) if role == "action")]
+
+
+def test_the_history_keeps_each_action_with_its_result(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    question = "Do you want me to set this reminder?\nContent: Collect the results\nDate: " + tomorrow()
+    wanted = {'content': "Collect the results", 'date': tomorrow()}
+    assert acted(chat) == [("reminder_add", wanted, {'status': "pending_confirmation", 'summary': question})]
+    assert [role for _, role, _ in stored(chat)] == ["user", "action"]
+    press(chat, "llm:confirm:" + pending_key(chat))
+    assert acted(chat)[-1] == ("reminder_add", wanted, {'status': "confirmed", 'result': "The reminder has been set "
+                                                        "✅\nContent: Collect the results\nDate: " + tomorrow()})
+
+
+def test_the_model_sees_past_actions_as_its_own_tool_calls(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    say(chat, "thanks")
+    replayed = model.asked[-1][1:-1]
+    assert [message['role'] for message in replayed] == ["assistant", "tool", "assistant", "tool"]
+    first, result = replayed[0], replayed[1]
+    assert first['content'] is None
+    assert first['tool_calls'][0]['function'] == {'name': "reminder_add", 'arguments': json.dumps(
+        {'content': "Collect the results", 'date': tomorrow()})}
+    assert result['tool_call_id'] == first['tool_calls'][0]['id'] and result['name'] == "reminder_add"
+    assert json.loads(result['content'])['status'] == "pending_confirmation"
+    assert json.loads(replayed[3]['content'])['status'] == "confirmed"
+    assert not any("[reminder_add" in str(message.get('content', "")) for message in model.asked[-1])
+
+
+def test_a_cancelled_action_is_kept_too(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    press(chat, "llm:cancel:" + pending_key(chat))
+    assert acted(chat)[-1][2] == {'status': "cancelled", 'summary': "Do you want me to set this reminder?\nContent: "
+                                                                    "Collect the results\nDate: " + tomorrow()}
+
+
+def test_an_action_without_an_answer_points_to_the_buttons(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Results", 'date': tomorrow()})), []]
+    say(chat, "remind me tomorrow")
+    assert answers(bot)[-2] == "Confirm it with the buttons below 👇"
+    assert [role for _, role, _ in stored(chat)] == ["user", "action"]
+
+
+def test_an_action_done_before_a_failure_is_still_kept_and_offered(chat, bot, model, monkeypatch):
+    def failing(_ctx, messages, _thinking, _tools=None):
+        if messages[-1]['role'] == "tool":
+            raise requests.ConnectionError("refused")
+        yield from calls(("reminder_list", {}), ("reminder_add", {'content': "Results", 'date': tomorrow()}))
+
+    monkeypatch.setattr(llm, "stream", failing)
+    say(chat, "remind me tomorrow")
+    assert answers(bot)[-2] == "The language model did not answer 💔"
+    assert bot.sent[-1].buttons[0][1].startswith("llm:confirm:")
+    statuses = [(tool, said['status']) for tool, _, said in acted(chat)]
+    assert statuses == [("reminder_list", "done"), ("reminder_add", "pending_confirmation")]
+
+
+def talker(app) -> Ctx:
+    return Ctx(app.services, app.registry.get("llm"), User(1, "First", "Last", "username", Role.GUEST, "en", True))
+
+
+def test_actions_count_neither_as_messages_nor_as_the_opening(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    row = not_none(llm.conversation_of(talker(chat), 1))
+    assert (row['total'], row['opening']) == (1, "remind me tomorrow")
+
+
+def test_the_exported_file_reads_an_action_plainly(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    text = llm.transcript(talker(chat), 1)
+    assert "Assistant's action\n[reminder_add - pending_confirmation: Do you want me to set this reminder? " in text
+
+
+def test_a_module_with_actions_only_for_admins_is_not_offered_to_switch(chat, bot, model, monkeypatch):
+    found: Module = not_none(chat.registry.get("reminder"))
+    monkeypatch.setattr(found, "actions", [replace(action, role=Role.ADMIN) for action in found.actions])
+    monkeypatch.setattr(found, "summary", None)
+    press(chat, "llm:modules")
+    assert "llm:share:reminder" not in [data for _, data in bot.last.buttons]
+    assert bot.last.text.endswith("None of your modules has anything for the assistant")
+
+
+def test_the_same_action_asked_twice_in_one_answer_is_confirmed_once(chat, bot, model):
+    wanted = {'content': "Results", 'date': tomorrow()}
+    model.script = [calls(("reminder_add", wanted), ("reminder_add", dict(reversed(wanted.items())))), []]
+    say(chat, "remind me tomorrow")
+    assert len(model.asked) == 2
+    assert len([message for message in bot.sent if message.buttons]) == 1
+    assert len([key for key in chat.storage.module_state.get_all(1, "llm") if key.startswith("action.")]) == 1
+
+
+def test_the_same_reminder_written_a_little_differently_is_confirmed_once(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Results", 'date': tomorrow()})),
+                    calls(("reminder_add", {'content': " Results ", 'date': tomorrow()})),
+                    [("answer", "Confirm.")]]
+    say(chat, "remind me tomorrow")
+    assert len([message for message in bot.sent if message.buttons]) == 1
+
+
+def with_handler(app, monkeypatch, name: str, handler) -> None:
+    found = app.registry.get("reminder")
+    monkeypatch.setattr(found, "actions", [replace(action, handler=handler) if action.name == name else action
+                                           for action in found.actions])
+
+
+def test_a_result_that_is_not_plain_json_still_reaches_the_model(chat, bot, model, monkeypatch):
+    with_handler(chat, monkeypatch, "list", lambda _ctx: Outcome.done([{'when': datetime(2027, 1, 5, 9, 30)}]))
+    model.script = [calls(("reminder_list", {})), [("answer", "One.")]]
+    say(chat, "list them")
+    assert results(model) == [{'status': "done", 'result': [{'when': "2027-01-05 09:30:00"}]}]
+    assert answers(bot) == ["One."]
+
+
+def test_a_crash_inside_the_loop_is_reported_as_no_answer(chat, bot, model, monkeypatch):
+    def crash(*_args):
+        raise RuntimeError("bug")
+
+    monkeypatch.setattr(llm, "perform", crash)
+    model.script = [calls(("reminder_list", {})), [("answer", "One.")]]
+    say(chat, "list them")
+    assert answers(bot) == ["The language model did not answer 💔"]
+
+
+def test_the_outcome_comes_as_a_new_message_when_the_question_cannot_be_rewritten(chat, bot, model, monkeypatch):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    monkeypatch.setattr(Ctx, "edit", lambda *_args: False)
+    press(chat, "llm:confirm:" + pending_key(chat))
+    assert bot.last.text.startswith("<b>🔔 Reminders:</b>\n\nThe reminder has been set ✅")
+    assert len(reminders(chat)) == 1
+
+
+def test_our_call_after_a_server_search_needs_its_own_end_for_tools(chat, monkeypatch):
+    _, pieces = wire(chat, monkeypatch, [
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s1","function":{"name":"search"}}]},'
+        '"finish_reason":"tool_calls"}]}',
+        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"reminder_list"}}]}}]}',
+        "data: [DONE]"])
+    assert [kind for kind, _ in pieces] == ["tool", "tool", "tool"]
+
+
+def test_calls_without_an_id_get_ids_that_never_repeat(chat, monkeypatch):
+    lines = ['data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"reminder_list"}},'
+             '{"index":1,"function":{"name":"reminder_list"}}]},"finish_reason":"tool_calls"}]}', "data: [DONE]"]
+    first = wire(chat, monkeypatch, lines)[1][-1][1]
+    second = wire(chat, monkeypatch, lines)[1][-1][1]
+    ids = [call['id'] for call in first + second]
+    assert len(set(ids)) == 4 and all(one.startswith("call_") for one in ids)
+
+
+def test_arguments_that_are_not_json_go_back_to_the_server_as_json(chat, bot, model):
+    model.script = [calls(("reminder_list", "{not json")), [("answer", "Sorry.")]]
+    say(chat, "list them")
+    assert model.asked[1][-2]['tool_calls'][0]['function']['arguments'] == "{}"
+
+
+def test_after_only_confirmations_the_model_answers_the_rest_without_tools(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Results", 'date': tomorrow()})),
+                    [("answer", "And yes, it will be sunny.")]]
+    say(chat, "remind me tomorrow, and will it be sunny?")
+    assert len(model.asked) == 2 and model.tools[0] and model.tools[1] is None
+    assert results(model) == [{'status': "pending_confirmation", 'summary': "Do you want me to set this reminder?\n"
+                               "Content: Results\nDate: " + tomorrow()}]
+    assert answers(bot)[-2] == "And yes, it will be sunny."
+    assert bot.sent[-1].text.startswith("<b>🔔 Reminders:</b>") and bot.sent[-1].buttons
+    assert [role for _, role, _ in stored(chat)] == ["user", "action", "assistant"]
+
+
+def test_the_rules_keep_ids_dates_and_other_people_out_of_the_answer(chat, bot, model):
+    say(chat, "hello")
+    assert "never show them to the user" in model.systems[0]
+    assert "give the date and time only when someone asks for them" in model.systems[0]
+    assert "never guess or make up the data of other people" in model.systems[0]
+    assert "The user sees your thinking too" in model.systems[0]
+
+
+def test_a_read_next_to_a_confirmation_lets_the_model_answer(chat, bot, model):
+    model.script = [calls(("reminder_list", {}), ("reminder_add", {'content': "Results", 'date': tomorrow()})),
+                    [("answer", "Nothing yet, confirm the new one.")]]
+    say(chat, "what do I have, and remind me tomorrow")
+    assert [result['status'] for result in results(model)] == ["done", "pending_confirmation"]
+    assert answers(bot)[-2] == "Nothing yet, confirm the new one."
+
+
+def test_a_confirmation_older_than_a_day_no_longer_works(chat, bot, model, monkeypatch):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    key = "action." + pending_key(chat)
+    pending = json.loads(not_none(chat.storage.module_state.get(1, "llm", key)))
+    old = (datetime.now() - timedelta(seconds=llm.confirm_within + 60)).isoformat(timespec="seconds")
+    chat.storage.module_state.set(1, "llm", key, json.dumps(pending | {'at': old}))
+    press(chat, "llm:confirm:" + key[len("action."):])
+    assert bot.last.text == "Sorry, this button does not work anymore... 😥"
+    assert reminders(chat) == []
+
+
+def test_old_confirmations_are_forgotten_when_a_new_one_comes(chat, bot, model):
+    old = (datetime.now() - timedelta(seconds=llm.confirm_within + 60)).isoformat(timespec="seconds")
+    chat.storage.module_state.set(1, "llm", "action.stale", json.dumps({'at': old}))
+    chat.storage.module_state.set(1, "llm", "action.unknown", "{}")
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    keys = [key for key in chat.storage.module_state.get_all(1, "llm") if key.startswith("action.")]
+    assert len(keys) == 1 and keys[0] not in ("action.stale", "action.unknown")
