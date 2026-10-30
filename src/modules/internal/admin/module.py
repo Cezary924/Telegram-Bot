@@ -5,7 +5,7 @@ from core.api import AdvancedCtx, Button, Module, Role, View, bold, escape, labe
 from core import paths
 from core.loader import discover
 
-module = Module(name="admin", notifications="notifications_label",
+module = Module(name="admin", place=60, notifications="notifications_label",
                 icons={'name': "🛠️", 'title': "🛠️", 'notifications_label': "📢", 'previous': "⬅️", 'next': "➡️",
                        'users': "🙋", 'users_list': "📋", 'users_search': "🔍", 'users_forward': "↪️", 'user_role': "🎖️",
                        'user_wipe': "🗑️", 'statistics': "📊", 'announcement': "📢", 'alerts': "🔔", 'modules': "🧩",

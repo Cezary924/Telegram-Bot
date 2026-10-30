@@ -1,6 +1,7 @@
 from core.testing import not_none
+from core.ui.html import plain
 from core.ui.keyboard import Button
-from core.ui.view import View, render, render_text
+from core.ui.view import View, caption_limit, render, render_text
 
 
 def test_view_defaults():
@@ -83,3 +84,20 @@ def test_the_controls_always_keep_their_own_row():
     _, markup = render(view, "module1", controls)
     keyboard = not_none(markup).keyboard
     assert [len(row) for row in keyboard] == [2, 2, 3]
+
+
+def test_a_photo_caption_keeps_the_heading_the_first_line_and_the_latest():
+    lines = ["line " + str(number) for number in range(300)]
+    text, _ = render(View("\n".join(lines), photo=b"png"), "module1", heading=["Head"])
+    kept = text.split("\n")
+    assert len(plain(text)) <= caption_limit
+    assert kept[:4] == ["<b>Head:</b>", "", "line 0", "…"] and kept[-1] == "line 299"
+
+
+def test_a_photo_caption_with_a_huge_first_line_is_cut():
+    text, _ = render(View("x" * 2000 + "\nlast", photo=b"png"), "module1", heading=["Head"])
+    assert len(plain(text)) <= caption_limit and text.startswith("<b>Head:</b>\n\nxxx") and text.endswith("…")
+
+
+def test_a_short_photo_caption_is_left_alone():
+    assert render(View("a\nb", photo=b"png"), "module1")[0] == "a\nb"

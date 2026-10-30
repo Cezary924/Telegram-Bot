@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 from core.api import Ctx, JobCtx, Module, View, labelled
 
-module = Module(name="topspotifyartist", is_guarded=True,
+module = Module(name="topspotifyartist", place=110, is_guarded=True,
                 endings={'how': "😁", 'wrong.text': "👎", 'correct.text': "👍", 'correct.victory': "😁",
                          'defeat.text': "😞"})
 

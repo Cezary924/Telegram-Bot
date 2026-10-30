@@ -53,7 +53,7 @@ def test_beta_uses_its_own_database(tmp_path, monkeypatch, app):
 
 def test_modules_are_loaded(app):
     app.load_modules()
-    assert app.registry.names() == ["module1", "module2"]
+    assert app.registry.names() == ["module1", "module11", "module2"]
     assert app.catalog.text("module1", "key1", "pl") == "jeden"
 
 

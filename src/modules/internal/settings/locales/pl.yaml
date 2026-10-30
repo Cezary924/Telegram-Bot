@@ -1,5 +1,5 @@
 name: Ustawienia
-description: Język, powiadomienia i usuwanie danych
+description: Język, powiadomienia, dane o Tobie i ich usuwanie
 
 commands.settings: Wyświetl menu ustawień
 
@@ -18,6 +18,35 @@ notifications_unblock: Odblokuj wszystkie
 language: Język
 language_question: Wybierz swój język
 language_changed: Zmieniono język
+
+modules: Moduły
+modules_text: Wybierz moduł, którego ustawienia chcesz zmienić
+modules_page: Strona {page} z {pages}
+previous: Poprzednia
+next: Następna
+
+profile: O mnie
+profile_text: Te dane widzą moduły, które ich potrzebują, na przykład dziennik ciała albo alkomat. Wszystkie są opcjonalne
+profile_unknown: nie podano
+labels:
+  sex: Płeć
+  born: Data urodzenia
+  weight_unit: Jednostka wagi
+  height_unit: Jednostka wzrostu
+sex:
+  female: Kobieta
+  male: Mężczyzna
+  other: Inna
+  undisclosed: Wolę nie podawać
+set_sex: Płeć
+set_born: Data urodzenia
+weight_unit: Waga
+height_unit: Wzrost
+clear_born: Wolę nie podawać
+ask:
+  sex: Wybierz swoją płeć
+  born: Napisz datę urodzenia, na przykład 30.10.1990, albo sam wiek
+wrong_born: Napisz datę urodzenia, na przykład 30.10.1990, albo wiek od {low} do {high} lat
 
 deletedata: Usuwanie danych
 deletedata_question: Czy na pewno chcesz usunąć wszystkie dane zgromadzone o Tobie przez Bota? Utracisz przyznane uprawnienia. Funkcje oferowane przez Bota będą wymagały ponownej konfiguracji. Operacji tej nie będzie można cofnąć.

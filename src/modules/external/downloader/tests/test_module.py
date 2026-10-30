@@ -268,7 +268,7 @@ def test_the_command_leads_to_the_settings(app, bot):
 def test_the_settings_show_the_current_format(app, bot):
     send(app, "/settings")
     press(app, "core:settings:downloader")
-    assert bot.last.text.startswith("<b>⚙️ Settings &gt; 📥 Downloader:</b>")
+    assert bot.last.text.startswith("<b>⚙️ Settings &gt; 🧩 Modules &gt; 📥 Downloader:</b>")
     assert "Now: <i>🎬 Video (mp4)</i>" in bot.last.text
     assert [text for text, data in bot.last.buttons if data.startswith("downloader:")] == [
         "🎬 Video (mp4)", "🎵 Sound (mp3)", "❓ Ask every time"]

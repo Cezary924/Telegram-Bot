@@ -31,3 +31,8 @@ class ModuleState:
     def clear(self, user_id: int, module: str) -> None:
         self._db.execute("DELETE FROM user_module_state WHERE user_id = ? AND module = ?;",
                          (user_id, module))
+
+    def forget_prefixed(self, user_id: int, prefix: str, kept: tuple[str, str] | None = None) -> None:
+        module, key = kept or ("", "")
+        self._db.execute("DELETE FROM user_module_state WHERE user_id = ? AND substr(key, 1, ?) = ? "
+                         "AND NOT (module = ? AND key = ?);", (user_id, len(prefix), prefix, module, key))

@@ -67,6 +67,7 @@ class SentMessage:
     parse_mode: str | None = None
     markup: telebot.types.InlineKeyboardMarkup | None = None
     is_silent: bool = False
+    photo: bytes | None = None
 
     @property
     def buttons(self) -> list[tuple[str, str | None]]:
@@ -102,6 +103,7 @@ class FakeBot:
         self.edited: list[SentMessage] = []
         self.shown: list[SentMessage] = []
         self.deleted: list[tuple[int, int]] = []
+        self.unbuttoned: list[tuple[int, int]] = []
         self.answered: list[tuple[str, str | None]] = []
         self.commands: dict[str, list[str]] = {}
         self.downloads: dict[str, bytes] = {}
@@ -117,14 +119,33 @@ class FakeBot:
         self.shown.append(message)
         return make_message(text, chat_id, self._message_id)
 
+    def send_photo(self, chat_id: int, photo, caption: str | None = None, disable_notification: bool = False,
+                   parse_mode: str | None = None, reply_markup=None) -> telebot.types.Message:
+        if not isinstance(photo, bytes):
+            file_recorder("photo")(self, chat_id, photo, caption, disable_notification)
+            return make_message("", chat_id, 0)
+        self._message_id += 1
+        message = SentMessage(chat_id, caption or "", self._message_id, parse_mode, reply_markup,
+                              disable_notification, photo)
+        self.sent.append(message)
+        self.shown.append(message)
+        return make_message(caption or "", chat_id, self._message_id)
+
     def edit_message_text(self, text: str, chat_id: int, message_id: int,
                           parse_mode: str | None = None, reply_markup=None) -> None:
+        if any(sent.message_id == message_id and sent.photo is not None for sent in self.sent):
+            raise ApiTelegramException("editMessageText", "", {
+                'error_code': 400, 'description': "Bad Request: there is no text in the message to edit"})
         message = SentMessage(chat_id, text, message_id, parse_mode, reply_markup)
         self.edited.append(message)
         self.shown.append(message)
 
     def delete_message(self, chat_id: int, message_id: int) -> None:
         self.deleted.append((chat_id, message_id))
+
+    def edit_message_reply_markup(self, chat_id: int, message_id: int, reply_markup=None) -> None:
+        if reply_markup is None:
+            self.unbuttoned.append((chat_id, message_id))
 
     def get_file(self, file_id: str) -> telebot.types.File:
         if file_id not in self.downloads:
@@ -160,8 +181,10 @@ class FakeBot:
         self.files.clear()
         self.edited.clear()
         self.deleted.clear()
+        self.unbuttoned.clear()
         self.answered.clear()
 
 
 for file_kind, sender_name in file_senders.items():
-    setattr(FakeBot, sender_name, file_recorder(file_kind))
+    if not hasattr(FakeBot, sender_name):
+        setattr(FakeBot, sender_name, file_recorder(file_kind))

@@ -59,7 +59,7 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 
 - Welcome and feature list 👋 (```/start```, ```/features```)
 - Help and about 💬 (```/help```, ```/about```)
-- Settings, language and notifications ⚙️ (```/settings```)
+- Settings, language, notifications and details about you ⚙️ (```/settings```)
 - Contact and reports 📨 (```/contact```, ```/report```)
 - User management and Bot control 🛠️ (```/admin```)
 

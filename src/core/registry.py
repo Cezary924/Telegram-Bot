@@ -30,10 +30,10 @@ class Registry:
         return self._modules.get(name)
 
     def modules(self) -> list[Module]:
-        return [self._modules[name] for name in sorted(self._modules)]
+        return sorted(self._modules.values(), key=lambda module: (not module.is_internal, module.place, module.name))
 
     def names(self) -> list[str]:
-        return sorted(self._modules)
+        return [module.name for module in self.modules()]
 
     def command(self, name: str) -> tuple[Module, Command] | None:
         module = self._commands.get(name)
@@ -42,8 +42,7 @@ class Registry:
         return module, next(command for command in module.commands if command.name == name)
 
     def commands(self) -> list[tuple[Module, Command]]:
-        pairs = [(module, command) for module in self._modules.values() for command in module.commands]
-        return sorted(pairs, key=lambda pair: pair[1].name)
+        return [(module, command) for module in self.modules() for command in module.commands]
 
     def callback(self, module_name: str, action: str) -> tuple[Module, Callback] | None:
         module = self._modules.get(module_name)

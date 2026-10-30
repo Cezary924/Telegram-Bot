@@ -1,5 +1,5 @@
 name: Settings
-description: Language, notifications and data deletion
+description: Language, notifications, data about you and its deletion
 
 commands.settings: Show the settings menu
 
@@ -18,6 +18,35 @@ notifications_unblock: Unblock all
 language: Language
 language_question: Select a language
 language_changed: The displayed language has been changed
+
+modules: Modules
+modules_text: Choose a module to change its settings
+modules_page: Page {page} of {pages}
+previous: Previous
+next: Next
+
+profile: About me
+profile_text: Modules that need this data see it, for example the body tracker or the breathalyser. All of it is optional
+profile_unknown: not given
+labels:
+  sex: Sex
+  born: Date of birth
+  weight_unit: Weight unit
+  height_unit: Height unit
+sex:
+  female: Female
+  male: Male
+  other: Other
+  undisclosed: Rather not say
+set_sex: Sex
+set_born: Date of birth
+weight_unit: Weight
+height_unit: Height
+clear_born: Rather not say
+ask:
+  sex: Choose your sex
+  born: Write your date of birth, for example 1990-10-30, or just your age
+wrong_born: Write your date of birth, for example 1990-10-30, or an age between {low} and {high}
 
 deletedata: Data Deletion
 deletedata_question: Are you sure you want to delete all your data collected by the Bot? You will lose the granted permissions. The features offered by the Bot will require re-configuration. This operation cannot be undone.

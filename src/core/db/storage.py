@@ -7,6 +7,7 @@ from core.db.module_db import ModuleDatabase
 from core.db.module_state import ModuleState
 from core.db.navigation import Navigation
 from core.db.notifications import Notifications
+from core.db.profiles import Profiles
 from core.db.user_settings import UserSettings
 from core.db.users import Users
 
@@ -25,6 +26,7 @@ class Storage:
         self.navigation = Navigation(self.database)
         self.module_state = ModuleState(self.database)
         self.state = BotState(self.database)
+        self.profiles = Profiles(self.database)
 
     def for_module(self, module_name: str) -> ModuleDatabase:
         return ModuleDatabase(self.database, module_name)

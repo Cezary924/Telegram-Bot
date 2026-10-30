@@ -60,3 +60,18 @@ consent:
   declined:
     text: Dobrze...
     goodbye: Miło mi było Cię poznać
+
+form:
+  offer: Masz zapisane dane, które tu pasują. Czy mam ich użyć?
+  use: Użyj
+  skip: Wpiszę wszystko
+  pick: Wybierz jeden z przycisków
+  range: Napisz liczbę od {low} do {high}
+  length: Napisz od {low} do {high} znaków
+  now: Teraz
+  ago: temu
+  moment_hint: Wybierz przycisk albo napisz godzinę, na przykład 21:30 lub 30.10.2026 21:30
+  wrong_moment_any: Napisz godzinę, która już minęła, na przykład 21:30 lub 30.10.2026 21:30
+  wrong_moment: Napisz godzinę, która już minęła, na przykład 21:30 lub 30.10.2026 21:30, najwyżej {hours} godzin wstecz
+  weight_range: Napisz wagę od {low} do {high}
+  height_range: Napisz wzrost od {low} do {high}

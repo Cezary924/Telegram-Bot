@@ -54,6 +54,15 @@ def test_modules_are_sorted_by_name(registry, module1, module2):
     assert [module.name for module in registry.modules()] == ["module1", "module2"]
 
 
+def test_core_modules_come_first_then_by_their_place(registry, module1, module2):
+    module2.place = 10
+    core = Module(name="core1", place=500)
+    core.is_internal = True
+    for module in (module1, module2, core):
+        registry.add(module)
+    assert registry.names() == ["core1", "module2", "module1"]
+
+
 def test_a_module_cannot_be_added_twice(registry, module1):
     registry.add(module1)
     with pytest.raises(ValueError):
@@ -86,10 +95,11 @@ def test_command_lookup(registry, module1):
     assert registry.command("command9") is None
 
 
-def test_commands_are_sorted_by_name(registry, module1, module2):
-    registry.add(module2)
+def test_commands_follow_the_order_of_their_modules(registry, module1, module2):
+    module2.place = 10
     registry.add(module1)
-    assert [command.name for _, command in registry.commands()] == ["command1", "command2"]
+    registry.add(module2)
+    assert [command.name for _, command in registry.commands()] == ["command2", "command1"]
 
 
 def test_callback_lookup(registry, module1):

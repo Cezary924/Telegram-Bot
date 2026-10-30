@@ -60,3 +60,18 @@ consent:
   declined:
     text: Ok...
     goodbye: Nice to meet you
+
+form:
+  offer: You have saved data that fits here. Should I use it?
+  use: Use it
+  skip: Type everything
+  pick: Pick one of the buttons
+  range: Write a number between {low} and {high}
+  length: Write between {low} and {high} characters
+  now: Now
+  ago: ago
+  moment_hint: Pick a button or write the time, for example 21:30 or 30.10.2026 21:30
+  wrong_moment_any: Write a time that has passed, like 21:30 or 30.10.2026 21:30
+  wrong_moment: Write a time that has passed, like 21:30 or 30.10.2026 21:30, at most {hours} hours back
+  weight_range: Write a weight between {low} and {high}
+  height_range: Write a height between {low} and {high}

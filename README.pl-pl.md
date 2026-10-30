@@ -59,7 +59,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 
 - Powitanie i lista funkcji 👋 (```/start```, ```/features```)
 - Pomoc i informacje o Bocie 💬 (```/help```, ```/about```)
-- Ustawienia, język i powiadomienia ⚙️ (```/settings```)
+- Ustawienia, język, powiadomienia i dane o Tobie ⚙️ (```/settings```)
 - Kontakt i zgłoszenia 📨 (```/contact```, ```/report```)
 - Zarządzanie użytkownikami i Botem 🛠️ (```/admin```)
 

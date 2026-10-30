@@ -3,14 +3,14 @@ import sqlite3
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING
 
 import requests
 import telebot
 from telebot.apihelper import ApiException, ApiTelegramException
 
-from core import paths
+from core import form as forms, paths
 from core.config import Config
 from core.db.access import Access
 from core.db.module_db import ModuleDatabase
@@ -19,7 +19,8 @@ from core.db.user_settings import UserSettings
 from core.db.users import Users
 from core.i18n import core_namespace, supported_languages
 from core.log import print_error, print_log
-from core.module import Module, settings_hub, settings_hub_view
+from core.module import Module, settings_hub, settings_hub_view, settings_list_view
+from core.profile import Profile, age_limits, age_on, height_units, sexes, weight_units
 from core.registry import Registry
 from core.roles import Role
 from core.services import Services
@@ -106,6 +107,13 @@ def can_use(services: Services, user: User, module_name: str) -> bool:
     return services.storage.access.is_allowed(user.id, module_name, user.role)
 
 
+def is_available(services: Services, user: User, module_name: str) -> bool:
+    module = services.registry.get(module_name)
+    if module is None:
+        return False
+    return not module.is_guarded or services.storage.access.is_allowed(user.id, module_name, user.role)
+
+
 def hub_for(services: Services, module: Module, name: str) -> Module | None:
     if not module.is_settings(name):
         return None
@@ -120,7 +128,9 @@ def heading_for(services: Services, module_name: str, view, language: str) -> li
     segments = [services.catalog.text(module_name, module.title, language)]
     hub = hub_for(services, module, view.name)
     if hub is not None:
-        segments.insert(0, services.catalog.text(hub.name, hub.title, language))
+        segments[:0] = [services.catalog.text(hub.name, hub.title, language)] + \
+            [services.catalog.text(hub.name, step.title, language) for step in hub.branch(settings_list_view)
+             if step.title]
     for step in module.branch(view.name):
         if step.title:
             segments.append(services.catalog.text(module_name, step.title, language))
@@ -199,12 +209,13 @@ def send_album_to(services: Services, user_id: int, pictures: list[str]) -> None
 class Ctx:
     def __init__(self, services: Services, module: Module, user: User,
                  message: telebot.types.Message | None = None,
-                 arguments: tuple[str, ...] = ()) -> None:
+                 arguments: tuple[str, ...] = (), is_pressed: bool = False) -> None:
         self._services = services
         self.module = module
         self.user = user
         self.message = message
         self.arguments = arguments
+        self.is_pressed = is_pressed
         self.state = UserState(services, module.name, user.id)
         self.nav = UserNavigation(services, module.name, user.id)
         self.db = ModuleDatabase(services.storage.database, module.name)
@@ -252,6 +263,51 @@ class Ctx:
         except KeyError:
             return None
 
+    def has_module(self, name: str) -> bool:
+        if name not in self.module.partners:
+            raise PermissionError("Module '" + self.module.name + "' did not declare module '" + name + "'")
+        return is_available(self._services, self.user, name)
+
+    def ask(self, name: str, what: str, /, *arguments):
+        if not self.has_module(name):
+            return None
+        partner = not_none(self._services.registry.get(name))
+        if what not in partner.exposed:
+            raise LookupError("Module '" + name + "' does not expose '" + what + "'")
+        exposed = partner.exposed[what]
+        if exposed.is_writing and not self.is_pressed:
+            raise PermissionError("Module '" + self.module.name + "' may ask '" + name + "' to " + what +
+                                  " only when a button is pressed")
+        try:
+            return exposed.handler(create_context(self._services, partner, self.user, is_pressed=self.is_pressed),
+                                   *arguments)
+        except Exception as error:
+            if self._services.is_strict:
+                raise
+            print_error("Asking '" + name + "' for '" + what + "' failed in '" + self.module.name + "' - "
+                        + type(error).__name__ + ".", str(error))
+            return None
+
+    @property
+    def profile(self) -> Profile:
+        return self._services.storage.profiles.get(self.user.id)
+
+    def set_profile(self, **values) -> None:
+        allowed = {'sex': (None, *sexes), 'weight_unit': tuple(weight_units), 'height_unit': tuple(height_units)}
+        for name, value in values.items():
+            if name == "born":
+                if value is not None and not age_limits[0] <= age_on(value, date.today()) <= age_limits[1]:
+                    raise ValueError("Birth date out of range: " + str(value))
+            elif name not in allowed or value not in allowed[name]:
+                raise ValueError("Wrong profile value: " + name + " = " + str(value))
+        for name, value in values.items():
+            self._services.storage.profiles.set(self.user.id, name, value)
+
+    def form(self, name: str, known: dict | None = None, offered: dict | list | None = None):
+        if name not in self.module.forms:
+            raise LookupError("Module '" + self.module.name + "' has no form '" + name + "'")
+        return forms.start(self, self.module.forms[name], known, offered)
+
     def reply_live(self, text: str, is_silent: bool = False) -> int | None:
         bot = not_none(self._services.bot, "the bot is not built yet")
         try:
@@ -266,6 +322,14 @@ class Ctx:
         bot = not_none(self._services.bot, "the bot is not built yet")
         try:
             bot.edit_message_text(text, self.user.id, message_id, parse_mode="HTML")
+        except ApiTelegramException as error:
+            return "not modified" in str(error)
+        return True
+
+    def remove_buttons(self, message_id: int) -> bool:
+        bot = not_none(self._services.bot, "the bot is not built yet")
+        try:
+            bot.edit_message_reply_markup(self.user.id, message_id, reply_markup=None)
         except ApiTelegramException as error:
             return "not modified" in str(error)
         return True
@@ -322,6 +386,7 @@ class Ctx:
         if current is not None and self._services.bot is not None:
             delete_message(self._services.bot, self.user.id, current['message_id'])
         self.nav.clear()
+        forms.forget(self._services.storage, self.user.id)
 
     def log(self, info: str, message_text: str = "") -> None:
         print_log(info + ": " + self.user.label + ".", message_text)
@@ -426,7 +491,7 @@ class AdvancedCtx(Ctx):
 
 def create_context(services: Services, module: Module, user: User,
                    message: telebot.types.Message | None = None,
-                   arguments: tuple[str, ...] = ()) -> Ctx:
+                   arguments: tuple[str, ...] = (), is_pressed: bool = False) -> Ctx:
     if module.is_internal:
-        return AdvancedCtx(services, module, user, message, arguments)
-    return Ctx(services, module, user, message, arguments)
+        return AdvancedCtx(services, module, user, message, arguments, is_pressed)
+    return Ctx(services, module, user, message, arguments, is_pressed)
