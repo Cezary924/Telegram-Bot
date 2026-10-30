@@ -1,1 +1,1 @@
-yt-dlp[curl-cffi]==2026.10.21
+yt-dlp[curl-cffi]==2026.10.26
