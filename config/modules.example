@@ -6,3 +6,5 @@ unitconverter: true
 llm: true
 bodytracker: true
 bmi: true
+drinktracker: true
+breathalyser: true

@@ -72,6 +72,8 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 - Przypomnienia 🔔 (```/reminder```)
 - Dziennik ciała ⚖️ (```/bodytracker```)
 - BMI 🩺 (```/bmi```)
+- Dziennik picia 🍺 (```/drinktracker```)
+- Wirtualny alkomat 🌬️ (```/breathalyser```)
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)
 - Magiczna kryształowa kula 🔮 (```/crystalball```)

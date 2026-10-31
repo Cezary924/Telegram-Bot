@@ -72,6 +72,8 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 - Reminders 🔔 (```/reminder```)
 - Body tracker ⚖️ (```/bodytracker```)
 - BMI 🩺 (```/bmi```)
+- Drink tracker 🍺 (```/drinktracker```)
+- Virtual breathalyser 🌬️ (```/breathalyser```)
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
 - Crystal ball 🔮 (```/crystalball```)

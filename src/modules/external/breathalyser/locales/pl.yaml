@@ -1,0 +1,85 @@
+name: Wirtualny alkomat
+description: Szacuje, ile alkoholu jest we krwi i kiedy z niej zniknie
+
+commands.breathalyser: Oszacuj stężenie alkoholu we krwi
+
+how: Oszacuję stężenie alkoholu we krwi na podstawie ciała i tego, co wypito, i narysuję, jak będzie spadać
+warning: To tylko szacunek z prostego modelu i nigdy nie mówi, czy możesz prowadzić. Po alkoholu w ogóle nie siadaj za kierownicę
+count: Oszacuj
+settings_button: Ustawienia
+save_new: Zapisz nowe dane o sobie
+saved: Zapisano
+wrong_drinks: Napisz każdy napój jako mililitry i procenty, najwyżej {limit} napojów, na przykład 500 5, 150 12
+wrong_last: Napisz, ile godzin temu był ostatni drink, od 0 do {hours}
+limits: Według polskiego prawa od {after_use} jest stan po użyciu alkoholu, a od {insobriety} stan nietrzeźwości.
+rates: Tempo spalania
+per_hour: ‰ na godzinę
+rates_text: Jak szybko organizm pozbywa się alkoholu na pusty żołądek. U większości osób to od 0.10 do 0.20 promila na godzinę, typowo 0.15. Po jedzeniu spalanie jest szybsze, po dużym posiłku nawet o 40%, a przy samym końcu zwalnia
+settings_text: Jak szybko organizm pozbywa się alkoholu w szacunkach
+
+offer:
+  body: Masz zapisane dane o sobie. Czy mam ich użyć?
+  drinks: Masz w dzienniku picia drinki z bieżącej sesji. Czy mam ich użyć?
+from:
+  body: z Twoich danych
+  drinks: z dziennika picia
+sex:
+  female: Kobieta
+  male: Mężczyzna
+  other: Inna
+  undisclosed: Wolę nie podawać
+food_level:
+  empty: Na pusty żołądek
+  little: Trochę
+  meal: Duży posiłek
+level:
+  below: Poniżej stanu po użyciu alkoholu
+  after_use: Stan po użyciu alkoholu
+  insobriety: Stan nietrzeźwości
+labels:
+  now: Szacunek teraz
+  level: Poziom
+  sober: Trzeźwość około
+  peak: Szczyt
+  sex: Płeć
+  age: Wiek
+  height: Wzrost
+  weight: Waga
+  alcohol: Czysty alkohol
+  drinks: Napoje
+  first: Pierwszy drink
+  last: Ostatni drink
+  food: Jedzenie
+  elimination: Tempo spalania
+chart:
+  title: Wirtualny alkomat
+  now: teraz
+  after_use: stan po użyciu alkoholu
+  insobriety: stan nietrzeźwości
+  sober: trzeźwość
+
+ask:
+  sex: Wybierz płeć
+  age: Napisz wiek w latach
+  height: Napisz wzrost ({unit})
+  weight: Napisz wagę ({unit})
+  grams: Napisz, co wypito, jako mililitry i procenty, a kolejne napoje oddziel plusem albo przecinkiem, na przykład 500 5, 50 40
+  hours: Ile godzin temu był pierwszy drink? Napisz 0, jeśli przed chwilą
+  last: Ile godzin temu był ostatni drink? Napisz 0, jeśli przed chwilą
+  food: Ile zjedzono przed pierwszym drinkiem?
+
+wrong: Jedzenie to jedno z {foods}, płeć jedno z {sexes}, godzin od pierwszego drinka od 0 do {hours}, a od ostatniego nie więcej niż od pierwszego
+missing: Brakuje danych - {missing}. Podaj je albo zapisz w dzienniku ciała i w Ustawieniach > O mnie
+out_of_range: Te dane wyglądają na błędne. Wiek to od {low} do 120 lat, wzrost od 100 do 250 cm, waga od 30 do 300 kg
+
+actions:
+  estimate: Szacuje promile z podanych drinków. Pominięte dane o ciele bierze z zapisanych. Zawsze powtórz ostrzeżenie
+parameters:
+  drinks: Każdy drink jako mililitry i procent, rozdzielone plusem, na przykład 500 5 + 50 40
+  hours: Ile godzin minęło od pierwszego drinka
+  last: Ile godzin minęło od ostatniego drinka - pomiń, jeśli przed chwilą
+  food: Ile użytkownik zjadł przed piciem - empty (pusty żołądek), little (trochę) albo meal (duży posiłek)
+  sex: Płeć - female, male, other albo undisclosed. Pomiń, żeby wziąć zapisaną
+  age: Wiek w latach - pomiń, żeby wziąć zapisany
+  height: Wzrost w centymetrach - pomiń, żeby wziąć zapisany
+  weight: Waga w kilogramach - pomiń, żeby wziąć zapisaną
