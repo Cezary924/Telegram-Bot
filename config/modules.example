@@ -4,3 +4,5 @@ topspotifyartist: true
 reminder: true
 unitconverter: true
 llm: true
+bodytracker: true
+bmi: true

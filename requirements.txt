@@ -3,3 +3,4 @@ requests==2.34.2
 PyYAML==6.0.3
 beautifulsoup4==4.15.0
 yt-dlp[curl-cffi]==2026.10.26
+matplotlib==3.11.2

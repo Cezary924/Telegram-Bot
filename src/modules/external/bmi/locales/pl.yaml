@@ -1,0 +1,43 @@
+name: BMI
+description: Oblicza wskaźnik masy ciała, a z dziennikiem ciała pokazuje, jak się zmienia
+
+commands.bmi: Oblicz BMI
+
+how: Oblicz wskaźnik masy ciała z wagi i wzrostu
+count: Oblicz
+history: Historia
+history_text: Wyniki
+chart: Wykres
+chart_title: BMI w czasie
+empty: Nie ma jeszcze czego pokazać
+note: BMI to tylko zgrubna miara, nie odróżnia mięśni od tłuszczu
+from_tracker: z Twoich danych
+save_new: Zapisz nowe dane o sobie
+saved: Zapisano
+
+labels:
+  bmi: BMI
+  category: Kategoria
+  weight: Waga
+  height: Wzrost
+category:
+  severe_thinness: Wygłodzenie
+  underweight: Niedowaga
+  normal: Waga prawidłowa
+  overweight: Nadwaga
+  obesity_1: Otyłość I stopnia
+  obesity_2: Otyłość II stopnia
+  obesity_3: Otyłość III stopnia
+
+ask:
+  height: Napisz wzrost ({unit})
+  weight: Napisz wagę ({unit})
+
+missing: Brakuje wagi albo wzrostu - podaj je albo zapisz w dzienniku ciała
+wrong: Waga musi mieć od {weight_low} do {weight_high} kg, a wzrost od {height_low} do {height_high} cm
+
+actions:
+  count: Liczy BMI z wagi i wzrostu - pominięte wartości bierze z dziennika ciała
+parameters:
+  weight: Waga w kilogramach - pomiń, żeby wziąć zapisaną
+  height: Wzrost w centymetrach - pomiń, żeby wziąć zapisany

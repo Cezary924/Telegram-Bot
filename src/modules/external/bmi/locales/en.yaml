@@ -1,0 +1,43 @@
+name: BMI
+description: Works out your body mass index, and with the body tracker shows how it changes
+
+commands.bmi: Work out a BMI
+
+how: Work out the body mass index from a weight and a height
+count: Work it out
+history: History
+history_text: Results
+chart: Chart
+chart_title: BMI over time
+empty: There is nothing to show yet
+note: BMI is only a rough measure, it cannot tell muscle from fat
+from_tracker: from your saved details
+save_new: Save the new details about me
+saved: Saved
+
+labels:
+  bmi: BMI
+  category: Category
+  weight: Weight
+  height: Height
+category:
+  severe_thinness: Severe thinness
+  underweight: Underweight
+  normal: Normal weight
+  overweight: Overweight
+  obesity_1: Obesity class I
+  obesity_2: Obesity class II
+  obesity_3: Obesity class III
+
+ask:
+  height: Write the height ({unit})
+  weight: Write the weight ({unit})
+
+missing: The weight or the height is missing - give them or save them in the body tracker
+wrong: The weight has to be between {weight_low} and {weight_high} kg, and the height between {height_low} and {height_high} cm
+
+actions:
+  count: Works out a BMI from a weight and a height - what is left out comes from the body tracker
+parameters:
+  weight: Weight in kilograms - leave it out to use the saved one
+  height: Height in centimetres - leave it out to use the saved one

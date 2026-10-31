@@ -70,6 +70,8 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 - Downloader of videos, music and pictures 📥 (```/downloader```)
 - Assistant on a local language model 🤖 (```/llm```)
 - Reminders 🔔 (```/reminder```)
+- Body tracker ⚖️ (```/bodytracker```)
+- BMI 🩺 (```/bmi```)
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
 - Crystal ball 🔮 (```/crystalball```)
