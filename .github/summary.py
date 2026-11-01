@@ -1,12 +1,12 @@
 """Writes what a workflow job did into the summary of its run.
 
-Reads what the tools left behind and prints markdown, which the workflow appends to
+Reads what the tools left behind and prints Markdown, which the workflow appends to
 GITHUB_STEP_SUMMARY. Exits non-zero only when asked about jobs that did not pass.
 """
 import json
 import os
 import sys
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree
 
 passing = ("success", "skipped")
 marks = {"success": "✅", "skipped": "⏭️"}
@@ -19,7 +19,7 @@ def shorten(text: str, length: int = 90) -> str:
 
 
 def tests(path: str) -> int:
-    root = ET.parse(path).getroot()
+    root = ElementTree.parse(path).getroot()
     suite = root.find("testsuite")
     if suite is None:
         suite = root
@@ -32,20 +32,21 @@ def tests(path: str) -> int:
     print("| " + " | ".join([str(total), str(total - failures - skipped),
                              str(failures), str(skipped),
                              "{:.0f} s".format(float(suite.get("time", 0)))]) + " |")
-    broken = [case for case in suite.iter("testcase")
-              if case.find("failure") is not None or case.find("error") is not None]
+    broken = []
+    for case in suite.iter("testcase"):
+        problem = case.find("failure")
+        if problem is None:
+            problem = case.find("error")
+        if problem is not None:
+            broken.append((case.get("classname", "") + "." + case.get("name", ""), problem.get("message", "")))
     if not broken:
         print("\nEvery test passed ✅")
         return 0
     print("\n### What failed\n")
     print("| Test | Why |")
     print("| --- | --- |")
-    for case in broken[:limit]:
-        problem = case.find("failure")
-        if problem is None:
-            problem = case.find("error")
-        where = case.get("classname", "") + "." + case.get("name", "")
-        print("| `" + where + "` | " + shorten(problem.get("message", "")) + " |")
+    for where, message in broken[:limit]:
+        print("| `" + where + "` | " + shorten(message) + " |")
     if len(broken) > limit:
         print("\nAnd " + str(len(broken) - limit) + " more.")
     return 0

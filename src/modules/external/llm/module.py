@@ -6,22 +6,25 @@ import sqlite3
 import subprocess
 import threading
 import time
+import uuid
 from collections.abc import Iterator
 from datetime import datetime, timedelta
 
 import requests
 
-from core.api import Button, Ctx, JobCtx, Module, View, escape, italic, labelled
+from core.api import Action, Button, Ctx, Html, JobCtx, Module, Outcome, View, bold, escape, italic, labelled, plain
 
-module = Module(name="llm", is_guarded=True, config_keys=["llm_url", "llm_model"], tokens=["llm_key"],
+module = Module(name="llm", is_guarded=True, is_assistant=True, config_keys=["llm_url", "llm_model", "llm_prompt"],
+                tokens=["llm_key"],
                 icons={'name': "🤖", 'title': "🤖", 'new': "🆕", 'continue': "▶️", 'settings_button': "⚙️",
                        'thinking_mode': "💭", 'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "🔍",
                        'writing': "✍️", 'thinking': "💭", 'reasoning': "💭", 'history': "📜", 'resume': "▶️",
-                       'export': "📄", 'delete': "🗑️",
+                       'export': "📄", 'delete': "🗑️", 'modules': "🧩",
                        'keeping': "⏳", 'wipe': "🗑️", 'conversation': "💬", 'previous': "⬅️", 'next': "➡️"},
                 endings={'how': "💬", 'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧",
                          'busy': "⏳", 'resumed': "✅", 'deleted': "✅", 'wiped': "✅", 'gone': "💔",
-                         'too_big': "📦", 'unreadable': "💔", 'unsupported': "🤷"})
+                         'too_big': "📦", 'unreadable': "💔", 'unsupported': "🤷", 'confirm': "👇",
+                         'cancelled': "❌"})
 
 priority = -100
 continue_within = 15 * 60
@@ -57,10 +60,38 @@ writing_characters = 12000
 description_size = 300
 album_wait = 1.5
 convert_timeout = 120
+tool_rounds = 4
+confirm_within = 24 * 60 * 60
+action_prefix = "action."
+action_role = "action"
+speakers = {'user': "export_you", action_role: "export_action"}
+off_prefix = "off."
+note_size = 300
+on_mark = "✅ "
+off_mark = "⬜ "
+weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+private_pattern = re.compile("|".join([
+    r"system[ -]?(?:prompt|message|instruction|note|rule)s?", r"\bpromp[tc]", r"systemow",
+    r"\bthe system (?:says|said|tells|told|wants|asks|asked|instructs|instructed|requires|notes|mentions|states)",
+    r"developer (?:message|instruction|prompt)s?",
+    r"\b(?:my|these|those|system|given|above|earlier|previous|the) (?:instructions|guidelines|rules) "
+    r"(?:say|said|tell|told|state|stated|ask|asked|require|required|mention|mentioned|forbid|want)",
+    r"\baccording to (?:the|my|these) (?:instructions|guidelines|rules|context)",
+    r"\b(?:my|these|those|system|given|developer) (?:instructions|guidelines)",
+    r"\bI(?:['’]m| am| was|['’]ve been| have been) (?:told|instructed|not allowed|forbidden)",
+    r"\bI (?:must not|mustn['’]t|should not|shouldn['’]t|cannot|can['’]t) (?:reveal|mention|show|disclose)",
+    r"\bnot to (?:reveal|mention|show|disclose)", r"\bonly for me\b", r"\btool names?\b", r"\bnames? of the tools\b",
+    r"(?:moje|moich|moimi|te|tych|tymi|zgodnie z) (?:instrukcj|zasad|wytyczn)",
+    r"(?:instrukcj|zasad|wytyczn)\w* (?:mówi|każ|zabrani|wymag|nakaz|zakaz|pozwal)",
+    r"\b(?:kazano|napisano|powiedziano|polecono) mi",
+    r"\b(?:nie wolno mi|nie mogę|nie powinienem|nie powinnam|mam nie|żeby nie) (?:ujawni|zdradz|pokaz|wspomin|podawa)",
+    r"\btylko dla mnie\b", r"\bnazw\w* narzędzi"]), re.IGNORECASE)
+sentence_end = re.compile(r"(?<=[.!?…])\s+")
 answering: set[int] = set()
 answering_lock = threading.Lock()
 albums: dict[str, list[dict]] = {}
 albums_lock = threading.Lock()
+settling_lock = threading.Lock()
 
 
 def table(ctx: Ctx | JobCtx) -> str:
@@ -106,16 +137,33 @@ def remember(ctx: Ctx, conversation: int, role: str, content: str) -> int:
                            datetime.now().isoformat(timespec="seconds"))).lastrowid or 0
 
 
+def remember_action(ctx: Ctx, conversation: int, tool: str, arguments: dict, said: dict) -> None:
+    remember(ctx, conversation, action_role, json.dumps({'tool': tool, 'arguments': arguments, 'said': said},
+                                                        ensure_ascii=False, default=str))
+
+
+def replayed(row: sqlite3.Row) -> list[dict]:
+    if row['role'] != action_role:
+        return [{'role': row['role'], 'content': row['content']}]
+    done, call = json.loads(row['content']), "call_" + str(row['id'])
+    return [{'role': "assistant", 'content': None,
+             'tool_calls': [{'id': call, 'type': "function",
+                             'function': {'name': done['tool'],
+                                          'arguments': json.dumps(done['arguments'], ensure_ascii=False)}}]},
+            {'role': "tool", 'tool_call_id': call, 'name': done['tool'],
+             'content': json.dumps(done['said'], ensure_ascii=False)}]
+
+
 def history(ctx: Ctx, conversation: int) -> list[dict]:
-    rows = ctx.db.query_all("SELECT role, content FROM " + table(ctx) + " WHERE user_id = ? AND conversation = ? "
+    rows = ctx.db.query_all("SELECT id, role, content FROM " + table(ctx) + " WHERE user_id = ? AND conversation = ? "
                             "ORDER BY id DESC LIMIT ?;", (ctx.user.id, conversation, history_messages))
     kept, total = [], 0
     for row in rows:
         total += len(row['content'])
         if kept and total > history_characters:
             break
-        kept.append({'role': row['role'], 'content': row['content']})
-    return list(reversed(kept))
+        kept.append(replayed(row))
+    return [message for messages in reversed(kept) for message in messages]
 
 
 # ----- media -----
@@ -279,8 +327,11 @@ def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:
 
 def describe(ctx: Ctx, item: dict, parts: list[dict]) -> str:
     asked = [{'role': "user", 'content': [{'type': "text", 'text': str(ctx.t("describe." + family(item)))}] + parts}]
+    said = ""
     try:
-        said = "".join(piece for kind, piece in stream(ctx, asked, False) if kind == "answer")
+        for kind, piece in stream(ctx, asked, False):
+            if kind == "answer" and isinstance(piece, str):
+                said += piece
     except (requests.RequestException, ValueError) as error:
         ctx.error("The language model did not describe a " + item['kind'] + " - " + type(error).__name__, str(error))
         return ""
@@ -291,13 +342,30 @@ def is_thinking(ctx: Ctx) -> bool:
     return ctx.state.get(thinking_key) == "1"
 
 
-def stream(ctx: Ctx, messages: list[dict], thinking: bool) -> Iterator[tuple[str, str]]:
+def gather(calls: dict[int, dict], pieces: list[dict]) -> None:
+    for piece in pieces:
+        index = piece.get('index')
+        call = calls.setdefault(index if isinstance(index, int) else len(calls),
+                                {'id': "", 'name': "", 'arguments': ""})
+        function = piece.get('function') or {}
+        given = function.get('arguments') or ""
+        call['id'] = call['id'] or piece.get('id') or ""
+        call['name'] = call['name'] or function.get('name') or ""
+        call['arguments'] += given if isinstance(given, str) else json.dumps(given, ensure_ascii=False)
+
+
+def stream(ctx: Ctx, messages: list[dict], thinking: bool,
+           tools: list[dict] | None = None) -> Iterator[tuple[str, str | list[dict]]]:
     headers = {'Authorization': "Bearer " + ctx.token("llm_key")} if ctx.has_token("llm_key") else {}
     payload = {'model': ctx.setting("llm_model") or "", 'messages': messages, 'stream': True,
                'chat_template_kwargs': {'enable_thinking': thinking}}
     if not thinking:
         payload['reasoning_effort'] = "none"
+    if tools:
+        payload['tools'] = tools
     url = (ctx.setting("llm_url") or "").rstrip("/") + "/chat/completions"
+    calls: dict[int, dict] = {}
+    finished = ""
     with requests.post(url, json=payload, headers=headers, stream=True, timeout=timeouts) as response:
         response.raise_for_status()
         for raw in response.iter_lines():
@@ -308,14 +376,159 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool) -> Iterator[tuple[str
             if data == "[DONE]":
                 break
             event = json.loads(data)
-            delta = ((event.get('choices') or [{}])[0]).get('delta') or {}
-            if delta.get('tool_calls') or event.get('type') == "mcp_tool_result":
+            if event.get('type') == "mcp_tool_result":
+                calls.clear()
+                finished = ""
+                yield "tool", ""
+                continue
+            first = (event.get('choices') or [{}])[0]
+            delta = first.get('delta') or {}
+            if delta.get('tool_calls'):
+                gather(calls, delta['tool_calls'])
                 yield "tool", ""
             thought = delta.get('reasoning_content') or delta.get('reasoning') or ""
             if thought:
                 yield "thinking", thought
             if delta.get('content'):
                 yield "answer", delta['content']
+            finished = first.get('finish_reason') or finished
+    if finished == "tool_calls" and calls:
+        yield "calls", [call | {'id': call['id'] or "call_" + uuid.uuid4().hex[:12]}
+                        for _, call in sorted(calls.items())]
+
+
+# ----- assistant -----
+
+def bare(ctx: Ctx, key: str) -> str:
+    return plain(ctx.t(key))
+
+
+def is_open(ctx: Ctx, name: str) -> bool:
+    return ctx.state.get(off_prefix + name) != "1"
+
+
+def sharing(ctx: Ctx) -> list[Module]:
+    acting = {found.name for found, _ in ctx.assistant.actions()}
+    return [found for found in ctx.assistant.modules()
+            if found.name != module.name and (found.name in acting or found.summary is not None)]
+
+
+def offered(ctx: Ctx) -> list[tuple[Module, Action]]:
+    return [(found, action) for found, action in ctx.assistant.actions()
+            if found.name != module.name and is_open(ctx, found.name)]
+
+
+def tools_for(ctx: Ctx, actions: list[tuple[Module, Action]]) -> list[dict]:
+    return [{'type': "function",
+             'function': {'name': action.tool, 'description': bare(ctx, found.name + ":" + action.description),
+                          'parameters': {'type': "object",
+                                         'properties': {name: {'type': action.type_of(name),
+                                                               'description': bare(ctx, found.name + ":" +
+                                                                                   action.key(name))}
+                                                        for name in action.parameters},
+                                         'required': [name for name in action.parameters
+                                                      if name not in action.optional]}}}
+            for found, action in actions]
+
+
+def entry(ctx: Ctx, found: Module) -> str:
+    command = next((each.name for each in found.commands if ctx.user.role >= each.role), "")
+    if not command:
+        return ""
+    return "/" + command + " - " + bare(ctx, found.name + ":" + found.title) + " - " + \
+        bare(ctx, found.name + ":" + found.description)
+
+
+def clock(ctx: Ctx) -> str:
+    now = datetime.now().astimezone()
+    offset = now.strftime("%z")
+    return now.strftime(date_format) + ", " + bare(ctx, "weekdays." + weekdays[now.weekday()]) + ", " + \
+        (now.tzname() or "") + " (UTC" + offset[:3] + ":" + offset[3:] + ")"
+
+
+def prompt(ctx: Ctx, is_acting: bool) -> str:
+    others = [found for found in ctx.assistant.modules() if found.name != module.name]
+    listed = [line for line in (entry(ctx, found) for found in others) if line]
+    known = [(found, ctx.assistant.context(found.name)) for found in others
+             if found.summary is not None and is_open(ctx, found.name)]
+    known = ["[" + bare(ctx, found.name + ":" + found.title) + "]\n" + text for found, text in known if text]
+    name = " ".join(part for part in (ctx.user.first_name, ctx.user.last_name) if part)
+    parts = [(ctx.setting("llm_prompt") or "").strip(),
+             bare(ctx, "prompt.modules") + ":\n" + "\n".join(listed) if listed else "",
+             bare(ctx, "prompt.actions") if is_acting else "",
+             bare(ctx, "prompt.rules"),
+             bare(ctx, "prompt.user") + ": " + name + ", " + bare(ctx, "core:language_label"),
+             bare(ctx, "prompt.context") + ":\n" + "\n".join(known) if known else ""]
+    return "\n\n".join(part for part in parts if part)
+
+
+def stamped(ctx: Ctx, message: dict) -> dict:
+    line = "[" + bare(ctx, "prompt.now") + ": " + clock(ctx) + "]\n"
+    content = message['content']
+    if isinstance(content, str):
+        return message | {'content': line + content}
+    return message | {'content': [{'type': "text", 'text': line + content[0]['text']}] + content[1:]}
+
+
+def told(outcome: Outcome) -> dict:
+    if outcome.status == "done":
+        result = outcome.result
+        return {'status': "done", 'result': result if isinstance(result, (list, dict)) else plain(result)}
+    if outcome.status == "asking":
+        return {'status': "pending_confirmation", 'summary': plain(str(outcome.result))}
+    return {'status': "refused", 'problem': plain(str(outcome.result))}
+
+
+def action_note(tool: str, said: dict) -> str:
+    detail = said.get('result', said.get('summary', said.get('problem', "")))
+    text = detail if isinstance(detail, str) else json.dumps(detail, ensure_ascii=False, default=str)
+    return "[" + tool + " - " + said['status'] + ": " + shortened(text, note_size) + "]"
+
+
+def arguments_of(call: dict) -> dict:
+    try:
+        arguments = json.loads(call['arguments'] or "{}")
+    except ValueError:
+        return {}
+    return arguments if isinstance(arguments, dict) else {}
+
+
+def expired() -> str:
+    return (datetime.now() - timedelta(seconds=confirm_within)).isoformat(timespec="seconds")
+
+
+def forget_pending(ctx: Ctx) -> None:
+    oldest = expired()
+    for key, value in ctx.state.all().items():
+        if key.startswith(action_prefix) and json.loads(value or "{}").get('at', "") < oldest:
+            ctx.state.delete(key)
+
+
+def perform(ctx: Ctx, conversation: int, found: Module, action: Action, call: dict, done: list[tuple],
+            asking: dict[str, View]) -> dict:
+    arguments = arguments_of(call)
+    outcome = ctx.assistant.act(found.name, action.name, arguments)
+    asked = action.tool + ":" + str(outcome.result)
+    if outcome.status == "asking" and asked not in asking:
+        forget_pending(ctx)
+        key, title = uuid.uuid4().hex[:12], ctx.t(found.name + ":" + found.title)
+        ctx.state.set(action_prefix + key, json.dumps({'module': found.name, 'action': action.name, 'tool': action.tool,
+                                                       'arguments': arguments, 'conversation': conversation,
+                                                       'title': title, 'question': outcome.result,
+                                                       'at': datetime.now().isoformat(timespec="seconds")},
+                                                      ensure_ascii=False))
+        asking[asked] = View(text=str(outcome.result), heading=title, columns=2,
+                             buttons=[Button(ctx.t("core:yes_button"), "confirm", key),
+                                      Button(ctx.t("core:no_button"), "cancel", key)])
+    said = told(outcome)
+    done.append((action.tool, arguments, said))
+    ctx.log("Action " + action.tool + " " + said['status'])
+    return said
+
+
+def wired(call: dict) -> dict:
+    return {'id': call['id'], 'type': "function",
+            'function': {'name': call['name'], 'arguments': json.dumps(arguments_of(call), ensure_ascii=False)}}
 
 
 def inline(text: str) -> str:
@@ -357,21 +570,31 @@ def tail(text: str, size: int) -> str:
     return text if len(text) <= size else "…" + text[-size:]
 
 
+def discreet(thinking: str) -> str:
+    kept = []
+    for line in thinking.split("\n"):
+        shown = " ".join(sentence for sentence in sentence_end.split(line) if not private_pattern.search(sentence))
+        if shown.strip() or not line.strip():
+            kept.append(shown)
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(kept)).strip()
+
+
 def live_text(ctx: Ctx, thinking: str, answer: str, frame: int) -> str:
     dots = "." * (frame % 3 + 1)
     if answer:
         return ctx.t("writing") + dots + "\n\n" + escape(tail(answer, live_tail))
-    if thinking:
-        return ctx.t("thinking") + dots + "\n\n" + italic(tail(thinking.strip(), thinking_tail))
+    shown = discreet(thinking)
+    if shown:
+        return ctx.t("thinking") + dots + "\n\n" + italic(tail(shown, thinking_tail))
     return ctx.t("waiting") + dots
 
 
 def folded(ctx: Ctx, thinking: str, room: int) -> str:
-    if not thinking.strip() or room < 200:
+    shown = discreet(thinking)
+    if not shown or room < 200:
         return ""
     title = ctx.t("reasoning")
-    return "<blockquote expandable>" + escape(title + "\n" + tail(thinking.strip(), room - len(title) - 60)) + \
-        "</blockquote>\n"
+    return "<blockquote expandable>" + escape(title + "\n" + tail(shown, room - len(title) - 60)) + "</blockquote>\n"
 
 
 def delivered(ctx: Ctx, thinking: str, answer: str) -> list[str]:
@@ -380,22 +603,43 @@ def delivered(ctx: Ctx, thinking: str, answer: str) -> list[str]:
 
 
 def talk(ctx: Ctx, conversation: int, live: int | None, attached: list[dict]) -> None:
-    messages, thinks = history(ctx, conversation), is_thinking(ctx)
-    if attached and messages:
-        messages[-1]['content'] = [{'type': "text", 'text': messages[-1]['content']}] + attached
-    rounds, failures = [{'thinking': "", 'answer': ""}], []
+    actions = offered(ctx)
+    tools = {action.tool: (found, action) for found, action in actions}
+    described = tools_for(ctx, actions)
+    messages: list[dict] = [{'role': "system", 'content': prompt(ctx, bool(actions))}] + history(ctx, conversation)
+    thinks = is_thinking(ctx)
+    asked = max((index for index, each in enumerate(messages) if each['role'] == "user"), default=None)
+    if asked is not None:
+        if attached:
+            messages[asked]['content'] = [{'type': "text", 'text': messages[asked]['content']}] + attached
+        messages[asked] = stamped(ctx, messages[asked])
+    rounds, failures, done, asking = [{'thinking': "", 'answer': ""}], [], [], {}
 
     def read() -> None:
+        is_waiting = False
         try:
-            for kind, piece in stream(ctx, messages, thinks):
-                latest = rounds[-1]
-                if kind != "tool":
-                    latest[kind] += piece
-                elif latest['answer'].strip():
-                    rounds.append({'thinking': "", 'answer': ""})
-                elif latest['thinking'].strip() and not latest['thinking'].endswith("\n\n"):
-                    latest['thinking'] = latest['thinking'].rstrip() + "\n\n"
-        except (requests.RequestException, ValueError) as error:
+            for number in range(tool_rounds + 1):
+                calls: list[dict] = []
+                offer = described if number < tool_rounds and not is_waiting else None
+                for kind, piece in stream(ctx, messages, thinks, offer):
+                    latest = rounds[-1]
+                    if isinstance(piece, list):
+                        calls = [call for call in piece if call['name'] in tools]
+                    elif kind != "tool":
+                        latest[kind] += piece
+                    elif latest['answer'].strip():
+                        rounds.append({'thinking': "", 'answer': ""})
+                    elif latest['thinking'].strip() and not latest['thinking'].endswith("\n\n"):
+                        latest['thinking'] = latest['thinking'].rstrip() + "\n\n"
+                if not calls or number == tool_rounds:
+                    return
+                results = [perform(ctx, conversation, *tools[call['name']], call, done, asking) for call in calls]
+                is_waiting = all(result['status'] == "pending_confirmation" for result in results)
+                messages.append({'role': "assistant", 'content': None, 'tool_calls': [wired(call) for call in calls]})
+                messages.extend({'role': "tool", 'tool_call_id': call['id'], 'name': call['name'],
+                                 'content': json.dumps(result, ensure_ascii=False, default=str)}
+                                for call, result in zip(calls, results))
+        except Exception as error:
             failures.append(error)
 
     reader = threading.Thread(target=read, daemon=True)
@@ -415,24 +659,29 @@ def talk(ctx: Ctx, conversation: int, live: int | None, attached: list[dict]) ->
         if live is not None and (not showing['answer'] or time.monotonic() - edited >= edit_every):
             ctx.edit(live, live_text(ctx, showing['thinking'], showing['answer'], frame))
             edited = time.monotonic()
+    answers = [] if failures else [each['answer'].strip() for each in rounds if each['answer'].strip()]
+    for tool, arguments, said in done:
+        remember_action(ctx, conversation, tool, arguments, said)
+    if answers:
+        remember(ctx, conversation, "assistant", "\n\n".join(answers))
     if failures:
         ctx.error("The language model did not answer - " + type(failures[0]).__name__, str(failures[0]))
-        finish(ctx, live, [ctx.t("failed")])
-        return
-    answers = [each['answer'].strip() for each in rounds if each['answer'].strip()]
-    if not answers:
-        finish(ctx, live, [ctx.t("empty")])
-        return
-    remember(ctx, conversation, "assistant", "\n\n".join(answers))
-    left = rounds[shown:]
-    ending = max(index for index, each in enumerate(left) if index == 0 or each['answer'].strip())
-    for index, each in enumerate(left):
-        target = live if index == 0 else None
-        if each['answer'].strip():
-            finish(ctx, target, delivered(ctx, each['thinking'], each['answer']), is_final=index == ending)
-        elif target is not None:
-            finish(ctx, target, [ctx.t("empty")], is_final=index == ending)
-    ctx.log("Answered in conversation " + str(conversation))
+        finish(ctx, live, [ctx.t("failed")], is_final=not asking)
+    elif not answers:
+        finish(ctx, live, [ctx.t("confirm" if asking else "empty")], is_final=not asking)
+    else:
+        left = rounds[shown:]
+        ending = max(index for index, each in enumerate(left) if index == 0 or each['answer'].strip())
+        for index, each in enumerate(left):
+            target = live if index == 0 else None
+            if each['answer'].strip():
+                finish(ctx, target, delivered(ctx, each['thinking'], each['answer']),
+                       is_final=index == ending and not asking)
+            elif target is not None:
+                finish(ctx, target, [ctx.t("empty")], is_final=index == ending and not asking)
+        ctx.log("Answered in conversation " + str(conversation))
+    for view in asking.values():
+        ctx.reply(view)
 
 
 def finish(ctx: Ctx, live: int | None, parts: list[str], is_final: bool = True) -> None:
@@ -455,7 +704,8 @@ def answer_in(ctx: Ctx, conversation: int, items: list[dict]) -> View | None:
     if answered is not None and any(parts for _, _, parts in answered[1]):
         asked, prepared = answered
         texts = [note(ctx, item, describe(ctx, item, parts)) if parts else text for item, text, parts in prepared]
-        ctx.db.execute("UPDATE " + table(ctx) + " SET content = ? WHERE id = ?;", ("\n".join(texts), asked))
+        ctx.db.execute("UPDATE " + table(ctx) + " SET content = ? WHERE id = ? AND user_id = ?;",
+                       ("\n".join(texts), asked, ctx.user.id))
     return None
 
 
@@ -533,12 +783,44 @@ def pick(ctx: Ctx) -> View | None:
     return answer_in(ctx, current(ctx) if kind == "continue" else fresh(ctx), pending_items(stored))
 
 
+@module.callback("confirm", is_background=True)
+def confirm(ctx: Ctx) -> View | None:
+    return settle(ctx, True)
+
+
+@module.callback("cancel")
+def cancel(ctx: Ctx) -> View | None:
+    return settle(ctx, False)
+
+
+def settle(ctx: Ctx, is_confirmed: bool) -> View | None:
+    key = ctx.arguments[0] if ctx.arguments else ""
+    with settling_lock:
+        stored = ctx.state.get(action_prefix + key)
+        ctx.state.delete(action_prefix + key)
+    pending = json.loads(stored or "{}")
+    if not pending or pending.get('at', "") < expired() or ctx.message is None:
+        return View(ctx.t("core:not_working_buttons"), heading=None)
+    if is_confirmed:
+        outcome = ctx.assistant.act(pending['module'], pending['action'], pending['arguments'], is_confirmed=True)
+        said = told(outcome) | ({'status': "confirmed"} if outcome.status == "done" else {})
+        text = str(outcome.result)
+    else:
+        said = {'status': "cancelled", 'summary': plain(pending['question'])}
+        text = pending['question'] + "\n\n" + ctx.t("cancelled")
+    shown = bold(Html(pending['title']), ":") + "\n\n" + text
+    remember_action(ctx, pending['conversation'], pending['tool'], pending['arguments'], said)
+    ctx.log("Action " + pending['tool'] + " " + said['status'])
+    return None if ctx.edit(ctx.message.message_id, shown) else View(shown, heading=None)
+
+
 # ----- history -----
 
 def conversations(ctx: Ctx, number: int | None = None) -> list[sqlite3.Row]:
     only = " AND m.conversation = ?" if number is not None else ""
     return ctx.db.query_all(
-        "SELECT m.conversation, MIN(m.created_at) AS started, MAX(m.created_at) AS last, COUNT(*) AS total, "
+        "SELECT m.conversation, MIN(m.created_at) AS started, MAX(m.created_at) AS last, "
+        "SUM(m.role != '" + action_role + "') AS total, "
         "(SELECT f.content FROM " + table(ctx) + " f WHERE f.user_id = m.user_id AND f.conversation = m.conversation "
         "AND f.role = 'user' ORDER BY f.id LIMIT 1) AS opening FROM " + table(ctx) + " m WHERE m.user_id = ?" + only +
         " GROUP BY m.conversation ORDER BY MAX(m.id) DESC;", (ctx.user.id,) + ((number,) if number is not None else ()))
@@ -643,13 +925,20 @@ def resume(ctx: Ctx) -> View:
 
 
 def speaker(ctx: Ctx, role: str) -> str:
-    return ctx.t("export_you") if role == "user" else ctx.t("export_assistant")
+    return ctx.t(speakers.get(role, "export_assistant"))
+
+
+def readable(row: sqlite3.Row) -> str:
+    if row['role'] != action_role:
+        return row['content']
+    done = json.loads(row['content'])
+    return action_note(done['tool'], done['said'])
 
 
 def transcript(ctx: Ctx, number: int) -> str:
     rows = ctx.db.query_all("SELECT role, content, created_at FROM " + table(ctx) +
                             " WHERE user_id = ? AND conversation = ? ORDER BY id;", (ctx.user.id, number))
-    entries = ["[" + when(row['created_at']) + "] " + speaker(ctx, row['role']) + "\n" + row['content'] for row in rows]
+    entries = ["[" + when(row['created_at']) + "] " + speaker(ctx, row['role']) + "\n" + readable(row) for row in rows]
     return "\n\n".join(entries) + "\n"
 
 
@@ -714,6 +1003,7 @@ def settings(ctx: Ctx) -> View:
     return View(text=ctx.t("settings_text") + "\n\n" + now,
                 buttons=[Button(ctx.t("thinking_mode"), "thinking_mode"),
                          Button(ctx.t("keeping"), "keeping"),
+                         Button(ctx.t("modules"), "modules"),
                          Button(ctx.t("wipe"), "wipe")])
 
 
@@ -761,6 +1051,38 @@ def set_keeping(ctx: Ctx) -> View:
                    "ON CONFLICT(user_id) DO UPDATE SET keep_days = excluded.keep_days;", (ctx.user.id, int(wanted)))
     ctx.log("History kept for " + wanted + " days")
     return settings(ctx)
+
+
+@module.callback("modules")
+def open_modules(ctx: Ctx) -> View:
+    return modules_screen(ctx)
+
+
+@module.view("modules", parent="settings", title="modules")
+def modules_screen(ctx: Ctx) -> View:
+    found = sharing(ctx)
+    if not found:
+        return View(text=ctx.t("modules_empty"))
+    return View(text=ctx.t("modules_text"),
+                buttons=[Button(mark(ctx, each.name) + ctx.t(each.name + ":" + each.title), "share", each.name)
+                         for each in found])
+
+
+def mark(ctx: Ctx, name: str) -> str:
+    return on_mark if is_open(ctx, name) else off_mark
+
+
+@module.callback("share")
+def share(ctx: Ctx) -> View:
+    wanted = ctx.arguments[0] if ctx.arguments else ""
+    if wanted not in [each.name for each in sharing(ctx)]:
+        return View(ctx.t("core:not_working_buttons"), heading=None)
+    if is_open(ctx, wanted):
+        ctx.state.set(off_prefix + wanted, "1")
+    else:
+        ctx.state.delete(off_prefix + wanted)
+    ctx.log("Assistant " + ("let into " if is_open(ctx, wanted) else "kept out of ") + wanted)
+    return modules_screen(ctx)
 
 
 @module.callback("wipe")

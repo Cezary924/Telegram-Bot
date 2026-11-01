@@ -32,6 +32,10 @@ menu_closed: Opuszczono menu
 not_working_buttons: Niestety, ten przycisk już nie działa...
 unknown_command: Niestety, nie znam takiej komendy...
 unknown_message: Niestety, nie rozumiem Twojej wiadomości...
+assistant:
+  unknown: Bot nie ma dla Ciebie takiej akcji
+  wrong_arguments: Te argumenty nie pasują, akcja przyjmuje {expected}
+  optional: opcjonalny
 
 bot_started: Bot został uruchomiony pomyślnie!
 bot_stopped: Bot został wyłączony!

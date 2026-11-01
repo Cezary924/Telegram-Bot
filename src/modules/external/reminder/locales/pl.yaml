@@ -35,3 +35,18 @@ sure: Czy na pewno chcesz usunąć to przypomnienie?
 
 due: Już czas!
 delayed: To już był czas, ale nie mogłem się do Ciebie odezwać wcześniej.
+
+add_sure: Czy mam ustawić to przypomnienie?
+edit_sure: Czy mam zmienić przypomnienie na takie?
+missing: Nie ma takiego przypomnienia - mogło zostać usunięte albo numer jest zły
+unchanged: Nie ma czego zmienić - podaj nową treść, nową datę albo obie
+upcoming: Najbliższe przypomnienia
+actions:
+  add: Ustawia użytkownikowi przypomnienie, które ten potwierdza przyciskiem
+  list: Wypisuje przypomnienia użytkownika, najpierw oczekujące od najbliższego, potem wysłane
+  edit: Zmienia treść, datę albo obie w przypomnieniu użytkownika, który potwierdza to przyciskiem
+  delete: Usuwa przypomnienie użytkownika, który potwierdza to przyciskiem
+parameters:
+  content: O czym przypomnieć, do 200 znaków
+  date: Kiedy przypomnieć, w czasie lokalnym, w formacie YYYY-MM-DD HH:MM
+  reminder_id: Numer przypomnienia z listy

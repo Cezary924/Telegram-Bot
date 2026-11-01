@@ -1,7 +1,8 @@
 import pytest
 
-from core.module import Module
+from core.module import Module, Outcome
 from core.roles import Role
+from core.testing import not_none
 
 
 def handler(ctx):
@@ -221,3 +222,55 @@ def test_a_branch_does_not_hang_on_a_loop(module):
     module.view("one", parent="two")(lambda ctx: None)
     module.view("two", parent="one")(lambda ctx: None)
     assert [view.name for view in module.branch("one")] == ["two", "one"]
+
+
+def test_an_action_is_recorded_with_its_tool_name(module):
+    decorated = module.action("action1", parameters={'parameter1': str, 'parameter2': int}, is_confirmed=True)(handler)
+    action = module.actions[0]
+    assert decorated is handler
+    assert (action.name, action.tool, action.handler) == ("action1", "module1_action1", handler)
+    assert action.parameters == {'parameter1': str, 'parameter2': int}
+    assert (action.description, action.key("parameter1")) == ("actions.action1", "parameters.parameter1")
+    assert action.role == Role.GUEST and action.is_confirmed
+    assert (action.type_of("parameter1"), action.type_of("parameter2")) == ("string", "integer")
+
+
+def test_an_action_runs_without_asking_by_default(module):
+    module.action("action1")(handler)
+    assert module.actions[0].parameters == {} and not module.actions[0].is_confirmed
+    assert module.actions[0].optional == ()
+
+
+def test_only_a_declared_parameter_can_be_optional(module):
+    module.action("action1", parameters={'parameter1': str}, optional=["parameter1"])(handler)
+    assert module.actions[0].optional == ("parameter1",)
+    with pytest.raises(ValueError):
+        module.action("action2", parameters={'parameter1': str}, optional=["parameter2"])
+
+
+@pytest.mark.parametrize("parameters", [{'Wrong': str}, {'parameter1': list}, {'parameter1': dict}])
+def test_an_action_takes_only_simple_parameters(module, parameters):
+    with pytest.raises(ValueError):
+        module.action("action1", parameters=parameters)
+
+
+def test_an_action_name_and_its_uniqueness_are_checked(module):
+    module.action("action1")(handler)
+    with pytest.raises(ValueError):
+        module.action("action1")
+    with pytest.raises(ValueError):
+        module.action("Action-2")
+
+
+def test_the_context_is_declared_once(module):
+    module.context()(handler)
+    assert module.summary is handler
+    with pytest.raises(ValueError):
+        module.context()
+
+
+def test_outcomes_say_what_happened():
+    assert Outcome.done([1]) == Outcome("done", [1])
+    assert Outcome.refused("problem1") == Outcome("refused", "problem1")
+    asked = Outcome.ask("question1", lambda: "done1")
+    assert (asked.status, asked.result, not_none(asked.then)()) == ("asking", "question1", "done1")

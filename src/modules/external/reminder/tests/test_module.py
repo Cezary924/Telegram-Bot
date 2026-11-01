@@ -2,8 +2,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from core.api import JobCtx
-from core.testing import make_callback, make_message
+from core.api import Ctx, JobCtx, Outcome, Role, User
+from core.testing import make_callback, make_message, not_none
 from modules.external.reminder import module as reminder
 
 content1 = "Buy milk"
@@ -337,3 +337,124 @@ def test_a_reminder_that_cannot_be_delivered_does_not_hold_up_the_others(app, bo
     run_job(app)
     assert [message.chat_id for message in bot.sent] == [2]
     assert [row['is_notified'] for row in rows(app)] == [0, 1]
+
+
+# ----- assistant -----
+
+def as_user(app, user_id: int = 1) -> Ctx:
+    person = User(user_id, "First", "Last", "username", Role.GUEST, "en", True)
+    return Ctx(app.services, not_none(app.registry.get("reminder")), person)
+
+
+def test_adding_asks_with_what_it_would_set(app, bot):
+    date = later()
+    outcome = reminder.act_add(as_user(app), " " + content1 + " ", date)
+    assert outcome.status == "asking"
+    assert outcome.result == ("Do you want me to set this reminder?\nContent: <i>" + content1 + "</i>\nDate: <i>"
+                              + date + "</i>")
+    assert rows(app) == []
+
+
+def test_adding_sets_the_reminder_once_confirmed(app, bot):
+    date = later()
+    done = reminder.act_add(as_user(app), content1, date).then()
+    assert done.startswith("The reminder has been set ✅\nContent:")
+    assert [(row['user_id'], row['content'], row['date']) for row in rows(app)] == [(1, content1, date)]
+
+
+@pytest.mark.parametrize("content, date, problem", [
+    ("", later(), "The content has to be between 1 and 200 characters long"),
+    ("x" * 201, later(), "The content has to be between 1 and 200 characters long"),
+    (content1, "tomorrow at 3", "I do not understand this date, write it like this: <i>"),
+    (content1, later(-1), "I cannot remind you about something in the past"),
+])
+def test_adding_is_checked_the_same_way_as_on_the_screens(app, bot, content, date, problem):
+    outcome = reminder.act_add(as_user(app), content, date)
+    assert outcome.status == "refused" and str(outcome.result).startswith(problem)
+
+
+def test_the_list_gives_the_model_plain_values(app, bot):
+    date = set_one(app, bot)
+    assert reminder.act_list(as_user(app)) == Outcome.done([{'reminder_id': 1, 'date': date, 'content': content1,
+                                                             'is_sent': False}])
+    assert reminder.act_list(as_user(app, 2)) == Outcome.done([])
+
+
+def test_deleting_asks_and_deletes_once_confirmed(app, bot):
+    set_one(app, bot)
+    outcome = reminder.act_delete(as_user(app), 1)
+    assert outcome.status == "asking" and str(outcome.result).startswith("Do you really want to delete this reminder?")
+    assert len(rows(app)) == 1
+    assert outcome.then() == "The reminder has been deleted ✅"
+    assert rows(app) == []
+
+
+def test_nobody_deletes_a_reminder_of_someone_else(app, bot):
+    set_one(app, bot)
+    assert reminder.act_delete(as_user(app, 2), 1) == \
+        Outcome.refused("There is no such reminder - it may have been deleted or the number is wrong")
+    assert len(rows(app)) == 1
+
+
+def test_the_summary_tells_the_next_reminders(app, bot):
+    assert reminder.summary(as_user(app)) == ""
+    dates = {days: set_one(app, bot, content, later(days))
+             for days, content in [(3, "third"), (1, "<first>"), (2, "second"), (4, "fourth")]}
+    assert reminder.summary(as_user(app)) == "The next reminders:\n" + "\n".join(
+        [dates[1] + " - &lt;first&gt;", dates[2] + " - second", dates[3] + " - third"])
+    assert reminder.summary(as_user(app, 2)) == ""
+
+
+def test_editing_asks_with_the_reminder_as_it_would_be(app, bot):
+    first = set_one(app, bot)
+    date = later(2)
+    outcome = reminder.act_edit(as_user(app), 1, None, date)
+    assert outcome.result == ("Do you want me to change the reminder into this?\nContent: <i>" + content1 +
+                              "</i>\nDate: <i>" + date + "</i>")
+    assert rows(app)[0]['date'] == first
+    assert outcome.then().startswith("The reminder has been changed ✅")
+    assert (rows(app)[0]['content'], rows(app)[0]['date']) == (content1, date)
+
+
+def test_editing_the_content_keeps_the_date(app, bot):
+    date = set_one(app, bot)
+    reminder.act_edit(as_user(app), 1, " " + content2 + " ", None).then()
+    assert (rows(app)[0]['content'], rows(app)[0]['date']) == (content2, date)
+
+
+def test_a_new_date_lets_a_sent_reminder_ring_again(app, bot):
+    set_one(app, bot)
+    app.storage.database.execute("UPDATE " + table_of(app) + " SET is_notified = 1;")
+    reminder.act_edit(as_user(app), 1, content2, None).then()
+    assert rows(app)[0]['is_notified'] == 1
+    reminder.act_edit(as_user(app), 1, None, later(3)).then()
+    assert rows(app)[0]['is_notified'] == 0
+
+
+@pytest.mark.parametrize("content, date, problem", [
+    (None, None, "Nothing to change - give a new content, a new date or both"),
+    ("", None, "The content has to be between 1 and 200 characters long"),
+    (None, "tomorrow", "I do not understand this date"),
+    (None, later(-1), "I cannot remind you about something in the past"),
+])
+def test_editing_is_checked_the_same_way_as_on_the_screens(app, bot, content, date, problem):
+    set_one(app, bot)
+    outcome = reminder.act_edit(as_user(app), 1, content, date)
+    assert outcome.status == "refused" and str(outcome.result).startswith(problem)
+
+
+def test_nobody_edits_a_reminder_of_someone_else(app, bot):
+    set_one(app, bot)
+    assert reminder.act_edit(as_user(app, 2), 1, content2, None) == \
+        Outcome.refused("There is no such reminder - it may have been deleted or the number is wrong")
+    assert rows(app)[0]['content'] == content1
+
+
+def test_the_list_for_the_model_starts_with_the_soonest_waiting_ones(app, bot, monkeypatch):
+    monkeypatch.setattr(reminder, "listed_limit", 3)
+    dates = [set_one(app, bot, "in " + str(days), later(days)) for days in (5, 1, 3, 2)]
+    app.storage.database.execute("UPDATE " + table_of(app) + " SET is_notified = 1 WHERE content = 'in 1';")
+    listed = reminder.act_list(as_user(app)).result
+    assert isinstance(listed, list)
+    assert [(one['content'], one['date'], one['is_sent']) for one in listed] == \
+        [("in 2", dates[3], False), ("in 3", dates[2], False), ("in 5", dates[0], False)]

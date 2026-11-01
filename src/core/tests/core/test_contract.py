@@ -328,3 +328,19 @@ def test_a_group_of_texts_is_fine(tmp_path):
     module.path = str(tmp_path)
     write_locales(tmp_path, "group:\n  1: One\n  2: Two\n")
     assert contract.check_yaml_traps(module) == []
+
+
+def test_an_action_needs_its_description_and_parameter_texts(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    module.action("action1", parameters={'parameter1': str, 'parameter2': int})(lambda ctx: ctx)
+    write_locales(tmp_path, "name: Module one\ndescription: Something\nactions:\n  action1: Does something\n"
+                            "parameters:\n  parameter1: What to do\n")
+    assert contract.check_locales(module) == ["action 'action1' has no text 'parameters.parameter2'"]
+
+
+def test_a_module_with_actions_needs_texts(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    module.action("action1")(lambda ctx: ctx)
+    assert contract.check_locales(module) == ["there is no 'locales' directory"]

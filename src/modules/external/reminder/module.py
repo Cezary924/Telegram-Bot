@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from core.api import Button, Ctx, JobCtx, Module, View, escape, labelled, italic
+from core.api import Button, Ctx, JobCtx, Module, Outcome, View, escape, labelled, italic
 
 module = Module(name="reminder", is_guarded=True, notifications="name",
                 icons={'name': "🔔", 'previous': "⬅️", 'next': "➡️"},
@@ -15,6 +15,8 @@ content_key = "content"
 page_size = 8
 waiting_mark = "🔔 "
 done_mark = "🔕 "
+listed_limit = 30
+upcoming_limit = 3
 
 
 def parse_date(text: str) -> datetime | None:
@@ -44,6 +46,36 @@ def wanted_id(ctx: Ctx) -> int:
 
 def details(ctx: Ctx, content: str, date: str) -> str:
     return labelled(ctx.t("labels.content"), content) + "\n" + labelled(ctx.t("labels.date"), date)
+
+
+def wrong_content(ctx: Ctx, text: str) -> str:
+    return "" if 0 < len(text.strip()) <= content_limit else ctx.t("wrong_content", limit=str(content_limit))
+
+
+def checked_date(ctx: Ctx, text: str) -> tuple[str, str]:
+    moment = parse_date(text)
+    if moment is None:
+        return "", labelled(ctx.t("wrong_date"), example_date())
+    if moment < datetime.now().replace(second=0, microsecond=0):
+        return "", ctx.t("past_date")
+    return moment.strftime(date_format), ""
+
+
+def insert(ctx: Ctx, content: str, date: str) -> None:
+    ctx.db.execute("INSERT INTO " + table(ctx) + " (user_id, date, content) VALUES (?, ?, ?);",
+                   (ctx.user.id, date, content))
+    ctx.log("Reminder set for " + date)
+
+
+def change(ctx: Ctx, row, content: str, date: str) -> None:
+    ctx.db.execute("UPDATE " + table(ctx) + " SET content = ?, date = ?, is_notified = ? WHERE id = ? AND user_id = ?;",
+                   (content, date, row['is_notified'] if date == row['date'] else 0, row['id'], ctx.user.id))
+    ctx.log("Reminder " + str(row['id']) + " changed")
+
+
+def remove(ctx: Ctx, reminder_id: int) -> None:
+    ctx.db.execute("DELETE FROM " + table(ctx) + " WHERE id = ? AND user_id = ?;", (reminder_id, ctx.user.id))
+    ctx.log("Reminder " + str(reminder_id) + " deleted")
 
 
 @module.command("reminder")
@@ -79,8 +111,9 @@ def content_screen(ctx: Ctx) -> View:
 @module.state("content")
 def take_content(ctx: Ctx) -> View:
     text = ctx.text.strip()
-    if not text or len(text) > content_limit:
-        return ctx.retry(ctx.t("wrong_content", limit=str(content_limit)))
+    problem = wrong_content(ctx, text)
+    if problem:
+        return ctx.retry(problem)
     reminder_id = wanted_id(ctx)
     if reminder_id:
         return save_content(ctx, reminder_id, text)
@@ -92,10 +125,8 @@ def save_content(ctx: Ctx, reminder_id: int, text: str) -> View:
     row = reminder_of(ctx, reminder_id)
     if row is None:
         return gone(ctx)
-    ctx.db.execute("UPDATE " + table(ctx) + " SET content = ? WHERE id = ? AND user_id = ?;",
-                   (text, reminder_id, ctx.user.id))
+    change(ctx, row, text, row['date'])
     ctx.close_screen()
-    ctx.log("Reminder " + str(reminder_id) + " content changed")
     return View(text=ctx.t("changed") + "\n" + details(ctx, text, row['date']))
 
 
@@ -117,12 +148,9 @@ def example_date() -> str:
 
 @module.state("date")
 def take_date(ctx: Ctx) -> View:
-    moment = parse_date(ctx.text)
-    if moment is None:
-        return ctx.retry(labelled(ctx.t("wrong_date"), example_date()))
-    if moment < datetime.now().replace(second=0, microsecond=0):
-        return ctx.retry(ctx.t("past_date"))
-    date = moment.strftime(date_format)
+    date, problem = checked_date(ctx, ctx.text)
+    if problem:
+        return ctx.retry(problem)
     reminder_id = wanted_id(ctx)
     if reminder_id:
         return save_date(ctx, reminder_id, date)
@@ -133,11 +161,8 @@ def save_date(ctx: Ctx, reminder_id: int, date: str) -> View:
     row = reminder_of(ctx, reminder_id)
     if row is None:
         return gone(ctx)
-    ctx.db.execute("UPDATE " + table(ctx) +
-                   " SET date = ?, is_notified = 0 WHERE id = ? AND user_id = ?;",
-                   (date, reminder_id, ctx.user.id))
+    change(ctx, row, row['content'], date)
     ctx.close_screen()
-    ctx.log("Reminder " + str(reminder_id) + " date changed")
     return View(text=ctx.t("changed") + "\n" + details(ctx, row['content'], date))
 
 
@@ -145,11 +170,9 @@ def save_new(ctx: Ctx, date: str) -> View:
     content = ctx.state.get(content_key) or ""
     if not content:
         return gone(ctx)
-    ctx.db.execute("INSERT INTO " + table(ctx) + " (user_id, date, content) VALUES (?, ?, ?);",
-                   (ctx.user.id, date, content))
+    insert(ctx, content, date)
     ctx.state.delete(content_key)
     ctx.close_screen()
-    ctx.log("Reminder set for " + date)
     return View(text=ctx.t("done") + "\n" + details(ctx, content, date))
 
 
@@ -224,16 +247,84 @@ def confirm_delete(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     if reminder_of(ctx, reminder_id) is None:
         return gone(ctx)
-    ctx.db.execute("DELETE FROM " + table(ctx) + " WHERE id = ? AND user_id = ?;",
-                   (reminder_id, ctx.user.id))
+    remove(ctx, reminder_id)
     ctx.close_screen()
-    ctx.log("Reminder " + str(reminder_id) + " deleted")
     return View(text=ctx.t("deleted"))
 
 
 def gone(ctx: Ctx) -> View:
     ctx.close_screen()
     return View(text=ctx.t("gone"))
+
+
+# ----- assistant -----
+
+@module.action("add", parameters={'content': str, 'date': str}, is_confirmed=True)
+def act_add(ctx: Ctx, content: str, date: str) -> Outcome:
+    content = content.strip()
+    date, problem = checked_date(ctx, date)
+    problem = wrong_content(ctx, content) or problem
+    if problem:
+        return Outcome.refused(problem)
+    return Outcome.ask(ctx.t("add_sure") + "\n" + details(ctx, content, date), lambda: added(ctx, content, date))
+
+
+def added(ctx: Ctx, content: str, date: str) -> str:
+    insert(ctx, content, date)
+    return ctx.t("done") + "\n" + details(ctx, content, date)
+
+
+@module.action("list")
+def act_list(ctx: Ctx) -> Outcome:
+    rows = ctx.db.query_all("SELECT id, date, content, is_notified FROM " + table(ctx) + " WHERE user_id = ? "
+                            "ORDER BY is_notified, CASE WHEN is_notified = 0 THEN date END, date DESC LIMIT ?;",
+                            (ctx.user.id, listed_limit))
+    return Outcome.done([{'reminder_id': row['id'], 'date': row['date'], 'content': row['content'],
+                          'is_sent': bool(row['is_notified'])} for row in rows])
+
+
+@module.action("edit", parameters={'reminder_id': int, 'content': str, 'date': str}, optional=["content", "date"],
+               is_confirmed=True)
+def act_edit(ctx: Ctx, reminder_id: int, content: str | None, date: str | None) -> Outcome:
+    row = reminder_of(ctx, reminder_id)
+    if row is None:
+        return Outcome.refused(ctx.t("missing"))
+    if content is None and date is None:
+        return Outcome.refused(ctx.t("unchanged"))
+    text = row['content'] if content is None else content.strip()
+    when, problem = (row['date'], "") if date is None else checked_date(ctx, date)
+    problem = wrong_content(ctx, text) or problem
+    if problem:
+        return Outcome.refused(problem)
+    return Outcome.ask(ctx.t("edit_sure") + "\n" + details(ctx, text, when), lambda: edited(ctx, row, text, when))
+
+
+def edited(ctx: Ctx, row, content: str, date: str) -> str:
+    change(ctx, row, content, date)
+    return ctx.t("changed") + "\n" + details(ctx, content, date)
+
+
+@module.action("delete", parameters={'reminder_id': int}, is_confirmed=True)
+def act_delete(ctx: Ctx, reminder_id: int) -> Outcome:
+    row = reminder_of(ctx, reminder_id)
+    if row is None:
+        return Outcome.refused(ctx.t("missing"))
+    return Outcome.ask(ctx.t("sure") + "\n" + details(ctx, row['content'], row['date']),
+                       lambda: deleted(ctx, reminder_id))
+
+
+def deleted(ctx: Ctx, reminder_id: int) -> str:
+    remove(ctx, reminder_id)
+    return ctx.t("deleted")
+
+
+@module.context()
+def summary(ctx: Ctx) -> str:
+    rows = ctx.db.query_all("SELECT date, content FROM " + table(ctx) + " WHERE user_id = ? AND is_notified = 0 "
+                            "ORDER BY date LIMIT ?;", (ctx.user.id, upcoming_limit))
+    if not rows:
+        return ""
+    return ctx.t("upcoming") + ":\n" + "\n".join(escape(row['date'] + " - " + row['content']) for row in rows)
 
 
 # ----- notifying -----

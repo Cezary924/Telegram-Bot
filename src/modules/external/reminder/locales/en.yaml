@@ -35,3 +35,18 @@ sure: Do you really want to delete this reminder?
 
 due: It is time!
 delayed: It was time, but I could not reach you earlier.
+
+add_sure: Do you want me to set this reminder?
+edit_sure: Do you want me to change the reminder into this?
+missing: There is no such reminder - it may have been deleted or the number is wrong
+unchanged: Nothing to change - give a new content, a new date or both
+upcoming: The next reminders
+actions:
+  add: Sets a reminder for the user, who confirms it with a button
+  list: Lists the reminders of the user, the waiting ones first from the soonest, then the sent ones
+  edit: Changes the content, the date or both of a reminder of the user, who confirms it with a button
+  delete: Deletes a reminder of the user, who confirms it with a button
+parameters:
+  content: What to remind about, up to 200 characters
+  date: When to remind, in the local time, as YYYY-MM-DD HH:MM
+  reminder_id: The id of the reminder, from the list

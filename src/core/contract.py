@@ -49,11 +49,15 @@ def check_manifest(module: Module) -> list[str]:
     return problems
 
 
+def yaml_files(directory: str) -> list[str]:
+    return sorted(name for name in os.listdir(directory) if name.endswith(".yaml"))
+
+
 def check_locales(module: Module) -> list[str]:
     directory = os.path.join(module.path, locales_name)
     if not os.path.isdir(directory):
-        return ["there is no '" + locales_name + "' directory"] if module.commands else []
-    files = sorted(name for name in os.listdir(directory) if name.endswith(".yaml"))
+        return ["there is no '" + locales_name + "' directory"] if module.commands or module.actions else []
+    files = yaml_files(directory)
     if default_language + ".yaml" not in files:
         return ["there is no '" + default_language + ".yaml' translation"]
     problems = []
@@ -79,6 +83,10 @@ def check_locales(module: Module) -> list[str]:
         if command.description not in expected:
             problems.append("command '" + command.name + "' has no description key '" +
                             command.description + "'")
+    for action in module.actions:
+        for key in [action.description] + [action.key(parameter) for parameter in action.parameters]:
+            if key not in expected:
+                problems.append("action '" + action.name + "' has no text '" + key + "'")
     return problems
 
 
@@ -87,9 +95,7 @@ def check_yaml_traps(module: Module) -> list[str]:
     if not os.path.isdir(directory):
         return []
     problems = []
-    for name in sorted(os.listdir(directory)):
-        if not name.endswith(".yaml"):
-            continue
+    for name in yaml_files(directory):
         with open(os.path.join(directory, name), encoding='utf8') as f:
             data = yaml.load(f, Loader=yaml.Loader) or {}
         for key, value in flat_pairs(data):
@@ -125,9 +131,7 @@ def text_problems(directory: str) -> list[str]:
     if not os.path.isdir(directory):
         return []
     problems = []
-    for name in sorted(os.listdir(directory)):
-        if not name.endswith(".yaml"):
-            continue
+    for name in yaml_files(directory):
         path = os.path.join(directory, name)
         with open(path, encoding='utf8') as f:
             for key in quoted_keys(yaml.compose(f, Loader=yaml.Loader)):
