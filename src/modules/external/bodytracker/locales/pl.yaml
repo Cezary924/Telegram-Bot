@@ -1,0 +1,67 @@
+name: Dziennik ciała
+description: Prowadzi historię wagi i wzrostu, z których korzystają inne funkcje zdrowotne
+
+commands.bodytracker: Zapisuj wagę i wzrost
+
+how: Zapisuj wagę za każdym razem, gdy staniesz na wadze, a wzrost, gdy się zmieni - skorzystają z nich funkcje BMI, kalorii i alkoholu
+log: Zapisz wagę
+history: Historia
+chart: Wykres
+settings_button: Ustawienia
+heights: Historia wzrostu
+chart_title: Waga w czasie
+pick: Dotknij wpisu, żeby go zmienić albo usunąć. Strona {page} z {pages}, wpisów {total}
+previous: Poprzednia
+next: Następna
+entry: Wpis
+edit_value: Zmień wartość
+edit_when: Zmień datę i godzinę
+remove: Usuń
+empty:
+  weight: Nie zapisano jeszcze żadnej wagi
+  height: Nie zapisano jeszcze wzrostu
+saved: Waga została zapisana
+changed: Wpis został zmieniony
+unknown: nie podano
+settings_text: Wzrost zmienia się rzadko, więc jest tutaj. Płeć, datę urodzenia i jednostki znajdziesz w Ustawieniach > O mnie
+set_height: Zapisz wzrost
+
+labels:
+  weight: Waga
+  height: Wzrost
+  sex: Płeć
+  age: Wiek
+  when: Kiedy
+sex:
+  female: Kobieta
+  male: Mężczyzna
+  other: Inna
+  undisclosed: Wolę nie podawać
+
+ask:
+  weight: Napisz swoją wagę ({unit})
+  height: Napisz swój wzrost ({unit}), na przykład 176 albo 5 9
+  when: Kiedy to było?
+wrong:
+  weight: Waga musi być liczbą od {low} do {high} kg
+  height: Wzrost musi być liczbą od {low} do {high} cm
+
+sure: Czy na pewno chcesz usunąć ten wpis?
+deleted: Wpis został usunięty
+gone: Tego wpisu już nie ma
+
+weight_sure: Zapisać ten pomiar wagi?
+height_sure: Zapisać ten pomiar wzrostu?
+height_saved: Wzrost został zapisany
+context:
+  before: poprzednio {value} ({day})
+  first: pierwszy pomiar {value} ({day})
+
+actions:
+  log_weight: Zapisuje pomiar wagi użytkownika
+  log_height: Zapisuje pomiar wzrostu użytkownika
+  history: Podaje zapisane pomiary wagi i wzrostu z datami, od najstarszych
+parameters:
+  weight: Waga w kilogramach - jeśli użytkownik podał funty, przelicz je
+  height: Wzrost w centymetrach - jeśli użytkownik podał stopy i cale, przelicz je
+  when: Kiedy był pomiar, w formacie YYYY-MM-DD HH:MM - pomiń, jeśli właśnie teraz

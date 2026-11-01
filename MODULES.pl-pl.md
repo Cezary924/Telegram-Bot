@@ -60,11 +60,13 @@ answer: Ask again later
 module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
+    uses=["bodytracker"],  # inne moduły, z którymi współpracuje, gdy są, a bez nich działa i tak
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
     config_keys=["service_url"],  # jedyne wpisy z config.yaml, które może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
     is_guarded=True,  # tylko dla osób wpuszczonych przez admina albo dla wszystkich z listy domyślnej (obecnie: admini)
     is_assistant=True,  # może przekazać akcje i kontekst innych modułów modelowi językowemu
+    place=30,  # jego miejsce wszędzie, gdzie widać listę modułów - /features, /settings, komendy, panel admina
     icons={'name': "🔔"},  # stawiana przed tekstem, w każdym języku
     endings={'saved': "✅"})  # stawiana po nim
 ```
@@ -90,6 +92,8 @@ module = Module(
 | ```@module.job(interval=, name=, is_aligned=)```                                          | uruchamia się co ```interval``` sekund we własnym wątku                   |
 | ```@module.action("nazwa", parameters=, optional=, description=, role=, is_confirmed=)``` | pozwala asystentowi zrobić ```nazwa``` za użytkownika                     |
 | ```@module.context()```                                                                   | mówi asystentowi, co moduł wie o użytkowniku                              |
+| ```@module.expose("nazwa", is_writing=)```                                                | udostępnia ```nazwa``` modułom, które go wymagają albo używają            |
+| ```@module.form("nazwa", pytania, parent=, title=)```                                     | zadaje pytania po kolei i przekazuje dalej odpowiedzi                     |
 
 - ```role``` domyślnie wynosi ```Role.GUEST```.
 - Są trzy rangi: ```Role.BANNED```, ```Role.GUEST``` i ```Role.ADMIN```. Każdy nowy człowiek jest gościem.
@@ -142,6 +146,11 @@ Handler zwraca to, co ma się pokazać:
 - ```View``` zwrócony przez funkcję z ```@module.view``` - ekran,
 - ```None``` - handler zrobił już wszystko, co chciał.
 
+```View``` z ```photo=``` - bajtami obrazka, na przykład wykresu narysowanego w pamięci - wysyła się jako ten obrazek z
+tekstem pod nim. Jako ekran zajmuje miejsce poprzedniego jak każdy inny ekran, a jego przyciski zostają pod obrazkiem.
+Tekst obrazka może mieć najwyżej 1024 znaki, więc rdzeń zostawia nagłówek, pierwszy wiersz i najnowsze wiersze, a w
+miejscu reszty stawia ```…```.
+
 Ekran niesie jedną wiadomość naraz. Naciśnięcie przycisku przepisuje ją w miejscu, więc chodzenie po module nic nie
 dokłada do czatu. Wpisana wiadomość - komenda, odpowiedź na pytanie - to co innego: użytkownik coś napisał, więc ekran
 znika i zostaje napisany od nowa pod tym, co napisał, i zostaje ostatnią rzeczą w czacie. Dwukrotne uruchomienie tej
@@ -165,8 +174,61 @@ def take_content(ctx: Ctx) -> View:
     return save(ctx)
 ```
 
-Moduł z własnymi opcjami deklaruje jeden ekran ustawień. Bot pokazuje go w ```/settings```, a sam ekran stoi pod tym
-menu: nagłówek to, np. ```⚙️ Settings > 📥 Downloader```, a Wstecz wraca do ```/settings```. Ekrany głębiej w
+### Formularze
+
+Kilka pytań z rzędu to formularz. Moduł je wypisuje i dostaje wszystkie odpowiedzi naraz; ekrany, odpowiedzi trzymane
+między wiadomościami, przyciski i ```ctx.retry``` należą do rdzenia, więc każdy moduł pyta tak samo:
+
+```python
+from core.api import Answers, Question
+
+
+@module.form("body", [Question("sex", "choice", choices=("female", "male")),
+                      Question("height", "height", low=100, high=250),
+                      Question("when", "moment", back=48)], parent="menu", title="manual")
+def counted(ctx: Ctx, answers: Answers) -> View:
+    return View(text=ctx.t("result", height=ctx.profile.height(answers['height'])))
+
+
+@module.callback("count")
+def count(ctx: Ctx) -> View:
+    return ctx.form("body", offered=ctx.ask("bodytracker", "latest"))
+```
+
+- ```number``` przyjmuje przecinek tak samo jak kropkę oraz ```%``` na końcu i musi się zmieścić między ```low``` a
+  ```high```. ```parse=``` zamienia to sprawdzenie na własne modułu: dostaje tekst i dotychczasowe odpowiedzi, a zwraca
+  wartość albo ```None```, i wtedy pokazuje się tekst wskazany w ```problem=```. ```Problem("klucz", {'low': 1})```
+  wskazuje zamiast tego dokładny problem.
+- ```weight``` i ```height``` wpisuje się w jednostkach wybranych w Ustawieniach > O mnie - kilogramach albo funtach,
+  centymetrach albo stopach i calach - a do modułu zawsze trafiają w kilogramach i centymetrach, łącznie z ```low``` i
+  ```high```. ```{unit}``` w pytaniu podaje jednostkę, a ```ctx.profile.weight(kg)``` i ```ctx.profile.height(cm)```
+  pokazują wartość z powrotem tak samo.
+- ```text``` jest przycinany i musi mieć od ```low``` (co najmniej 1) do ```high``` znaków.
+- Na ```choice``` odpowiada się przyciskami opisanymi tekstami ```<klucz>.<wybór>```, a na ```moment``` przyciskami
+  Teraz, 30 min, 1 h i 2 h temu albo wpisanym ```21:30```, ```21.30```, ```2026-10-30 21:30``` lub
+  ```30.10.2026 21:30```, nigdy z przyszłości i najwyżej ```back``` godzin wstecz - ```back=None``` pozwala cofnąć się
+  dowolnie daleko.
+- ```clear=``` dodaje przycisk opisany tym kluczem tekstu, który odpowiada ```None``` - na odpowiedź, której
+  użytkownik woli nie podawać. ```is_needed=``` dostaje dotychczasowe odpowiedzi i pomija pytanie, gdy zwróci
+  ```False```, więc formularz pyta o ostatni drink tylko wtedy, gdy był więcej niż jeden.
+- Samo pytanie to tekst ```ask.<klucz>``` albo ```text=```. Ono i ```problem``` mogą użyć jako placeholdera każdej
+  dotychczasowej odpowiedzi albo wartości podanej w ```known``` - ```Napisz swoją wagę w {unit}```.
+- O odpowiedzi z ```known``` formularz nie pyta. Te z ```offered``` pochodzą z tego, co użytkownik zapisał: rdzeń raz
+  pyta, czy ich użyć, nie pokazując ich, i pomija puste, te, których żadne pytanie by nie przyjęło, oraz całą propozycję,
+  gdy nic w niej nie odpowiada na pytanie. Podawaj tylko to, co jest na tyle świeże, żeby użyć tego bez zaglądania.
+- Dane z różnych miejsc proponuje się osobno: ```offered=[("offer.body", body), ("offer.drinks", drinks)]``` pyta o
+  każdą grupę jej własnym tekstem, więc użytkownik może wziąć jedną, a drugą wpisać.
+- ```Answers``` trzyma wartości w ```values```, klucze wpisane ręcznie w ```typed``` i klucze odrzuconych grup w
+  ```declined```.
+  ```answers.new(klucze)``` to to, co użytkownik wpisał o sobie - to, co można zaproponować do zapisania.
+- Formularz należy do ekranu, z którego go otwarto: Wstecz przy pierwszym pytaniu wraca właśnie tam. Wyjście z niego -
+  komendą, innym ekranem albo ```ctx.close_screen()``` - zapomina dotychczasowe odpowiedzi, więc nic wpisanego w połowie
+  nie czeka na późniejszą wiadomość.
+
+Moduł z własnymi opcjami deklaruje jeden ekran ustawień. Bot pokazuje go w ```/settings``` pod Modułami, po stronie
+naraz, a sam ekran stoi pod tą listą: nagłówek to, np. ```⚙️ Ustawienia > 🧩 Moduły > 📥 Pobieracz```, a Wstecz wraca
+do listy. Otwarty przez ```Button.settings``` z ekranu samego modułu, Wstecz i Menu wracają do tego modułu. Ekrany
+głębiej w
 ustawieniach dostają ```parent="settings"```:
 
 ```python
@@ -194,7 +256,7 @@ def act_add(ctx: Ctx, content: str, date: str) -> Outcome:
 
 @module.action("list")
 def act_list(ctx: Ctx) -> Outcome:
-    return Outcome.done([{'id': row['id'], 'date': row['date']} for row in reminders_of(ctx)])
+    return Outcome.done([{'reminder_id': row['id'], 'date': row['date']} for row in reminders_of(ctx)])
 ```
 
 - Akcja działa z ```Ctx``` osoby, która rozmawia, jak każdy handler. Model wybiera tylko argumenty, nigdy osobę, więc
@@ -203,7 +265,10 @@ def act_list(ctx: Ctx) -> Outcome:
   ```optional=["date"]``` - wtedy ten, którego model nie poda, przychodzi jako ```None```. Rdzeń zamienia ```"3"``` na
   ```3``` i odrzuca to, co nie pasuje, zanim moduł to zobaczy.
 - Moduł sprawdza wartości tymi samymi funkcjami, których używają jego ekrany. To, co ```ctx.retry``` pokazuje na
-  ekranie, ```Outcome.refused``` oddaje modelowi, a ten może dopytać osobę jeszcze raz.
+  ekranie, ```Outcome.refused``` oddaje modelowi, a ten może dopytać osobę jeszcze raz. ```past_moment(text)``` czyta
+  godzinę tak jak pytanie ```moment``` i oddaje ją w ISO albo ```None```, gdy jest zła lub jeszcze nie minęła.
+- Parametr nazywający użytkownika - ```user```, ```user_id```, ```other_user``` - zostaje odrzucony przy ładowaniu
+  modułu, więc akcji nigdy nie da się wycelować w kogoś innego.
 - ```Outcome.done(result)``` to odpowiedź - krótki tekst albo lista lub słownik prostych wartości do przeczytania przez
   model.
 - ```Outcome.ask(question, then)``` mówi, co by się stało. Z ```is_confirmed=True``` osoba dostaje pytanie z przyciskami
@@ -248,9 +313,15 @@ ctx.db  # własne tabele tego modułu
 ctx.token("service_key")  # tylko sekrety zadeklarowane w manifeście
 ctx.has_token("service_key")  # czy zadeklarowany sekret w ogóle jest ustawiony
 ctx.setting("service_url")  # zadeklarowany wpis z config.yaml, None gdy go brak
+ctx.has_module("bodytracker")  # czy wymagany albo używany moduł jest załadowany i dostępny dla użytkownika
+ctx.ask("bodytracker", "latest")  # to, co tamten moduł udostępnia jako "latest", None gdy has_module daje False
+ctx.profile  # płeć, data urodzenia, wiek i jednostki, wspólne dla wszystkich modułów, wszystko opcjonalne
+ctx.set_profile(sex="female")  # zmienia wspólne dane, sprawdzając każdą wartość
+ctx.form("body", known={}, offered={})  # zaczyna formularz: pomija znane, proponuje zapisane, także grupami
 message_id = ctx.reply_live(tekst)  # wiadomość, którą moduł może potem przepisać, is_silent=True wysyła ją po cichu
 ctx.edit(message_id, tekst)  # przepisuje ją, False gdy Telegram odmówi
 ctx.remove(message_id)  # usuwa ją, False gdy Telegram odmówi
+ctx.remove_buttons(message_id)  # zabiera jej przyciski, a tekst zostawia, False gdy Telegram odmówi
 ctx.log("Reminder set")  # "Reminder set: First (1)."
 ctx.retry(problem)  # ten sam ekran jeszcze raz
 ctx.close_screen()  # zamyka ekran, na którym użytkownik kliknął, kończąc przepływ
@@ -281,6 +352,51 @@ ctx.notify(user_id, view)  # pisze do innego użytkownika jako powiadomienie
 Handler zadania w tle przyjmuje zamiast powyższego ```JobCtx```: ```db```, ```t(klucz, język)```,
 ```language_of(user_id)```,
 ```send(user_id, view)``` i ```log```.
+
+## 🤝 Współpraca modułów
+
+```requires``` czyni moduł częścią innego: bez niego moduł jest pomijany. ```uses``` to luźniejsza więź - moduł ładuje
+się tak czy inaczej i dopiero w działaniu sprawdza, czy ten drugi jest na miejscu. Moduł dzieli się tym, co inni mają
+czytać, przez udostępnioną funkcję:
+
+```python
+# bodytracker/module.py
+module = Module(name="bodytracker")
+
+
+@module.expose("latest")
+def latest(ctx: Ctx) -> dict | None:
+    return {'weight': last_weight(ctx), 'height': height_of(ctx)}
+```
+
+```python
+# bmi/module.py
+module = Module(name="bmi", uses=["bodytracker"])
+
+
+@module.callback("count")
+def count(ctx: Ctx) -> View:
+    return ctx.form("body", offered=ctx.ask("bodytracker", "latest"))
+```
+
+- Udostępniona funkcja działa jako moduł, który ją udostępnia: dostaje własny ```ctx``` dla tego samego użytkownika,
+  więc czyta własne tabele, a jako kolejne argumenty to, co w ```ctx.ask``` padło po nazwie.
+- ```ctx.has_module``` i ```ctx.ask``` dają ```False``` i ```None```, gdy drugi moduł jest wyłączony, nie załadował się
+  albo jest strzeżony, a użytkownik nie ma do niego dostępu. ```ctx.ask``` daje ```None``` także wtedy, gdy udostępniona
+  funkcja zawiedzie - błąd trafia do logu, a pytający moduł działa dalej. Podanie modułu, którego nie ma ani
+  w ```requires```, ani w ```uses```, rzuca ```PermissionError```, a pytanie o coś, czego nie udostępnia, rzuca
+  ```LookupError```.
+- Moduły instalują się po tych, których wymagają albo używają. Moduł, którego wymagany moduł nie zdołał się
+  zainstalować, też jest pomijany; ten, któremu zabrakło używanego, po prostu działa bez niego.
+- Dwa moduły mogą używać siebie nawzajem. Moduł nie może używać samego siebie ani jednocześnie wymagać i używać tego
+  samego modułu.
+- Udostępniona funkcja może przyjmować argumenty i zmieniać dane swojego modułu - tak wynik proponuje zapisanie w
+  dzienniku tego, co użytkownik wpisał. Taką funkcję deklaruje się z ```is_writing=True```, a rdzeń uruchamia ją tylko
+  po naciśnięciu przycisku albo po potwierdzeniu akcji asystenta - wołana inaczej rzuca ```PermissionError```.
+- To, co opisuje użytkownika, a nie jeden moduł - płeć, data urodzenia, jednostki - żyje w ```ctx.profile```, a nie w
+  osobnym module, więc każdy moduł czyta i zapisuje te same dane.
+- Moduł może importować z modułów, których używa, ale taki import zawodzi, gdy tamtego katalogu nie ma. Lepiej sięgać po
+  ```ctx.ask```, a importować tylko to, czego brak niczego nie psuje, wewnątrz funkcji, która tego potrzebuje.
 
 ## 🌐 Teksty
 
@@ -379,6 +495,9 @@ def test_the_menu_opens(app, bot):
 - ```app``` - Bot z załadowanymi wszystkimi modułami wewnętrznymi, pustą bazą i atrapą Telegrama,
 - ```bot``` - to, co Bot wysłał, zedytował i skasował w trakcie testu.
 
+W testach ```ctx.ask``` rzuca to, co rzuciła udostępniona funkcja, zamiast tylko to zalogować, więc zepsute wołanie
+między modułami oblewa test.
+
 > ```core.testing``` udostępnia też ```make_message```, ```make_callback```, ```make_storage```, ```FakeBot``` i
 > ```not_none``` dla testów, które budują własne części. Testy nie potrzebują sieci ani pliku bazy.
 
@@ -398,7 +517,8 @@ youtube: false
 
 ```core/contract.py``` sprawdza każdy moduł za pomocą poniższego zestawu testów:
 
-- nazwa w manifeście zgadza się z katalogiem, nic nie wymaga samego siebie,
+- nazwa w manifeście zgadza się z katalogiem, nic nie wymaga ani nie używa samego siebie i żaden moduł nie jest
+  jednocześnie wymagany i używany,
 - jest jeden plik językowy na każdy język Bota, każdy z tymi samymi kluczami co ```en.yaml```, w tym ```name```,
   ```description``` oraz klucz opisu każdej komendy,
 - każda akcja ma tekst, który ją opisuje, i tekst dla każdego swojego parametru,
@@ -406,6 +526,6 @@ youtube: false
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
 - moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w
-  ```requires```,
+  ```requires``` albo ```uses```,
 - każdy pakiet, który moduł importuje poza katalogiem ```tests```, jest wypisany w jego ```requirements.txt```,
 - moduł ma katalog ```tests```.

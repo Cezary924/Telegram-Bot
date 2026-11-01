@@ -5,11 +5,11 @@ from typing import Callable
 import telebot
 from telebot.apihelper import ApiTelegramException
 
-from core import callbacks, middleware
+from core import callbacks, form as forms, middleware
 from core.context import User, can_use, controls_for, hub_for, create_context, heading_for, send_to, user_from_row
 from core.i18n import core_namespace, default_language
 from core.log import print_error, print_log
-from core.module import Module, settings_hub_view
+from core.module import Module, settings_hub_view, settings_list_view, settings_origin
 from core.roles import Role
 from core.services import Services
 from core.ui.html import escape, labelled
@@ -73,25 +73,32 @@ class Router:
         heading = heading_for(self._services, module_name, view, user.language)
         controls = controls_for(self._services, module_name, view, user.language)
         text, markup = render(view, module_name, controls, heading)
-        return self._bot.send_message(user.id, text, parse_mode=view.parse_mode,
-                                      reply_markup=markup)
+        return self.deliver(user, view, text, markup)
+
+    def deliver(self, user: User, view: View, text: str, markup) -> telebot.types.Message:
+        if view.photo is not None:
+            return self._bot.send_photo(user.id, view.photo, caption=text, parse_mode=view.parse_mode,
+                                        reply_markup=markup)
+        return self._bot.send_message(user.id, text, parse_mode=view.parse_mode, reply_markup=markup)
 
     def send_core(self, user: User, *keys: str) -> None:
         text = "\n".join(self.core_text(key, user.language) for key in keys)
         self.send(user, core_namespace, View(text))
 
-    def close_screen(self, user: User) -> None:
+    def close_screen(self, user: User, is_leaving: bool = True) -> None:
         navigation = self._services.storage.navigation
         current = navigation.current(user.id)
         if current is not None:
             delete_message(self._bot, user.id, current['message_id'])
         navigation.clear(user.id)
+        if is_leaving:
+            forms.forget(self._services.storage, user.id)
 
     def show(self, user: User, module_name: str, view: View, anchor: int | None) -> int:
         heading = heading_for(self._services, module_name, view, user.language)
         controls = controls_for(self._services, module_name, view, user.language)
         text, markup = render(view, module_name, controls, heading)
-        if anchor is not None:
+        if anchor is not None and view.photo is None:
             try:
                 self._bot.edit_message_text(text, user.id, anchor, parse_mode=view.parse_mode,
                                             reply_markup=markup)
@@ -99,19 +106,21 @@ class Router:
             except ApiTelegramException as error:
                 if "not modified" in str(error):
                     return anchor
-        return self._bot.send_message(user.id, text, parse_mode=view.parse_mode,
-                                      reply_markup=markup).message_id
+        shown = self.deliver(user, view, text, markup).message_id
+        delete_message(self._bot, user.id, anchor)
+        return shown
 
     def open_screen(self, user: User, module_name: str, view: View, is_typed: bool = False) -> None:
         navigation = self._services.storage.navigation
         current = navigation.current(user.id)
         anchor = current['message_id'] if current is not None else None
         if is_typed:
-            self.close_screen(user)
+            self.close_screen(user, is_leaving=False)
             anchor = None
         navigation.remember(user.id, module_name, view.name, view.argument)
         navigation.set_current(user.id, module_name, view.name, view.argument,
                                self.show(user, module_name, view, anchor))
+        forms.forget(self._services.storage, user.id, (module_name, view.name))
 
     def present(self, user: User, module_name: str, result, is_typed: bool = False) -> None:
         if result is None:
@@ -126,12 +135,12 @@ class Router:
 
     def run(self, module: Module, handler, role: Role, user: User,
             message: telebot.types.Message | None = None, arguments: tuple[str, ...] = (),
-            is_background: bool = False, is_typed: bool = False) -> None:
+            is_background: bool = False, is_typed: bool = False, is_pressed: bool = False) -> None:
         blocked = middleware.check(self._services, user, role, module.name)
         if blocked is not None:
             self.send(user, core_namespace, blocked)
             return
-        ctx = create_context(self._services, module, user, message, arguments)
+        ctx = create_context(self._services, module, user, message, arguments, is_pressed)
         if is_background:
             self.start_task(module, handler, ctx, user, is_typed)
             return
@@ -258,7 +267,7 @@ class Router:
             return
         module, entry = found
         self.run(module, entry.handler, entry.role, user, screen, tuple(arguments),
-                 entry.is_background)
+                 entry.is_background, is_pressed=True)
 
     def handle_core_callback(self, user: User, screen: telebot.types.Message,
                              action: str, arguments: list[str]) -> None:
@@ -315,9 +324,16 @@ class Router:
             return
         hub = hub_for(self._services, module, current['view'])
         branch = module.branch(current['view'])
-        name = branch[0].name if to_root and branch else module.parent_of(current['view'])
+        origin = forms.opened_from(self._services.storage, user.id, module.name, current['view']) \
+            if current['view'] in module.forms else None
+        name = branch[0].name if to_root and branch else origin or module.parent_of(current['view'])
         if hub is not None and (to_root or not name):
-            self.open_named(user, hub, settings_hub_view, screen)
+            opener = self._services.storage.module_state.get(user.id, module.name, settings_origin)
+            if opener and module.view_named(opener):
+                self.open_named(user, module, module.branch(opener)[0].name if to_root else opener, screen)
+                return
+            listing = settings_list_view if not to_root and hub.view_named(settings_list_view) else settings_hub_view
+            self.open_named(user, hub, listing, screen)
             return
         if not name or name == current['view']:
             self.close_screen(user)
@@ -391,6 +407,12 @@ class Router:
         if blocked is not None:
             self.send(user, core_namespace, blocked)
             return
+        current = self._services.storage.navigation.current(user.id)
+        state = self._services.storage.module_state
+        if current is not None and current['module'] == module.name and not module.is_settings(current['view']):
+            state.set(user.id, module.name, settings_origin, current['view'])
+        else:
+            state.delete(user.id, module.name, settings_origin)
         self.open_named(user, module, module.settings_screen.view, screen)
 
     def handle_back(self, user: User, screen: telebot.types.Message) -> None:

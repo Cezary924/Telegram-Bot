@@ -36,7 +36,7 @@ def config(tmp_path, monkeypatch):
 
 @pytest.fixture
 def services(config, storage):
-    return Services(config, Catalog(), storage, Registry())
+    return Services(config, Catalog(), storage, Registry(), is_strict=True)
 
 
 @pytest.fixture

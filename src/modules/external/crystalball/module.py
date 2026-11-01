@@ -2,7 +2,7 @@ import random
 
 from core.api import Ctx, Module, View
 
-module = Module(name="crystalball", is_guarded=True,
+module = Module(name="crystalball", place=120, is_guarded=True,
                 icons={'name': "🔮"})
 
 verdicts = [("sure", "✅"), ("maybe", "❔"), ("nope", "❌")]

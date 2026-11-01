@@ -1,6 +1,6 @@
 import pytest
 
-from core.module import Module, Outcome
+from core.module import Exposed, Module, Outcome
 from core.roles import Role
 from core.testing import not_none
 
@@ -27,7 +27,7 @@ def test_table_prefix(module):
 
 def test_defaults(module):
     assert module.title == "name" and module.description == "description"
-    assert module.requires == [] and module.tokens == []
+    assert module.requires == [] and module.uses == [] and module.tokens == []
     assert not module.is_internal
 
 
@@ -254,6 +254,13 @@ def test_an_action_takes_only_simple_parameters(module, parameters):
         module.action("action1", parameters=parameters)
 
 
+@pytest.mark.parametrize("parameter", ["user", "user_id", "other_user"])
+def test_an_action_cannot_reach_another_user(module, parameter):
+    with pytest.raises(ValueError):
+        module.action("action1", parameters={parameter: int})
+    module.action("action2", parameters={'username_hint': str})(handler)
+
+
 def test_an_action_name_and_its_uniqueness_are_checked(module):
     module.action("action1")(handler)
     with pytest.raises(ValueError):
@@ -274,3 +281,22 @@ def test_outcomes_say_what_happened():
     assert Outcome.refused("problem1") == Outcome("refused", "problem1")
     asked = Outcome.ask("question1", lambda: "done1")
     assert (asked.status, asked.result, not_none(asked.then)()) == ("asking", "question1", "done1")
+
+
+def test_an_exposed_function_is_recorded(module):
+    module.expose("profile")(handler)
+    module.expose("save", is_writing=True)(handler)
+    assert module.exposed == {'profile': Exposed(handler), 'save': Exposed(handler, True)}
+
+
+def test_an_exposed_name_is_checked_and_unique(module):
+    with pytest.raises(ValueError):
+        module.expose("Profile")
+    module.expose("profile")(handler)
+    with pytest.raises(ValueError):
+        module.expose("profile")
+
+
+def test_partners_are_what_is_required_and_then_what_is_used():
+    module = Module(name="module1", requires=["module2"], uses=["module3", "module2"])
+    assert module.partners == ["module2", "module3"]

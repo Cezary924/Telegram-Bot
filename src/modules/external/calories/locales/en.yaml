@@ -1,0 +1,50 @@
+name: Calorie calculator
+description: Estimates how much energy a body burns in a day
+
+commands.calories: Work out a daily calorie need
+
+how: Work out how much energy a body burns in a day with the Mifflin-St Jeor formula and the activity level
+count: Work it out
+from_tracker: from your saved details
+save_new: Save the new details about me
+saved: Saved
+
+labels:
+  bmr: Burnt at rest
+  need: Daily need
+  sex: Sex
+  age: Age
+  height: Height
+  weight: Weight
+  activity: Activity
+sex:
+  female: Female
+  male: Male
+  other: Other
+  undisclosed: Rather not say
+activity:
+  sedentary: Little or no exercise
+  light: Light exercise one to three days a week
+  moderate: Moderate exercise three to five days a week
+  active: Hard exercise six or seven days a week
+  very_active: Very hard exercise or a physical job
+
+ask:
+  sex: Pick the sex
+  age: Write the age in years
+  height: Write the height ({unit})
+  weight: Write the weight ({unit})
+  activity: How active is a usual day?
+
+wrong: The activity is one of {activities} and the sex one of {sexes}
+missing: Some details are missing - {missing}. Give them or save them in the body tracker and in Settings > About me
+out_of_range: These details look wrong - {wrong}. The age is from 18 to 120 years, the height from 100 to 250 cm, the weight from 30 to 300 kg
+
+actions:
+  need: Works out the daily calorie need. Body details left out come from the body tracker
+parameters:
+  activity: How active the user is - sedentary, light, moderate, active or very_active
+  sex: Sex - female, male, other or undisclosed. Leave it out to use the saved one
+  age: Age in years - leave it out to use the saved one
+  height: Height in centimetres - leave it out to use the saved one
+  weight: Weight in kilograms - leave it out to use the saved one

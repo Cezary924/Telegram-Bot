@@ -1,4 +1,4 @@
-from core.context import User, can_use, create_context
+from core.context import User, create_context, is_available
 from core.i18n import core_namespace
 from core.log import print_error
 from core.module import Action, Module, Outcome
@@ -33,7 +33,7 @@ class Assistant:
         self._user = user
 
     def may_use(self, module: Module) -> bool:
-        return not module.is_guarded or can_use(self._services, self._user, module.name)
+        return is_available(self._services, self._user, module.name)
 
     def modules(self) -> list[Module]:
         return [module for module in self._services.registry.modules() if self.may_use(module)]
@@ -60,7 +60,8 @@ class Assistant:
                                  + ")" for name in action.parameters)
             return Outcome.refused(self.core_text("assistant.wrong_arguments", expected=expected))
         try:
-            outcome = action.handler(create_context(self._services, module, self._user), **values)
+            outcome = action.handler(create_context(self._services, module, self._user, is_pressed=is_confirmed),
+                                     **values)
             if outcome.then is not None and (is_confirmed or not action.is_confirmed):
                 return Outcome.done(outcome.then())
         except Exception as error:

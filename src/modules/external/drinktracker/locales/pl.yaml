@@ -1,0 +1,115 @@
+name: Dziennik picia
+description: Zapisuje, co pijesz, dzieli to na sesje i z wirtualnym alkomatem szacuje każdą z nich
+
+commands.drinktracker: Zapisz drinka i przejrzyj swoje sesje
+
+how: Zapisuj każdego drinka, od razu albo później. Z wirtualnym alkomatem sesja trwa od pierwszego drinka, aż znów wytrzeźwiejesz, a bez niego kończy ją {gap} godzin przerwy
+add: Dodaj drinka
+sessions: Historia
+session: Sesja
+custom: Coś innego
+curve: Krzywa
+drinks: Drinki tej sesji
+drinks_text: Dotknij drinka, żeby go zmienić albo usunąć
+drink: Drink
+edit_amount: Zmień ilość i moc
+edit_when: Zmień datę i godzinę
+remove: Usuń
+my_body: Moje dane
+food: Jedzenie
+saved: Drink został zapisany
+changed: Drink został zmieniony
+body_saved: Twoje dane zostały zapisane
+gone: Tego już nie ma, zacznij od nowa
+empty: Nie zapisano jeszcze żadnego drinka
+need_body: Żeby wyliczyć sesje wirtualnym alkomatem, potrzebuję kilku danych o Tobie
+day: Drinki {drinks}, czysty alkohol {grams} g, {kcal} kcal
+chart: Wykres
+chart_title: Czysty alkohol dziennie
+chart_empty: Żadnych drinków w ostatnich 30 dniach
+settings_button: Ustawienia
+settings_text: Wybierz napój, żeby go zmienić albo usunąć, albo dodaj nowy
+preset: Napój
+edit_name: Zmień nazwę
+edit_emoji: Zmień emoji
+edit_volume: Zmień pojemność
+edit_strength: Zmień moc
+restore: Przywróć domyślne
+preset_saved: Napój został zmieniony
+add_preset: Dodaj napój
+remove_preset: Usuń z listy
+restore_kinds: Przywróć domyślne napoje
+preset_added: Napój został dodany
+preset_removed: Napój został usunięty z listy
+kinds_restored: Domyślne napoje są znów na liście
+preset_sure: Czy na pewno chcesz usunąć ten napój z listy? Zapisane drinki zostaną
+restored: Napój wrócił do domyślnych ustawień
+wrong_emoji: Wyślij samo emoji, bez liter i cyfr, na przykład 🍺
+pick: Dotknij sesji, żeby ją zobaczyć. Strona {page} z {pages}, sesji {total}
+previous: Poprzednia
+next: Następna
+sure: Czy na pewno chcesz usunąć tego drinka?
+deleted: Drink został usunięty
+
+kind:
+  beer: Kufel piwa
+  strong_beer: Kufel mocnego piwa
+  cider: Butelka cydru
+  wine: Lampka wina
+  shot: Kieliszek wódki
+  whisky: Szklaneczka whisky
+  custom: Własny napój
+food_level:
+  empty: Na pusty żołądek
+  little: Trochę
+  meal: Duży posiłek
+sex:
+  female: Kobieta
+  male: Mężczyzna
+  other: Inna
+  undisclosed: Wolę nie podawać
+labels:
+  drink: Napój
+  when: Kiedy
+  alcohol: Czysty alkohol
+  energy: Energia
+  in_session: Drinki w tej sesji
+  drinks: Drinki
+  name: Nazwa
+  emoji: Emoji
+  volume: Pojemność
+  strength: Moc
+
+ask:
+  kind: Co pijesz?
+  name: Napisz nazwę napoju
+  emoji: Wyślij emoji dla tego napoju
+  volume: Napisz, ile mililitrów, na przykład 330
+  strength: Napisz, ile ma procent, na przykład 12.5
+  when: Kiedy to było?
+  food: Ten drink zaczyna nową sesję. Ile udało Ci się wcześniej zjeść?
+  sex: Wybierz płeć
+  age: Napisz swój wiek w latach
+  height: Napisz swój wzrost ({unit})
+  weight: Napisz swoją wagę ({unit})
+
+add_sure: Zapisać tego drinka?
+wrong_kind: Nie znam takiego napoju - wybierz jeden z {kinds}
+body_needed: Użytkownik musi najpierw podać płeć i wiek w Ustawieniach > O mnie oraz wzrost i wagę w dzienniku ciała albo przy dodaniu drinka w dzienniku picia
+custom_needs: Przy własnym napoju podaj, ile ma mililitrów i ile procent
+food_needed: Ten drink zaczyna nową sesję - zapytaj, ile użytkownik wcześniej zjadł, i podaj jedno z {foods}
+context:
+  session: Sesja od {started} - drinki {drinks}, czysty alkohol {grams} g, szczyt {peak} około {peak_at}, trzeźwość około {sober}
+  plain_session: Sesja od {started} - drinki {drinks}, czysty alkohol {grams} g
+  week: Ostatnie siedem dni - drinki {drinks}, czysty alkohol {grams} g
+  kinds: Zwykłe napoje użytkownika - {kinds}
+
+actions:
+  add_drink: Zapisuje wypitego drinka. Standardowe napoje mają swoją objętość i moc, przy własnym podaj obie
+  days: Podaje, ile użytkownik pił każdego dnia w ostatnich dwóch tygodniach
+parameters:
+  kind: Rodzaj napoju - beer (piwo), strong_beer (mocne piwo), cider (cydr), wine (wino), shot (wódka), whisky albo custom, chyba że kontekst podaje inne zwykłe napoje użytkownika. Zwykłe napoje mają pojemność i moc z ustawień użytkownika
+  volume: Ile mililitrów - pomiń przy standardowym napoju
+  strength: Ile procent alkoholu - pomiń przy standardowym napoju
+  when: Kiedy wypity, w formacie YYYY-MM-DD HH:MM - pomiń, jeśli właśnie teraz
+  food: Ile użytkownik zjadł przed sesją - empty (pusty żołądek), little (trochę) albo meal (duży posiłek)

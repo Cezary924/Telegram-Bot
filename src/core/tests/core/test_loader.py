@@ -3,6 +3,7 @@ import pytest
 
 from core.config import Config
 from core.loader import Loader, discover
+from core.module import Module
 from core.registry import Registry
 from core.testing import not_none
 from core.tests.conftest import fixtures_dir
@@ -26,7 +27,7 @@ def load_with_modules_yaml(services, module_sources, config_dir, contents):
 
 def test_discover_finds_only_directories_with_a_manifest():
     assert discover(os.path.join(fixtures_dir, "external")) == [
-        "module2", "module3", "module4", "module5", "module6", "module7", "module8"]
+        "module10", "module11", "module2", "module3", "module4", "module5", "module6", "module7", "module8"]
     assert discover(os.path.join(fixtures_dir, "internal")) == ["module1"]
 
 
@@ -35,14 +36,14 @@ def test_discover_ignores_a_missing_directory(tmp_path):
 
 
 def test_loads_the_working_modules(registry):
-    assert registry.names() == ["module1", "module2"]
+    assert registry.names() == ["module1", "module11", "module2"]
 
 
 def test_the_two_kinds_are_reported_apart(loader, module_sources, capsys):
     loader.load(Registry(), module_sources)
     out = capsys.readouterr().out
     assert "Internal modules loaded: module1." in out
-    assert "External modules loaded: module2." in out
+    assert "External modules loaded: module11, module2." in out
     assert out.index("Internal modules") < out.index("External modules")
 
 
@@ -81,7 +82,7 @@ def test_skipping_cascades_to_dependent_modules(loader, registry):
 
 def test_disabled_external_module_is_not_loaded(services, module_sources, config, tmp_path):
     registry = load_with_modules_yaml(services, module_sources, tmp_path, "module2: false\n")
-    assert registry.names() == ["module1"]
+    assert registry.names() == ["module1", "module11"]
 
 
 def test_internal_modules_ignore_the_config(services, module_sources, config, tmp_path):
@@ -104,6 +105,29 @@ def test_a_module_without_a_schema_creates_no_tables(registry, services):
 
 def test_declarations_reach_the_registry(registry):
     assert [command.name for _, command in registry.commands()] == ["command1", "command2"]
+
+
+def test_a_module_loads_without_what_it_uses(loader, registry):
+    assert "module11" in registry.names()
+    assert "module11" not in loader.skipped
+
+
+def test_a_module_whose_requirement_failed_to_install_is_skipped(loader, registry):
+    assert loader.skipped["module10"] == "requires 'module8'"
+    assert "module10" not in registry.names()
+
+
+def test_what_a_module_requires_or_uses_is_installed_first(loader):
+    first = Module(name="module1", uses=["module3"])
+    second = Module(name="module2", requires=["module1"])
+    third = Module(name="module3")
+    assert [module.name for module in loader.ordered([first, second, third])] == ["module3", "module1", "module2"]
+
+
+def test_modules_that_use_each_other_are_both_installed(loader):
+    first = Module(name="module1", uses=["module2"])
+    second = Module(name="module2", uses=["module1"])
+    assert [module.name for module in loader.ordered([first, second])] == ["module2", "module1"]
 
 
 def test_an_entry_without_a_directory_is_reported(services, module_sources, config, tmp_path, capsys):

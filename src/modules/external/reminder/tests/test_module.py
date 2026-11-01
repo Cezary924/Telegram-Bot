@@ -109,8 +109,17 @@ def test_a_date_in_the_past_is_refused(app, bot):
     click(app, bot, "reminder:set")
     send(app, content1)
     send(app, later(-1))
-    assert "in the past" in bot.last.text
+    assert "This moment has already passed" in bot.last.text
     assert rows(app) == []
+
+
+def test_a_date_can_be_written_the_polish_way(app, bot):
+    moment = datetime.now().replace(second=0, microsecond=0) + timedelta(days=2)
+    send(app, "/reminder")
+    click(app, bot, "reminder:set")
+    send(app, content1)
+    send(app, moment.strftime("%d.%m.%Y %H.%M"))
+    assert [row['date'] for row in rows(app)] == [moment.strftime("%Y-%m-%d %H:%M")]
 
 
 def test_a_refused_date_is_written_into_the_screen_that_asked(app, bot):
@@ -212,6 +221,13 @@ def test_the_notification_speaks_the_language_of_its_owner(app, bot):
     assert "Już czas!" in bot.last.text
 
 
+@pytest.mark.parametrize("action", ["reminder:set:7", "reminder:date:7"])
+def test_a_reminder_that_is_gone_cannot_be_edited(app, bot, action):
+    set_one(app, bot)
+    click(app, bot, action)
+    assert "no longer there" in bot.last.text
+
+
 def test_a_changed_date_is_notified_again(app, bot):
     set_one(app, bot)
     make_due(app)
@@ -227,6 +243,19 @@ def test_deleting_asks_first(app, bot):
     click(app, bot, "reminder:delete:1")
     assert "Do you really want to delete" in bot.last.text
     assert len(rows(app)) == 1
+
+
+def test_changing_and_deleting_sit_under_the_reminder(app, bot):
+    set_one(app, bot)
+    send(app, "/reminder")
+    click(app, bot, "reminder:manage")
+    click(app, bot, "reminder:one:1")
+    reminder_screen = bot.last.text
+    for action, title in (("set", "Content"), ("date", "Date"), ("delete", "Delete")):
+        click(app, bot, "reminder:" + action + ":1")
+        assert bot.last.text.startswith("<b>🔔 Reminders &gt; Manage reminders &gt; " + title)
+        click(app, bot, "core:back")
+        assert bot.last.text == reminder_screen
 
 
 def test_a_confirmed_deletion_removes_it(app, bot):
@@ -363,10 +392,10 @@ def test_adding_sets_the_reminder_once_confirmed(app, bot):
 
 
 @pytest.mark.parametrize("content, date, problem", [
-    ("", later(), "The content has to be between 1 and 200 characters long"),
-    ("x" * 201, later(), "The content has to be between 1 and 200 characters long"),
-    (content1, "tomorrow at 3", "I do not understand this date, write it like this: <i>"),
-    (content1, later(-1), "I cannot remind you about something in the past"),
+    ("", later(), "Write between 1 and 200 characters"),
+    ("x" * 201, later(), "Write between 1 and 200 characters"),
+    (content1, "tomorrow at 3", "I do not understand this date"),
+    (content1, later(-1), "This moment has already passed"),
 ])
 def test_adding_is_checked_the_same_way_as_on_the_screens(app, bot, content, date, problem):
     outcome = reminder.act_add(as_user(app), content, date)
@@ -433,9 +462,9 @@ def test_a_new_date_lets_a_sent_reminder_ring_again(app, bot):
 
 @pytest.mark.parametrize("content, date, problem", [
     (None, None, "Nothing to change - give a new content, a new date or both"),
-    ("", None, "The content has to be between 1 and 200 characters long"),
+    ("", None, "Write between 1 and 200 characters"),
     (None, "tomorrow", "I do not understand this date"),
-    (None, later(-1), "I cannot remind you about something in the past"),
+    (None, later(-1), "This moment has already passed"),
 ])
 def test_editing_is_checked_the_same_way_as_on_the_screens(app, bot, content, date, problem):
     set_one(app, bot)

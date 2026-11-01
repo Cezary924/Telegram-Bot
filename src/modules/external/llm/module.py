@@ -14,8 +14,8 @@ import requests
 
 from core.api import Action, Button, Ctx, Html, JobCtx, Module, Outcome, View, bold, escape, italic, labelled, plain
 
-module = Module(name="llm", is_guarded=True, is_assistant=True, config_keys=["llm_url", "llm_model", "llm_prompt"],
-                tokens=["llm_key"],
+module = Module(name="llm", place=20, is_guarded=True, is_assistant=True,
+                config_keys=["llm_url", "llm_model", "llm_prompt"], tokens=["llm_key"],
                 icons={'name': "🤖", 'title': "🤖", 'new': "🆕", 'continue': "▶️", 'settings_button': "⚙️",
                        'thinking_mode': "💭", 'thinking_on': "💭", 'thinking_off': "⚡", 'waiting': "🔍",
                        'writing': "✍️", 'thinking': "💭", 'reasoning': "💭", 'history': "📜", 'resume': "▶️",

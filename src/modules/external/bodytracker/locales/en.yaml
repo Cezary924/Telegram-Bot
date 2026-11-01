@@ -1,0 +1,67 @@
+name: Body tracker
+description: Keeps the history of your weight and height that the other health features use
+
+commands.bodytracker: Log your weight and height
+
+how: Log your weight every time you step on the scales, and your height when it changes - BMI, calories and alcohol all use them
+log: Log the weight
+history: History
+chart: Chart
+settings_button: Settings
+heights: Height history
+chart_title: Weight over time
+pick: Tap an entry to change or delete it. Page {page} of {pages}, {total} entries
+previous: Previous
+next: Next
+entry: Entry
+edit_value: Change the value
+edit_when: Change the date and time
+remove: Delete
+empty:
+  weight: No weight has been logged yet
+  height: No height has been logged yet
+saved: The weight has been logged
+changed: The entry has been changed
+unknown: not given
+settings_text: Your height changes rarely, so it is kept here. Your sex, date of birth and units are in Settings > About me
+set_height: Log the height
+
+labels:
+  weight: Weight
+  height: Height
+  sex: Sex
+  age: Age
+  when: When
+sex:
+  female: Female
+  male: Male
+  other: Other
+  undisclosed: Rather not say
+
+ask:
+  weight: Write your weight ({unit})
+  height: Write your height ({unit}), for example 176 or 5 9
+  when: When was it?
+wrong:
+  weight: The weight has to be a number between {low} and {high} kg
+  height: The height has to be a number between {low} and {high} cm
+
+sure: Do you really want to delete this entry?
+deleted: The entry has been deleted
+gone: This entry is no longer there
+
+weight_sure: Log this weight?
+height_sure: Log this height?
+height_saved: The height has been logged
+context:
+  before: before that {value} ({day})
+  first: first measured {value} ({day})
+
+actions:
+  log_weight: Logs a weight the user measured
+  log_height: Logs a height the user measured
+  history: Gives the logged weights and heights with their dates, oldest first
+parameters:
+  weight: The weight in kilograms - if the user gave pounds, convert them
+  height: The height in centimetres - if the user gave feet and inches, convert them
+  when: When it was measured, as YYYY-MM-DD HH:MM - leave it out if it is right now

@@ -83,6 +83,26 @@ class Loader:
                 self._skip(name, "requires '" + requirement + "'")
                 del kept[name]
 
+    @staticmethod
+    def ordered(modules: list[Module]) -> list[Module]:
+        found = {module.name: module for module in modules}
+        placed: dict[str, Module] = {}
+        visiting: set[str] = set()
+
+        def place(module: Module) -> None:
+            if module.name in placed or module.name in visiting:
+                return
+            visiting.add(module.name)
+            for name in module.partners:
+                if name in found:
+                    place(found[name])
+            visiting.discard(module.name)
+            placed[module.name] = module
+
+        for module in modules:
+            place(module)
+        return list(placed.values())
+
     def install(self, module: Module, registry: Registry) -> None:
         self._catalog.load_directory(module.name, os.path.join(module.path, locales_name))
         self._catalog.add_marks(module.name, module.icons, module.endings)
@@ -103,7 +123,11 @@ class Loader:
         modules = []
         for directory, package, is_internal in sources:
             modules.extend(self.collect(directory, package, is_internal))
-        for module in self.resolve(modules):
+        for module in self.ordered(self.resolve(modules)):
+            failed = next((name for name in module.requires if name in self.skipped), None)
+            if failed is not None:
+                self._skip(module.name, "requires '" + failed + "'")
+                continue
             try:
                 self.install(module, registry)
             except Exception as error:

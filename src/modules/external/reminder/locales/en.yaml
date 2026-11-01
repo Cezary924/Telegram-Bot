@@ -11,11 +11,11 @@ manage: Manage reminders
 labels:
   content: Content
   date: Date
-ask_content: Write what I should remind you about
-ask_date: Write when I should remind you, for example
-wrong_content: The content has to be between 1 and {limit} characters long
-wrong_date: I do not understand this date, write it like this
-past_date: I cannot remind you about something in the past
+ask:
+  content: Write what I should remind you about
+  date: Write when I should remind you, for example {example} or just 21:30
+wrong_date: I do not understand this date, write it like {example} or just 21:30
+past_date: This moment has already passed, write a later one, like {example}
 
 done: The reminder has been set
 changed: The reminder has been changed
@@ -48,5 +48,5 @@ actions:
   delete: Deletes a reminder of the user, who confirms it with a button
 parameters:
   content: What to remind about, up to 200 characters
-  date: When to remind, in the local time, as YYYY-MM-DD HH:MM
+  date: When to remind, in the local time, as YYYY-MM-DD HH:MM or DD.MM.YYYY HH:MM
   reminder_id: The id of the reminder, from the list

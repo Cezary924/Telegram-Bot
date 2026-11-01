@@ -75,3 +75,11 @@ CREATE TABLE IF NOT EXISTS user_module_state (
     value TEXT,
     PRIMARY KEY (user_id, module, key)
 );
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    sex TEXT,
+    born TEXT,
+    weight_unit TEXT NOT NULL DEFAULT 'kg',
+    height_unit TEXT NOT NULL DEFAULT 'cm'
+);

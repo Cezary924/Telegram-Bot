@@ -59,7 +59,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 
 - Powitanie i lista funkcji 👋 (```/start```, ```/features```)
 - Pomoc i informacje o Bocie 💬 (```/help```, ```/about```)
-- Ustawienia, język i powiadomienia ⚙️ (```/settings```)
+- Ustawienia, język, powiadomienia i dane o Tobie ⚙️ (```/settings```)
 - Kontakt i zgłoszenia 📨 (```/contact```, ```/report```)
 - Zarządzanie użytkownikami i Botem 🛠️ (```/admin```)
 
@@ -70,6 +70,12 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 - Pobieranie filmów, muzyki i zdjęć 📥 (```/downloader```)
 - Asystent na lokalnym modelu językowym 🤖 (```/llm```)
 - Przypomnienia 🔔 (```/reminder```)
+- Dziennik ciała ⚖️ (```/bodytracker```)
+- BMI 🩺 (```/bmi```)
+- Kalkulator kalorii 🔥 (```/calories```)
+- Dziennik jedzenia 🍽️ (```/foodtracker```)
+- Dziennik picia 🍺 (```/drinktracker```)
+- Wirtualny alkomat 🌬️ (```/breathalyser```)
 - Konwerter jednostek miar 🧮 (```/unitconverter```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)
 - Magiczna kryształowa kula 🔮 (```/crystalball```)

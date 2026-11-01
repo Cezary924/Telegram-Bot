@@ -1,0 +1,50 @@
+name: Kalkulator kalorii
+description: Szacuje, ile energii organizm spala w ciągu dnia
+
+commands.calories: Oblicz dzienne zapotrzebowanie na kalorie
+
+how: Oblicz, ile energii organizm spala w ciągu dnia, wzorem Mifflina-St Jeora i według aktywności
+count: Oblicz
+from_tracker: z Twoich danych
+save_new: Zapisz nowe dane o sobie
+saved: Zapisano
+
+labels:
+  bmr: Spalane w spoczynku
+  need: Dzienne zapotrzebowanie
+  sex: Płeć
+  age: Wiek
+  height: Wzrost
+  weight: Waga
+  activity: Aktywność
+sex:
+  female: Kobieta
+  male: Mężczyzna
+  other: Inna
+  undisclosed: Wolę nie podawać
+activity:
+  sedentary: Mało albo wcale ćwiczeń
+  light: Lekkie ćwiczenia od jednego do trzech dni w tygodniu
+  moderate: Umiarkowane ćwiczenia od trzech do pięciu dni w tygodniu
+  active: Ciężkie ćwiczenia sześć lub siedem dni w tygodniu
+  very_active: Bardzo ciężkie ćwiczenia albo praca fizyczna
+
+ask:
+  sex: Wybierz płeć
+  age: Napisz wiek w latach
+  height: Napisz wzrost ({unit})
+  weight: Napisz wagę ({unit})
+  activity: Ile ruchu jest w zwykłym dniu?
+
+wrong: Aktywność to jedno z {activities}, a płeć jedno z {sexes}
+missing: Brakuje danych - {missing}. Podaj je albo zapisz w dzienniku ciała i w Ustawieniach > O mnie
+out_of_range: Te dane wyglądają na błędne - {wrong}. Wiek to od 18 do 120 lat, wzrost od 100 do 250 cm, waga od 30 do 300 kg
+
+actions:
+  need: Liczy dzienne zapotrzebowanie na kalorie. Pominięte dane o ciele bierze z dziennika ciała
+parameters:
+  activity: Ile ruchu ma użytkownik - sedentary, light, moderate, active albo very_active
+  sex: Płeć - female, male, other albo undisclosed. Pomiń, żeby wziąć zapisaną
+  age: Wiek w latach - pomiń, żeby wziąć zapisany
+  height: Wzrost w centymetrach - pomiń, żeby wziąć zapisany
+  weight: Waga w kilogramach - pomiń, żeby wziąć zapisaną

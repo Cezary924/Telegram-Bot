@@ -1,6 +1,6 @@
 from core.api import AdvancedCtx, Module, Role, View, italic
 
-module = Module(name="help",
+module = Module(name="help", place=20,
                 icons={'name': "📃", 'title': "📃"})
 
 

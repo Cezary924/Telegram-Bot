@@ -5,6 +5,7 @@ from telebot.apihelper import ApiTelegramException
 from core import paths, version
 from core.context import AdvancedCtx, Ctx, User, create_context, user_from_row
 from core.module import Module
+from core.profile import Profile
 from core.roles import Role
 from core.testing import FakeBot, make_message, not_none
 from core.ui.view import View
@@ -407,6 +408,12 @@ def test_a_live_message_can_be_sent_quietly_and_removed(ctx, services):
     assert services.bot.deleted == [(1, message_id)]
 
 
+def test_the_buttons_of_a_message_are_taken_away(ctx, services):
+    services.bot = FakeBot()
+    assert ctx.remove_buttons(7)
+    assert services.bot.unbuttoned == [(1, 7)]
+
+
 def test_a_live_message_telegram_will_not_remove_says_so(ctx, services):
     def refuse(*_args, **_kwargs):
         raise ApiTelegramException("deleteMessage", "", {'error_code': 400, 'description': "can't be deleted"})
@@ -454,3 +461,92 @@ def test_every_picture_of_an_album_is_closed_even_when_sending_fails(sending, se
         sending.send_album([write_file(tmp_path, "%02d.jpg" % number) for number in range(3)])
     pictures = [handle for handle in opened if handle.name.endswith(".jpg") and "rb" in handle.mode]
     assert len(pictures) == 3 and all(handle.closed for handle in pictures)
+
+
+@pytest.fixture
+def partner(services):
+    partner = Module(name="module2", is_guarded=True)
+    partner.expose("profile")(lambda own, extra="": own.module.name + ":" + str(own.user.id) + extra)
+    services.registry.add(partner)
+    return partner
+
+
+def test_a_module_reads_what_a_used_module_exposes(services, partner, person, user):
+    services.storage.access.allow(1, "module2", True)
+    ctx = Ctx(services, Module(name="module1", uses=["module2"]), person)
+    assert ctx.has_module("module2")
+    assert ctx.ask("module2", "profile") == "module2:1"
+    assert ctx.ask("module2", "profile", "!") == "module2:1!"
+
+
+def test_a_used_module_that_is_not_loaded_answers_nothing(services, person, user):
+    ctx = Ctx(services, Module(name="module1", uses=["module2"]), person)
+    assert not ctx.has_module("module2")
+    assert ctx.ask("module2", "profile") is None
+
+
+def test_a_used_module_without_access_answers_nothing(services, partner, person, user):
+    ctx = Ctx(services, Module(name="module1", requires=["module2"]), person)
+    assert not ctx.has_module("module2")
+    assert ctx.ask("module2", "profile") is None
+
+
+def test_a_used_module_that_is_not_guarded_needs_no_access(services, person, user):
+    services.registry.add(Module(name="module2"))
+    assert Ctx(services, Module(name="module1", uses=["module2"]), person).has_module("module2")
+
+
+def test_a_module_that_was_not_declared_is_refused(services, partner, person, user):
+    ctx = Ctx(services, Module(name="module1"), person)
+    with pytest.raises(PermissionError):
+        ctx.has_module("module2")
+    with pytest.raises(PermissionError):
+        ctx.ask("module2", "profile")
+
+
+def test_asking_for_something_not_exposed_is_an_error(services, partner, person, user):
+    services.storage.access.allow(1, "module2", True)
+    ctx = Ctx(services, Module(name="module1", uses=["module2"]), person)
+    with pytest.raises(LookupError):
+        ctx.ask("module2", "nothing")
+
+
+def test_a_used_module_that_fails_answers_nothing(services, person, user, capsys):
+    partner = Module(name="module2")
+    partner.expose("profile")(lambda own: 1 / 0)
+    services.registry.add(partner)
+    services.is_strict = False
+    ctx = Ctx(services, Module(name="module1", uses=["module2"]), person)
+    assert ctx.ask("module2", "profile") is None
+    assert "Asking 'module2' for 'profile' failed in 'module1'" in capsys.readouterr().out
+
+
+def test_a_used_module_that_fails_in_tests_raises(services, person, user):
+    partner = Module(name="module2")
+    partner.expose("profile")(lambda own: 1 / 0)
+    services.registry.add(partner)
+    with pytest.raises(ZeroDivisionError):
+        Ctx(services, Module(name="module1", uses=["module2"]), person).ask("module2", "profile")
+
+
+def test_a_writing_function_is_asked_only_after_a_press(services, person, user):
+    partner = Module(name="module2")
+    partner.expose("save", is_writing=True)(lambda own: own.is_pressed)
+    services.registry.add(partner)
+    with pytest.raises(PermissionError):
+        Ctx(services, Module(name="module1", uses=["module2"]), person).ask("module2", "save")
+    assert Ctx(services, Module(name="module1", uses=["module2"]), person, is_pressed=True).ask("module2", "save")
+
+
+def test_the_profile_is_shared_and_checked(services, person, user):
+    ctx = Ctx(services, Module(name="module1"), person)
+    assert ctx.profile == Profile()
+    ctx.set_profile(sex="male", born="1990-05-01", weight_unit="lb")
+    other = Ctx(services, Module(name="module2"), person)
+    assert (other.profile.sex, other.profile.born, other.profile.weight_unit, other.profile.height_unit) == \
+        ("male", "1990-05-01", "lb", "cm")
+    ctx.set_profile(sex=None, born=None)
+    assert (other.profile.sex, other.profile.born) == (None, None)
+    for wrong in ({'sex': "robot"}, {'born': "2020-01-01"}, {'height_unit': "m"}, {'name': "x"}):
+        with pytest.raises(ValueError):
+            ctx.set_profile(**wrong)

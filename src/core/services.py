@@ -18,3 +18,4 @@ class Services:
     bot: telebot.TeleBot | None = None
     version: Version = field(default_factory=Version)
     started_at: datetime = field(default_factory=datetime.now)
+    is_strict: bool = False

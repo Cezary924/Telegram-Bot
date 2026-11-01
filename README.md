@@ -59,7 +59,7 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 
 - Welcome and feature list 👋 (```/start```, ```/features```)
 - Help and about 💬 (```/help```, ```/about```)
-- Settings, language and notifications ⚙️ (```/settings```)
+- Settings, language, notifications and details about you ⚙️ (```/settings```)
 - Contact and reports 📨 (```/contact```, ```/report```)
 - User management and Bot control 🛠️ (```/admin```)
 
@@ -70,6 +70,12 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 - Downloader of videos, music and pictures 📥 (```/downloader```)
 - Assistant on a local language model 🤖 (```/llm```)
 - Reminders 🔔 (```/reminder```)
+- Body tracker ⚖️ (```/bodytracker```)
+- BMI 🩺 (```/bmi```)
+- Calorie calculator 🔥 (```/calories```)
+- Food diary 🍽️ (```/foodtracker```)
+- Drink tracker 🍺 (```/drinktracker```)
+- Virtual breathalyser 🌬️ (```/breathalyser```)
 - Unit converter 🧮 (```/unitconverter```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
 - Crystal ball 🔮 (```/crystalball```)

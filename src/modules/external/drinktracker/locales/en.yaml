@@ -1,0 +1,115 @@
+name: Drink tracker
+description: Logs what you drink, splits it into sessions and estimates each of them with the virtual breathalyser
+
+commands.drinktracker: Log a drink and look back at your sessions
+
+how: Log every drink, now or later. With the virtual breathalyser a session lasts from the first drink until you are sober again, and without it a break of {gap} hours ends it
+add: Add a drink
+sessions: History
+session: Session
+custom: Something else
+curve: Curve
+drinks: Drinks of this session
+drinks_text: Tap a drink to change or delete it
+drink: Drink
+edit_amount: Change the amount and strength
+edit_when: Change the date and time
+remove: Delete
+my_body: My details
+food: Food
+saved: The drink has been logged
+changed: The drink has been changed
+body_saved: Your details have been saved
+gone: This is no longer there, start again
+empty: You have not logged any drinks yet
+need_body: To work out your sessions with the virtual breathalyser I need a few details about you
+day: Drinks {drinks}, pure alcohol {grams} g, {kcal} kcal
+chart: Chart
+chart_title: Pure alcohol per day
+chart_empty: No drinks in the last 30 days
+settings_button: Settings
+settings_text: Pick a drink to change or delete it, or add a new one
+preset: Drink
+edit_name: Change the name
+edit_emoji: Change the emoji
+edit_volume: Change the volume
+edit_strength: Change the strength
+restore: Restore the defaults
+preset_saved: The drink has been changed
+add_preset: Add a drink
+remove_preset: Delete from the list
+restore_kinds: Bring back the default drinks
+preset_added: The drink has been added
+preset_removed: The drink has been deleted from the list
+kinds_restored: The default drinks are back on the list
+preset_sure: Do you really want to delete this drink from the list? The drinks you have logged stay
+restored: The drink is back to its defaults
+wrong_emoji: Send just an emoji, without letters or digits, for example 🍺
+pick: Tap a session to see it. Page {page} of {pages}, {total} sessions
+previous: Previous
+next: Next
+sure: Do you really want to delete this drink?
+deleted: The drink has been deleted
+
+kind:
+  beer: Glass of beer
+  strong_beer: Glass of strong beer
+  cider: Bottle of cider
+  wine: Glass of wine
+  shot: Shot of vodka
+  whisky: Glass of whisky
+  custom: Own drink
+food_level:
+  empty: Empty stomach
+  little: A little
+  meal: A big meal
+sex:
+  female: Female
+  male: Male
+  other: Other
+  undisclosed: Rather not say
+labels:
+  drink: Drink
+  when: When
+  alcohol: Pure alcohol
+  energy: Energy
+  in_session: Drinks this session
+  drinks: Drinks
+  name: Name
+  emoji: Emoji
+  volume: Volume
+  strength: Strength
+
+ask:
+  kind: What are you drinking?
+  name: Write the name of the drink
+  emoji: Send an emoji for this drink
+  volume: Write how much in millilitres, for example 330
+  strength: Write how strong it is in percent, for example 12.5
+  when: When was it?
+  food: This drink starts a new session. How much had you eaten by then?
+  sex: Pick your sex
+  age: Write your age in years
+  height: Write your height ({unit})
+  weight: Write your weight ({unit})
+
+add_sure: Save this drink?
+wrong_kind: I do not know this drink - pick one of {kinds}
+body_needed: The user has to give their sex and age in Settings > About me and their height and weight in the body tracker or when adding a drink in the drink tracker first
+custom_needs: For your own drink give how many millilitres it has and how strong it is
+food_needed: This drink starts a new session - ask how much the user ate before and give one of {foods}
+context:
+  session: Session since {started} - drinks {drinks}, pure alcohol {grams} g, peak {peak} around {peak_at}, sober around {sober}
+  plain_session: Session since {started} - drinks {drinks}, pure alcohol {grams} g
+  week: The last seven days - drinks {drinks}, pure alcohol {grams} g
+  kinds: The usual drinks of the user - {kinds}
+
+actions:
+  add_drink: Saves a drink the user had. The usual drinks have their own volume and strength, for your own give both
+  days: Gives how much the user drank each day of the last two weeks
+parameters:
+  kind: The kind of drink - beer, strong_beer, cider, wine, shot (vodka), whisky or custom, unless the context gives other usual drinks of the user. The usual drinks take their volume and strength from the settings of the user
+  volume: How many millilitres - leave it out for a usual drink
+  strength: How many percent of alcohol - leave it out for a usual drink
+  when: When it was drunk, as YYYY-MM-DD HH:MM - leave it out if it is right now
+  food: How much the user ate before the session - empty, little or meal (a big meal)

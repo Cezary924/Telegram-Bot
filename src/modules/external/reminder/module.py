@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 
-from core.api import Button, Ctx, JobCtx, Module, Outcome, View, escape, labelled, italic
+from core.api import (Answers, Button, Ctx, JobCtx, Module, Outcome, Problem, Question, View, escape, labelled, italic,
+                      read_moment)
 
-module = Module(name="reminder", is_guarded=True, notifications="name",
+module = Module(name="reminder", place=30, is_guarded=True, notifications="name",
                 icons={'name': "🔔", 'previous': "⬅️", 'next': "➡️"},
                 endings={'done': "✅", 'changed': "✅", 'deleted': "✅", 'gone': "💔"})
 
@@ -10,8 +11,8 @@ mark = "🔔 "
 interval = 60
 delayed_after = 2 * interval
 date_format = "%Y-%m-%d %H:%M"
+example_format = "%d.%m.%Y %H:%M"
 content_limit = 200
-content_key = "content"
 page_size = 8
 waiting_mark = "🔔 "
 done_mark = "🔕 "
@@ -20,10 +21,7 @@ upcoming_limit = 3
 
 
 def parse_date(text: str) -> datetime | None:
-    try:
-        return datetime.strptime(text.strip(), date_format)
-    except ValueError:
-        return None
+    return read_moment(text, is_future=True)
 
 
 def table(ctx) -> str:
@@ -49,16 +47,18 @@ def details(ctx: Ctx, content: str, date: str) -> str:
 
 
 def wrong_content(ctx: Ctx, text: str) -> str:
-    return "" if 0 < len(text.strip()) <= content_limit else ctx.t("wrong_content", limit=str(content_limit))
+    return "" if 0 < len(text.strip()) <= content_limit else ctx.t("core:form.length", low="1", high=str(content_limit))
+
+
+def is_past(moment: datetime) -> bool:
+    return moment < datetime.now().replace(second=0, microsecond=0)
 
 
 def checked_date(ctx: Ctx, text: str) -> tuple[str, str]:
-    moment = parse_date(text)
-    if moment is None:
-        return "", labelled(ctx.t("wrong_date"), example_date())
-    if moment < datetime.now().replace(second=0, microsecond=0):
-        return "", ctx.t("past_date")
-    return moment.strftime(date_format), ""
+    date = parse_future(text, {})
+    if isinstance(date, Problem):
+        return "", ctx.t(date.key, example=example_date())
+    return (date, "") if date else ("", ctx.t("wrong_date", example=example_date()))
 
 
 def insert(ctx: Ctx, content: str, date: str) -> None:
@@ -95,85 +95,63 @@ def menu(ctx: Ctx) -> View:
 
 # ----- setting -----
 
+def example_date() -> str:
+    return (datetime.now() + timedelta(days=1)).strftime(example_format)
+
+
+def parse_future(text: str, _values: dict) -> str | Problem | None:
+    moment = parse_date(text)
+    if moment is None:
+        return None
+    return Problem("past_date") if is_past(moment) else moment.strftime(date_format)
+
+
 @module.callback("set")
 def open_content(ctx: Ctx) -> View:
-    ctx.state.delete(content_key)
-    return content_screen(ctx)
-
-
-@module.view("content", parent="menu", title="labels.content")
-def content_screen(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
-    return View(text=ctx.t("ask_content"),
-                argument=str(reminder_id) if reminder_id else None)
-
-
-@module.state("content")
-def take_content(ctx: Ctx) -> View:
-    text = ctx.text.strip()
-    problem = wrong_content(ctx, text)
-    if problem:
-        return ctx.retry(problem)
-    reminder_id = wanted_id(ctx)
-    if reminder_id:
-        return save_content(ctx, reminder_id, text)
-    ctx.state.set(content_key, text)
-    return date_screen(ctx)
-
-
-def save_content(ctx: Ctx, reminder_id: int, text: str) -> View:
-    row = reminder_of(ctx, reminder_id)
-    if row is None:
+    if not reminder_id:
+        return ctx.form("new", known={'example': example_date()})
+    if reminder_of(ctx, reminder_id) is None:
         return gone(ctx)
-    change(ctx, row, text, row['date'])
-    ctx.close_screen()
-    return View(text=ctx.t("changed") + "\n" + details(ctx, text, row['date']))
+    return ctx.form("rewrite", known={'id': reminder_id})
 
 
 @module.callback("date")
 def open_date(ctx: Ctx) -> View:
-    return date_screen(ctx)
+    if reminder_of(ctx, wanted_id(ctx)) is None:
+        return gone(ctx)
+    return ctx.form("move", known={'id': wanted_id(ctx), 'example': example_date()})
 
 
-@module.view("date", parent="menu", title="labels.date")
-def date_screen(ctx: Ctx) -> View:
-    reminder_id = wanted_id(ctx)
-    return View(text=labelled(ctx.t("ask_date"), example_date()),
-                argument=str(reminder_id) if reminder_id else None)
+content_question = Question("content", "text", high=content_limit)
+date_question = Question("date", parse=parse_future, problem="wrong_date")
 
 
-def example_date() -> str:
-    return (datetime.now() + timedelta(days=1)).strftime(date_format)
+@module.form("new", [content_question, date_question], parent="menu", title="set")
+def save_new(ctx: Ctx, answers: Answers) -> View:
+    insert(ctx, answers['content'], answers['date'])
+    ctx.close_screen()
+    return View(text=ctx.t("done") + "\n" + details(ctx, answers['content'], answers['date']))
 
 
-@module.state("date")
-def take_date(ctx: Ctx) -> View:
-    date, problem = checked_date(ctx, ctx.text)
-    if problem:
-        return ctx.retry(problem)
-    reminder_id = wanted_id(ctx)
-    if reminder_id:
-        return save_date(ctx, reminder_id, date)
-    return save_new(ctx, date)
-
-
-def save_date(ctx: Ctx, reminder_id: int, date: str) -> View:
-    row = reminder_of(ctx, reminder_id)
+@module.form("rewrite", [content_question], parent="one", title="labels.content")
+def save_content(ctx: Ctx, answers: Answers) -> View:
+    row = reminder_of(ctx, answers['id'])
     if row is None:
         return gone(ctx)
-    change(ctx, row, row['content'], date)
+    change(ctx, row, answers['content'], row['date'])
     ctx.close_screen()
-    return View(text=ctx.t("changed") + "\n" + details(ctx, row['content'], date))
+    return View(text=ctx.t("changed") + "\n" + details(ctx, answers['content'], row['date']))
 
 
-def save_new(ctx: Ctx, date: str) -> View:
-    content = ctx.state.get(content_key) or ""
-    if not content:
+@module.form("move", [date_question], parent="one", title="labels.date")
+def save_date(ctx: Ctx, answers: Answers) -> View:
+    row = reminder_of(ctx, answers['id'])
+    if row is None:
         return gone(ctx)
-    insert(ctx, content, date)
-    ctx.state.delete(content_key)
+    change(ctx, row, row['content'], answers['date'])
     ctx.close_screen()
-    return View(text=ctx.t("done") + "\n" + details(ctx, content, date))
+    return View(text=ctx.t("changed") + "\n" + details(ctx, row['content'], answers['date']))
 
 
 # ----- managing -----
@@ -231,7 +209,7 @@ def open_delete(ctx: Ctx) -> View:
     return removal(ctx)
 
 
-@module.view("delete", parent="menu", title="delete")
+@module.view("delete", parent="one", title="delete")
 def removal(ctx: Ctx) -> View:
     reminder_id = wanted_id(ctx)
     row = reminder_of(ctx, reminder_id)

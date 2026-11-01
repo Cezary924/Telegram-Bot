@@ -16,6 +16,7 @@ def app(tmp_path, monkeypatch):
     (tmp_path / "tokens.yaml").write_text("telegram: 0:aaa\n", encoding='utf8')
     application = App()
     application.services.bot = FakeBot()
+    application.services.is_strict = True
     application.load_modules()
     application.storage.users.save(1, "First", "Last", "username")
     application.storage.users.set_consent(1, True)

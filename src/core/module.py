@@ -3,6 +3,7 @@ from dataclasses import dataclass, field, replace
 from typing import Callable
 
 from core import callbacks
+from core.form import Form, Question, offer_key, press, screen, take
 from core.roles import Role
 from core.ui.view import View
 
@@ -11,10 +12,13 @@ action_pattern = re.compile(r"[a-z][a-z0-9_]*")
 command_pattern = re.compile(r"[a-z][a-z0-9_]*")
 parameter_pattern = re.compile(r"[a-z][a-z0-9_]*")
 parameter_types: dict[type, str] = {str: "string", int: "integer", float: "number", bool: "boolean"}
+exposed_pattern = re.compile(r"[a-z][a-z0-9_]*")
 
 settings_view = "settings"
 settings_hub = "settings"
 settings_hub_view = "menu"
+settings_list_view = "modules"
+settings_origin = "settings.origin"
 
 
 @dataclass(frozen=True)
@@ -106,6 +110,12 @@ class Action:
 
 
 @dataclass(frozen=True)
+class Exposed:
+    handler: Callable
+    is_writing: bool = False
+
+
+@dataclass(frozen=True)
 class Job:
     name: str
     handler: Callable
@@ -119,11 +129,13 @@ class Module:
     title: str = "name"
     description: str = "description"
     requires: list[str] = field(default_factory=list)
+    uses: list[str] = field(default_factory=list)
     tokens: list[str] = field(default_factory=list)
     config_keys: list[str] = field(default_factory=list)
     notifications: str = ""
     is_guarded: bool = False
     is_assistant: bool = False
+    place: int = 1000
     icons: dict[str, str] = field(default_factory=dict)
     endings: dict[str, str] = field(default_factory=dict)
 
@@ -134,6 +146,8 @@ class Module:
     views: list[ViewHandler] = field(default_factory=list, init=False)
     jobs: list[Job] = field(default_factory=list, init=False)
     actions: list[Action] = field(default_factory=list, init=False)
+    exposed: dict[str, Exposed] = field(default_factory=dict, init=False)
+    forms: dict[str, Form] = field(default_factory=dict, init=False)
     settings_screen: SettingsScreen | None = field(default=None, init=False)
     summary: Callable | None = field(default=None, init=False)
 
@@ -263,6 +277,9 @@ class Module:
         for parameter, kind in (parameters or {}).items():
             if not parameter_pattern.fullmatch(parameter) or kind not in parameter_types:
                 raise ValueError("Action '" + name + "' in '" + self.name + "' has a wrong parameter: " + parameter)
+            if "user" in parameter.split("_"):
+                raise ValueError("Action '" + name + "' in '" + self.name + "' acts only for the user who asks, "
+                                 "it cannot take: " + parameter)
         for parameter in optional or []:
             if parameter not in (parameters or {}):
                 raise ValueError("Action '" + name + "' in '" + self.name + "' has no parameter: " + parameter)
@@ -283,6 +300,41 @@ class Module:
             return handler
 
         return decorator
+
+    def expose(self, name: str, is_writing: bool = False) -> Callable:
+        if not exposed_pattern.fullmatch(name):
+            raise ValueError("Exposed name must be lowercase letters, digits and underscores: " + name)
+        if name in self.exposed:
+            raise ValueError("Module '" + self.name + "' exposes '" + name + "' twice")
+
+        def decorator(handler: Callable) -> Callable:
+            self.exposed[name] = Exposed(handler, is_writing)
+            return handler
+
+        return decorator
+
+    def form(self, name: str, questions: list[Question], parent: str = "", title: str = "",
+             is_background: bool = False) -> Callable:
+        if not questions:
+            raise ValueError("Form '" + name + "' in '" + self.name + "' asks nothing")
+        callbacks.build(self.name, name, offer_key, "1")
+        for question in questions:
+            for answer in question.answers:
+                callbacks.build(self.name, name, question.key, answer)
+
+        def decorator(handler: Callable) -> Callable:
+            found = Form(name, tuple(questions), handler, is_background)
+            self.view(name, parent, title)(lambda ctx: screen(ctx, found))
+            self.state(name, is_background=is_background)(lambda ctx: take(ctx, found))
+            self.callback(name, is_background=is_background)(lambda ctx: press(ctx, found))
+            self.forms[name] = found
+            return handler
+
+        return decorator
+
+    @property
+    def partners(self) -> list[str]:
+        return self.requires + [name for name in self.uses if name not in self.requires]
 
     def callback_data(self, action: str, *arguments: str | int) -> str:
         return callbacks.build(self.name, action, *arguments)

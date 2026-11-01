@@ -30,6 +30,19 @@ def test_a_module_cannot_require_itself():
     assert "requires itself" in contract.check_manifest(module)[0]
 
 
+def test_a_module_cannot_use_itself():
+    module = fixture_module("module2")
+    module.uses = ["module2"]
+    assert "uses itself" in contract.check_manifest(module)[0]
+
+
+def test_a_module_is_either_required_or_used():
+    module = fixture_module("module2")
+    module.requires = ["module1"]
+    module.uses = ["module1"]
+    assert contract.check_manifest(module) == ["'module1' is both required and used"]
+
+
 def write_locales(directory, body: str) -> None:
     (directory / "locales").mkdir(exist_ok=True)
     for language in supported_languages():
@@ -170,6 +183,14 @@ def test_another_module_may_be_imported_only_when_required(tmp_path):
     assert contract.check_imports(module) == []
 
 
+def test_another_module_may_be_imported_when_used(tmp_path):
+    module = Module(name="module1", uses=["module2"])
+    module.path = str(tmp_path)
+    (tmp_path / "module.py").write_text(
+        "from modules.external.module2 import helper1\n", encoding='utf8')
+    assert contract.check_imports(module) == []
+
+
 def test_a_used_package_must_be_declared(tmp_path):
     module = Module(name="module1")
     module.path = str(tmp_path)
@@ -286,6 +307,16 @@ def test_a_quoted_text_is_refused(tmp_path, body):
 def test_a_quoted_text_is_named_by_its_full_key(tmp_path):
     problems = contract.check_texts(texts_module(tmp_path, "group:\n  key1: 'quoted'\n"))
     assert "quotes 'group.key1'" in problems[0]
+
+
+def test_a_key_given_twice_is_refused(tmp_path):
+    problems = contract.check_texts(texts_module(tmp_path, "chart: Show\nkey1: one\nchart:\n  title: Chart\n"))
+    assert "has the key 'chart' more than once - the last one wins" in problems[0]
+
+
+def test_a_key_given_twice_in_a_group_is_named_by_its_full_key(tmp_path):
+    problems = contract.check_texts(texts_module(tmp_path, "group:\n  key1: one\n  key1: two\n"))
+    assert "has the key 'group.key1' more than once" in problems[0]
 
 
 def test_a_text_broken_into_lines_is_refused(tmp_path):

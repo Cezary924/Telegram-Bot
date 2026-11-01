@@ -555,6 +555,46 @@ def test_an_undeletable_screen_does_not_break_navigation(router, bot, services, 
     assert bot.last.text == "<b>Module one:</b>\n\nscreen2"
 
 
+@module1.view("picture", parent="view1")
+def picture(_ctx) -> View:
+    return View("numbers", photo=b"png")
+
+
+@module1.callback("draw")
+def draw(ctx) -> View:
+    return picture(ctx)
+
+
+@module1.command("snapshot")
+def snapshot(_ctx) -> View:
+    return View("result", photo=b"png", buttons=[Button("Save", "action1")])
+
+
+def test_a_screen_can_be_a_photo_in_place_of_the_last_one(router, bot, services, settled):
+    router.handle_message(make_message("/menu"))
+    menu_id = bot.last.message_id
+    router.handle_callback(make_callback("module1:draw", message_id=menu_id))
+    assert bot.last.photo == b"png" and bot.last.text == "<b>Module one:</b>\n\nnumbers"
+    assert "core:back" in [data for _, data in bot.last.buttons]
+    assert bot.deleted == [(1, menu_id)]
+    assert not_none(services.storage.navigation.current(1))['message_id'] == bot.last.message_id
+
+
+def test_going_back_from_a_photo_writes_the_screen_anew(router, bot, settled):
+    router.handle_message(make_message("/menu"))
+    router.handle_callback(make_callback("module1:draw", message_id=bot.last.message_id))
+    picture_id = bot.last.message_id
+    router.handle_callback(make_callback("core:back", message_id=picture_id))
+    assert bot.last.photo is None and bot.last.text == "<b>Module one:</b>\n\nscreen1"
+    assert bot.last.message_id != picture_id and (1, picture_id) in bot.deleted
+
+
+def test_a_photo_answer_carries_its_text_and_buttons(router, bot, settled):
+    router.handle_message(make_message("/snapshot"))
+    assert bot.last.photo == b"png" and bot.last.text == "<b>Module one:</b>\n\nresult"
+    assert bot.last.buttons == [("Save", "module1:action1")]
+
+
 def test_the_registered_handlers_route_an_update(router, services, settled):
     real_bot = telebot.TeleBot("0:aaa", validate_token=False)
     router.register(real_bot)

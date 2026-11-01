@@ -6,7 +6,7 @@ import requests
 from core.api import AdvancedCtx, Module, View, bold, escape, italic, labelled
 from core.version import Version
 
-module = Module(name="about",
+module = Module(name="about", place=30,
                 icons={'name': "ℹ️", 'title': "ℹ️"},
                 endings={'up_to_date': "😊"})
 

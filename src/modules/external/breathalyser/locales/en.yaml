@@ -1,0 +1,85 @@
+name: Virtual breathalyser
+description: Estimates how much alcohol is in the blood and when it will be gone
+
+commands.breathalyser: Estimate the blood alcohol
+
+how: I will estimate the blood alcohol from the body and what was drunk, and draw how it falls over time
+warning: This is only an estimate from a simple model and it never tells you whether you can drive. After drinking, do not drive at all
+count: Estimate
+settings_button: Settings
+save_new: Save the new details about me
+saved: Saved
+wrong_drinks: Write each drink as millilitres and percent, at most {limit} drinks, for example 500 5, 150 12
+wrong_last: Write how many hours ago the last drink was, from 0 to {hours}
+limits: Under Polish law {after_use} means the state after alcohol use and {insobriety} means the state of insobriety.
+per_hour: ‰ an hour
+rates: Clearing rate
+rates_text: How fast the body clears alcohol on an empty stomach. Most people are between 0.10 and 0.20 per mille an hour, 0.15 is typical. After food it is faster, up to 40% after a big meal, and it slows down at the very end
+settings_text: How fast the body clears alcohol in the estimates
+
+offer:
+  body: You have details about yourself saved. Should I use them?
+  drinks: You have drinks from your current session in the drink tracker. Should I use them?
+from:
+  body: from your saved details
+  drinks: from the drink tracker
+sex:
+  female: Female
+  male: Male
+  other: Other
+  undisclosed: Rather not say
+food_level:
+  empty: Empty stomach
+  little: A little
+  meal: A big meal
+level:
+  below: Below the state after alcohol use
+  after_use: State after alcohol use
+  insobriety: State of insobriety
+labels:
+  now: Estimate now
+  level: Level
+  sober: Sober around
+  peak: Peak
+  sex: Sex
+  age: Age
+  height: Height
+  weight: Weight
+  alcohol: Pure alcohol
+  drinks: Drinks
+  first: First drink
+  last: Last drink
+  food: Food
+  elimination: Clearing rate
+chart:
+  title: Virtual breathalyser
+  now: now
+  after_use: state after alcohol use
+  insobriety: state of insobriety
+  sober: sober
+
+ask:
+  sex: Pick the sex
+  age: Write the age in years
+  height: Write the height ({unit})
+  weight: Write the weight ({unit})
+  grams: Write what was drunk as millilitres and percent, with a plus or a comma between drinks, for example 500 5, 50 40
+  hours: How many hours ago was the first drink? Write 0 if just now
+  last: How many hours ago was the last drink? Write 0 if just now
+  food: How much had been eaten before the first drink?
+
+wrong: The food is one of {foods}, the sex one of {sexes}, the hours since the first drink from 0 to {hours}, and the hours since the last drink no more than since the first
+missing: Some details are missing - {missing}. Give them or save them in the body tracker and in Settings > About me
+out_of_range: These details look wrong. The age is from {low} to 120 years, the height from 100 to 250 cm, the weight from 30 to 300 kg
+
+actions:
+  estimate: Estimates the blood alcohol from the given drinks. Body details left out come from the saved ones. Always repeat the warning
+parameters:
+  drinks: Every drink as millilitres and percent, joined with a plus, for example 500 5 + 50 40
+  hours: How many hours have passed since the first drink
+  last: How many hours have passed since the last drink - leave it out if just now
+  food: How much the user ate before drinking - empty, little or meal (a big meal)
+  sex: Sex - female, male, other or undisclosed. Leave it out to use the saved one
+  age: Age in years - leave it out to use the saved one
+  height: Height in centimetres - leave it out to use the saved one
+  weight: Weight in kilograms - leave it out to use the saved one

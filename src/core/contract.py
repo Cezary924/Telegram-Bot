@@ -46,6 +46,10 @@ def check_manifest(module: Module) -> list[str]:
                         os.path.basename(module.path) + "'")
     if module.name in module.requires:
         problems.append("the module requires itself")
+    if module.name in module.uses:
+        problems.append("the module uses itself")
+    for name in sorted(set(module.requires) & set(module.uses)):
+        problems.append("'" + name + "' is both required and used")
     return problems
 
 
@@ -127,6 +131,14 @@ def quoted_keys(node, prefix: str = "") -> list[str]:
     return []
 
 
+def repeated_keys(node, prefix: str = "") -> list[str]:
+    if not isinstance(node, yaml.MappingNode):
+        return []
+    names = [name.value for name, _ in node.value]
+    found = [prefix + name for name in sorted(set(names)) if names.count(name) > 1]
+    return found + [key for name, value in node.value for key in repeated_keys(value, prefix + name.value + ".")]
+
+
 def text_problems(directory: str) -> list[str]:
     if not os.path.isdir(directory):
         return []
@@ -134,8 +146,11 @@ def text_problems(directory: str) -> list[str]:
     for name in yaml_files(directory):
         path = os.path.join(directory, name)
         with open(path, encoding='utf8') as f:
-            for key in quoted_keys(yaml.compose(f, Loader=yaml.Loader)):
-                problems.append("'" + name + "' quotes '" + key + "' - write it bare")
+            tree = yaml.compose(f, Loader=yaml.Loader)
+        for key in quoted_keys(tree):
+            problems.append("'" + name + "' quotes '" + key + "' - write it bare")
+        for key in repeated_keys(tree):
+            problems.append("'" + name + "' has the key '" + key + "' more than once - the last one wins")
         for key, text in load_locale_file(path).items():
             if "\n" in text:
                 problems.append("'" + name + "' breaks '" + key + "' into lines - split it into keys")
@@ -180,7 +195,7 @@ def is_import_allowed(name: str, module: Module) -> bool:
     if name.startswith("core."):
         return any(name == allowed or name.startswith(allowed + ".") for allowed in allowed_core_imports)
     if name.startswith(internal_package + ".") or name.startswith(external_package + "."):
-        return name.split(".")[2] in module.requires + [module.name]
+        return name.split(".")[2] in module.partners + [module.name]
     return True
 
 

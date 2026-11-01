@@ -1,0 +1,79 @@
+name: Dziennik jedzenia
+description: Zapisuje kalorie, które jesz, i porównuje każdy dzień z Twoim celem
+
+commands.foodtracker: Zapisuj, co jesz, i porównuj to z dziennym celem
+
+how: Zapisuj kalorie tego, co jesz, od razu albo później. Z dziennikiem picia liczą się też kalorie z alkoholu
+add: Dodaj posiłek
+today: Dzisiaj
+history: Historia
+chart: Wykres
+settings_button: Ustawienia
+meal: Posiłek
+edit_kcal: Zmień kalorie
+edit_when: Zmień datę i godzinę
+remove: Usuń
+set_goal: Wpisz cel ręcznie
+auto_goal: Licz z dziennika ciała
+saved: Posiłek został zapisany
+changed: Posiłek został zmieniony
+empty: Nic nie zapisano w ostatnich 30 dniach
+no_meals: Nie zapisano jeszcze żadnego posiłku
+pick: Dotknij posiłku, żeby go zmienić albo usunąć. Strona {page} z {pages}, posiłków {total}
+previous: Poprzednia
+next: Następna
+no_goal: Ustaw dzienny cel w ustawieniach, żeby widzieć, ile jeszcze zostało
+with_alcohol: w tym {kcal} z alkoholu
+sure: Czy na pewno chcesz usunąć ten posiłek?
+deleted: Posiłek został usunięty
+gone: Tego posiłku już nie ma
+settings_text: Wpisz dzienny cel ręcznie albo pozwól mu iść za Twoją ostatnią wagą przez kalkulator kalorii
+
+goal:
+  none: Nie ustawiono
+  missing: Brakuje wieku w Ustawieniach > O mnie albo wzrostu lub świeżej wagi w dzienniku ciała
+  auto: z dziennika ciała, {activity}
+labels:
+  meal: Posiłek
+  when: Kiedy
+  day_total: Zjedzone {day}
+  food: Jedzenie
+  alcohol: Alkohol
+  total: Razem
+  goal: Cel
+  left: Zostało
+  over: Przekroczono o
+activity:
+  sedentary: mało albo wcale ćwiczeń
+  light: lekkie ćwiczenia od jednego do trzech dni w tygodniu
+  moderate: umiarkowane ćwiczenia od trzech do pięciu dni w tygodniu
+  active: ciężkie ćwiczenia sześć lub siedem dni w tygodniu
+  very_active: bardzo ciężkie ćwiczenia albo praca fizyczna
+activity_choice:
+  sedentary: Mało albo wcale ćwiczeń
+  light: Lekkie ćwiczenia od jednego do trzech dni w tygodniu
+  moderate: Umiarkowane ćwiczenia od trzech do pięciu dni w tygodniu
+  active: Ciężkie ćwiczenia sześć lub siedem dni w tygodniu
+  very_active: Bardzo ciężkie ćwiczenia albo praca fizyczna
+chart_texts:
+  title: Kalorie dziennie
+  food: Jedzenie
+  alcohol: Alkohol
+  goal: Cel
+
+ask:
+  kcal: Napisz, ile kilokalorii miał posiłek
+  when: Kiedy to było?
+  goal: Napisz swój dzienny cel w kilokaloriach
+  activity: Ile ruchu jest w Twoim zwykłym dniu?
+
+add_sure: Zapisać ten posiłek?
+context:
+  today: Dzisiaj zjedzone i wypite
+
+actions:
+  add_meal: Zapisuje posiłek z jego kaloriami. Gdy użytkownik nie poda kalorii, oszacuj je i powiedz, że to szacunek
+  days: Podaje kalorie z jedzenia i alkoholu z ostatnich dwóch tygodni oraz dzienny cel
+parameters:
+  kcal: Ile kilokalorii miał posiłek
+  when: Kiedy był posiłek, w formacie YYYY-MM-DD HH:MM - pomiń, jeśli właśnie teraz

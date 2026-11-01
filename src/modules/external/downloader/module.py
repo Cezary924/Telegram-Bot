@@ -16,7 +16,7 @@ from yt_dlp.utils import DownloadError, ExtractorError
 
 from core.api import Button, Ctx, Module, View, labelled
 
-module = Module(name="downloader", is_guarded=True,
+module = Module(name="downloader", place=10, is_guarded=True,
                 icons={'name': "📥", 'format_video': "🎬", 'format_audio': "🎵", 'format_ask': "❓",
                        'settings_button': "⚙️"},
                 endings={'how': "😊", 'working': "⏳", 'failed': "💔", 'too_big': "💔"})

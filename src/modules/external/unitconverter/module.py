@@ -1,6 +1,6 @@
 from core.api import Ctx, Module, View, bold, italic
 
-module = Module(name="unitconverter", is_guarded=True,
+module = Module(name="unitconverter", place=100, is_guarded=True,
                 icons={'name': "🧮"},
                 endings={'how': "😊"})
 

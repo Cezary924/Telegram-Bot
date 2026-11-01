@@ -16,6 +16,7 @@ from modules.external.llm import module as llm
 
 real_stream = llm.stream
 stamp = re.compile(r"^\[(?:Now it is|Teraz jest): [^\n\]]*]\n")
+health_modules = ("bmi", "bodytracker", "breathalyser", "calories", "drinktracker", "foodtracker")
 
 
 def unstamped(message: dict, clocks: list[str]) -> dict:
@@ -80,6 +81,8 @@ def configure(app, monkeypatch, tokens: dict | None = None, **settings) -> None:
 def chat(app, model, monkeypatch):
     configure(app, monkeypatch, llm_url="http://model.local/v1", llm_model="small")
     app.storage.access.allow(1, "llm", True)
+    for name in health_modules:
+        app.storage.access.allow(1, name, False)
     return app
 
 
@@ -1061,7 +1064,8 @@ def test_the_actions_go_as_tools(chat, bot, model):
         'type': "object", 'required': ["content", "date"],
         'properties': {'content': {'type': "string", 'description': "What to remind about, up to 200 characters"},
                        'date': {'type': "string",
-                                'description': "When to remind, in the local time, as YYYY-MM-DD HH:MM"}}}
+                                'description': "When to remind, in the local time, as YYYY-MM-DD HH:MM or "
+                                               "DD.MM.YYYY HH:MM"}}}
     assert "With the tools you act in these modules" in model.systems[0]
     editing = not_none(model.tools[0])[2]['function']['parameters']
     assert list(editing['properties']) == ["reminder_id", "content", "date"]
@@ -1180,7 +1184,7 @@ def test_yes_checks_everything_again(chat, bot, model):
     chat.storage.module_state.set(1, "llm", "action." + key, json.dumps(pending))
     press(chat, "llm:confirm:" + key)
     assert reminders(chat) == []
-    assert bot.edited[-1].text == "<b>🔔 Reminders:</b>\n\nI cannot remind you about something in the past"
+    assert bot.edited[-1].text.startswith("<b>🔔 Reminders:</b>\n\nThis moment has already passed")
 
 
 def test_a_reminder_deleted_meanwhile_cannot_be_deleted_by_yes(chat, bot, model):
@@ -1202,7 +1206,7 @@ def test_a_wrong_value_goes_back_to_the_model_to_ask_again(chat, bot, model):
     say(chat, "remind me tomorrow")
     problem = results(model)[0]
     assert problem['status'] == "refused"
-    assert problem['problem'].startswith("I do not understand this date, write it like this: ")
+    assert problem['problem'].startswith("I do not understand this date, write it like ")
     assert pending_key_or_none(chat) is None and reminders(chat) == []
     assert answers(bot) == ["When exactly?"]
 
