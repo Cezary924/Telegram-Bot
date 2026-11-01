@@ -16,7 +16,7 @@ from modules.external.llm import module as llm
 
 real_stream = llm.stream
 stamp = re.compile(r"^\[(?:Now it is|Teraz jest): [^\n\]]*]\n")
-health_modules = ("bmi", "bodytracker", "breathalyser", "drinktracker")
+health_modules = ("bmi", "bodytracker", "breathalyser", "calories", "drinktracker", "foodtracker")
 
 
 def unstamped(message: dict, clocks: list[str]) -> dict:

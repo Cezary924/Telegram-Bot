@@ -1,0 +1,79 @@
+name: Food diary
+description: Logs the calories you eat and compares each day with your goal
+
+commands.foodtracker: Log what you eat and compare it with your daily goal
+
+how: Log the calories of what you eat, now or later. With the drink tracker the calories of alcohol count too
+add: Add a meal
+today: Today
+history: History
+chart: Chart
+settings_button: Settings
+meal: Meal
+edit_kcal: Change the calories
+edit_when: Change the date and time
+remove: Delete
+set_goal: Type the goal
+auto_goal: Follow my body tracker
+saved: The meal has been logged
+changed: The meal has been changed
+empty: Nothing logged in the last 30 days
+no_meals: No meal has been logged yet
+pick: Tap a meal to change or delete it. Page {page} of {pages}, {total} meals
+previous: Previous
+next: Next
+no_goal: Set a daily goal in the settings to see how much is left
+with_alcohol: of which {kcal} from alcohol
+sure: Do you really want to delete this meal?
+deleted: The meal has been deleted
+gone: This meal is no longer there
+settings_text: Set the daily goal yourself, or let it follow your latest weight with the calorie calculator
+
+goal:
+  none: Not set
+  missing: Your age is missing in Settings > About me, or your height or a recent weight in the body tracker
+  auto: from the body tracker, {activity}
+labels:
+  meal: Meal
+  when: When
+  day_total: Eaten on {day}
+  food: Food
+  alcohol: Alcohol
+  total: Together
+  goal: Goal
+  left: Left
+  over: Over by
+activity:
+  sedentary: little or no exercise
+  light: light exercise one to three days a week
+  moderate: moderate exercise three to five days a week
+  active: hard exercise six or seven days a week
+  very_active: very hard exercise or a physical job
+activity_choice:
+  sedentary: Little or no exercise
+  light: Light exercise one to three days a week
+  moderate: Moderate exercise three to five days a week
+  active: Hard exercise six or seven days a week
+  very_active: Very hard exercise or a physical job
+chart_texts:
+  title: Calories per day
+  food: Food
+  alcohol: Alcohol
+  goal: Goal
+
+ask:
+  kcal: Write how many kilocalories the meal had
+  when: When was it?
+  goal: Write your daily goal in kilocalories
+  activity: How active is your usual day?
+
+add_sure: Save this meal?
+context:
+  today: Eaten and drunk today
+
+actions:
+  add_meal: Saves a meal with its calories. When the user gives no calories, estimate them and say it is an estimate
+  days: Gives the calories from food and alcohol of the last two weeks and the daily goal
+parameters:
+  kcal: How many kilocalories the meal had
+  when: When the meal was, as YYYY-MM-DD HH:MM - leave it out if it is right now

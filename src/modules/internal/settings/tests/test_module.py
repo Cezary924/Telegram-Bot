@@ -15,7 +15,7 @@ def press(app, data: str):
     app.router.handle_callback(make_callback(data, message_id=app.services.bot.last.message_id))
 
 
-settings_modules = ["downloader", "llm", "bodytracker", "drinktracker", "breathalyser"]
+settings_modules = ["downloader", "llm", "bodytracker", "foodtracker", "drinktracker", "breathalyser"]
 
 
 def test_the_menu_lists_every_setting(app, bot):
