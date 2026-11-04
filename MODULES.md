@@ -208,8 +208,9 @@ def count(ctx: Ctx) -> View:
   ```ctx.profile.height(cm)``` show a value back the same way.
 - A ```text``` is stripped and must be between ```low``` (at least 1) and ```high``` characters long.
 - A ```choice``` is answered with buttons named ```<key>.<choice>```, a ```moment``` with Now, 30 min, 1 h and 2 h ago
-  or a typed ```21:30```, ```21.30```, ```2026-10-30 21:30``` or ```30.10.2026 21:30```, never in the future and at
-  most ```back``` hours ago - ```back=None``` lets it go back as far as the user wants.
+  or a typed ```21:30```, ```21.30```, ```2026-10-30 21:30```, ```30.10.2026 21:30``` or ```30.10 21:30``` in the
+  current year, never in the future and at most ```back``` hours ago - ```back=None``` lets it go back as far as the
+  user wants. ```read_moment(text, now, is_future=)``` reads the same ways of writing it for a module's own checks.
 - ```clear=``` adds a button, named by that text key, that answers with ```None``` - for an answer the user would
   rather not give. ```is_needed=``` gets the answers so far and skips the question when it says ```False```, so a
   form asks about the last drink only when there was more than one.

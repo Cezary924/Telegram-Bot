@@ -205,9 +205,10 @@ def count(ctx: Ctx) -> View:
   pokazują wartość z powrotem tak samo.
 - ```text``` jest przycinany i musi mieć od ```low``` (co najmniej 1) do ```high``` znaków.
 - Na ```choice``` odpowiada się przyciskami opisanymi tekstami ```<klucz>.<wybór>```, a na ```moment``` przyciskami
-  Teraz, 30 min, 1 h i 2 h temu albo wpisanym ```21:30```, ```21.30```, ```2026-10-30 21:30``` lub
-  ```30.10.2026 21:30```, nigdy z przyszłości i najwyżej ```back``` godzin wstecz - ```back=None``` pozwala cofnąć się
-  dowolnie daleko.
+  Teraz, 30 min, 1 h i 2 h temu albo wpisanym ```21:30```, ```21.30```, ```2026-10-30 21:30```, ```30.10.2026 21:30```
+  lub ```30.10 21:30``` w bieżącym roku, nigdy z przyszłości i najwyżej ```back``` godzin wstecz - ```back=None```
+  pozwala cofnąć się dowolnie daleko. ```read_moment(text, now, is_future=)``` czyta te same zapisy na potrzeby
+  własnych sprawdzeń modułu.
 - ```clear=``` dodaje przycisk opisany tym kluczem tekstu, który odpowiada ```None``` - na odpowiedź, której
   użytkownik woli nie podawać. ```is_needed=``` dostaje dotychczasowe odpowiedzi i pomija pytanie, gdy zwróci
   ```False```, więc formularz pyta o ostatni drink tylko wtedy, gdy był więcej niż jeden.
