@@ -61,6 +61,7 @@ module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     uses=["bodytracker"],  # inne moduły, z którymi współpracuje, gdy są, a bez nich działa i tak
+    formerly=["unitconverter"],  # nazwy, które miał wcześniej i których dane przejmuje
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
     config_keys=["service_url"],  # jedyne wpisy z config.yaml, które może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
@@ -74,6 +75,12 @@ module = Module(
 > To, co moduł wysyła sam z siebie - ```ctx.notify``` i ```JobCtx.send``` - jest powiadomieniem: użytkownik decyduje w
 > ```/settings```, czy ma dzwonić, i może zablokować wszystkie powiadomienia naraz. Wyciszony moduł dalej dostarcza
 > wiadomości, tylko po cichu. Odpowiedź na coś, co użytkownik zrobił, dzwoni zawsze.
+
+> Moduł po zmianie nazwy zachowuje to, co ludzie mają: przy starcie rdzeń przenosi dostępy, prośby, stan,
+> powiadomienia, ekrany i tabele ```module_<stara>_``` każdej nazwy z ```formerly``` na nową, nie ruszając tego, co nowa
+> nazwa już ma. Wpis w ```modules.yaml``` pod starą nazwą jest przepisywany na nową, dopóki nowej tam nie ma, więc
+> wyłączony moduł zostaje wyłączony. Moduł, którego stara nazwa wciąż ma własny katalog, jest pomijany, więc nigdy nie
+> zabierze tego, co należy do innego modułu.
 
 > Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```, a kontrakt odrzuca moduł
 > importujący coś, czego nie zadeklarował. Liczy się nazwa pakietu, nie nazwa importu, więc ```bs4``` deklaruje się jako

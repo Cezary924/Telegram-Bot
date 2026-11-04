@@ -12,6 +12,9 @@ from core.db.user_settings import UserSettings
 from core.db.users import Users
 
 schema_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "schema.sql")
+named_by_module = [("user_module_access", "module"), ("default_module_access", "module"), ("access_requests", "module"),
+                   ("user_module_state", "module"), ("user_notifications", "source"), ("user_screens", "module"),
+                   ("user_screen_arguments", "module")]
 
 
 class Storage:
@@ -30,6 +33,18 @@ class Storage:
 
     def for_module(self, module_name: str) -> ModuleDatabase:
         return ModuleDatabase(self.database, module_name)
+
+    def take_over(self, old: str, new: str) -> None:
+        for table, column in named_by_module:
+            self.database.execute("UPDATE OR IGNORE " + table + " SET " + column + " = ? WHERE " + column + " = ?;",
+                                  (new, old))
+            self.database.execute("DELETE FROM " + table + " WHERE " + column + " = ?;", (old, ))
+        before, after = self.for_module(old), self.for_module(new)
+        taken = after.table_names()
+        for name in before.table_names():
+            renamed = after.table(name.removeprefix(before.prefix))
+            if name.startswith(before.prefix) and renamed not in taken:
+                self.database.execute("ALTER TABLE " + name + " RENAME TO " + renamed + ";")
 
     def close(self) -> None:
         self.database.close()

@@ -21,6 +21,13 @@ def test_name_must_be_lowercase(module):
             Module(name=name)
 
 
+def test_a_former_name_is_a_name_and_not_the_current_one():
+    assert Module(name="calculator", formerly=["unitconverter"]).formerly == ["unitconverter"]
+    for old in ["Unit-converter", "calculator"]:
+        with pytest.raises(ValueError):
+            Module(name="calculator", formerly=[old])
+
+
 def test_table_prefix(module):
     assert module.table_prefix == "module_module1_"
 

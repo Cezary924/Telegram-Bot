@@ -61,6 +61,7 @@ module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
     uses=["bodytracker"],  # other modules it works with when they are there, and without them otherwise
+    formerly=["unitconverter"],  # names it had before, whose data it takes over
     tokens=["service_key"],  # the only secrets this module can read
     config_keys=["service_url"],  # the only entries of config.yaml it can read
     notifications="name",  # the text key its notifications are listed under in /settings
@@ -74,6 +75,12 @@ module = Module(
 > What a module sends on its own - ```ctx.notify``` and ```JobCtx.send``` - is a notification: the user decides in
 > ```/settings``` whether it makes a sound, and can block every notification at once. A user who turned a module down
 > still gets its messages, only silently. A reply to something the user did always makes a sound.
+
+> A module renamed keeps what people have: on start the core moves access, requests, state, notifications, screens
+> and the ```module_<old>_``` tables of every name in ```formerly``` to the new one, leaving alone what the new name
+> already has. An entry in ```modules.yaml``` under an old name is copied to the new one while the new one is missing
+> there, so a module turned off stays off. A module whose old name still has its own directory is skipped, so it never
+> takes what belongs to another module.
 
 > A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```, and the contract
 > refuses a module that imports something it did not declare. The name of the package counts, not the name of the
