@@ -1,0 +1,65 @@
+name: Kalkulator
+description: Zamienia jednostki, liczy na nich i liczy czas
+
+commands.calculator: Zamieniaj jednostki, licz na nich i licz czas
+
+how: Aby coś obliczyć, wyślij mi działanie. Jednostki również nie są dla mnie problemem
+history: Historia
+entry: Obliczenie
+remove: Usuń
+previous: Poprzednia
+next: Następna
+pick: Wybierz obliczenie, żeby zobaczyć je jeszcze raz albo usunąć. Strona {page} z {pages}, łącznie {total}
+no_history: Nic jeszcze nie zostało policzone
+sure: Czy na pewno chcesz usunąć to obliczenie?
+deleted: Obliczenie zostało usunięte
+gone: Tego obliczenia już nie ma
+
+wrong_amount: Napisz liczbę z jednostką, na przykład 5 km, 300 g albo 90 min
+wrong_unit: Wybierz jedną z tych jednostek - {units}
+wrong_expression: Napisz wartości z jednostkami połączone znakiem + albo -, na przykład 2 kg + 30 dag albo 1:20 + 2:45
+mixed: Te jednostki do siebie nie pasują, trzymaj się długości, masy albo czasu
+wrong_moment: Napisz godzinę, na przykład 21:30, albo datę z godziną, na przykład 30.10 21:30 lub 30.10.2026 21:30
+wrong_duration: Napisz, ile to trwa, na przykład 3 h 20 min, 3h20m, 1:20 albo 90 min
+too_long: To za długo, zmieść się w 100 latach
+
+either:
+  text: Chodzi o godzinę czy o dwa czasy trwania?
+  time: Godzina {start} + {duration}
+  sum: Suma czasów trwania
+
+labels:
+  from: Od
+  to: Do
+  difference: Różnica
+  altogether: Łącznie
+  added: Dodano
+  subtracted: Odjęto
+  result: Wynik
+  calculation: Działanie
+  made: Policzono
+weekdays:
+  monday: poniedziałek
+  tuesday: wtorek
+  wednesday: środa
+  thursday: czwartek
+  friday: piątek
+  saturday: sobota
+  sunday: niedziela
+
+context:
+  recent: Ostatnie obliczenia
+
+actions:
+  convert: Zamienia wartość z jednostką na inną jednostkę albo, gdy jednostki nie podano, na każdą jednostkę tego rodzaju
+  calculate: Dodaje i odejmuje wartości jednego rodzaju, jak 2 kg + 30 dag, 3 km - 800 m albo czasy trwania jak 1:20 + 2:45
+  difference: Liczy czas między dwiema chwilami - gdy podano same godziny, a koniec jest wcześniej, kończy się następnego dnia
+  shift: Podaje chwilę, która wypada jakiś czas po innej chwili albo przed nią, razem z dniem tygodnia
+parameters:
+  amount: Wartość z jednostką, jak 5 km, 300 g albo 90 min
+  unit: Jednostka, na którą zamienić, jak m, lb albo h - pomiń, żeby dostać każdą jednostkę tego rodzaju
+  expression: Działanie, jak 2 kg + 30 dag, 3 km - 800 m albo 1:20 + 2:45 + 0:35
+  start: Pierwsza chwila, jak 21:30, 30.10 21:30 albo 2026-10-30 21:30 - pomiń, jeśli chodzi o teraz
+  end: Druga chwila, zapisana tak samo - pomiń, jeśli chodzi o teraz
+  duration: Ile czasu, jak 3 h 20 min, 1:20 albo 90 min
+  is_subtracted: Prawda, żeby cofnąć się w czasie zamiast iść naprzód

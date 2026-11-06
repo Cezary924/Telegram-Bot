@@ -1,0 +1,65 @@
+name: Calculator
+description: Converts units, adds them up and counts time
+
+commands.calculator: Convert units, count with them and count time
+
+how: To calculate something, send me the calculation. Units are no problem for me either
+history: History
+entry: Calculation
+remove: Delete
+previous: Previous
+next: Next
+pick: Tap a calculation to see it again or delete it. Page {page} of {pages}, {total} calculations
+no_history: Nothing has been calculated yet
+sure: Do you really want to delete this calculation?
+deleted: The calculation has been deleted
+gone: This calculation is no longer there
+
+wrong_amount: Write a number with its unit, for example 5 km, 300 g or 90 min
+wrong_unit: Pick one of these units - {units}
+wrong_expression: Write amounts with units joined with + or -, for example 2 kg + 30 dag or 1:20 + 2:45
+mixed: These units do not go together, keep to lengths, masses or times
+wrong_moment: Write a time like 21:30, or a date and time like 30.10 21:30 or 30.10.2026 21:30
+wrong_duration: Write how long it is, for example 3 h 20 min, 3h20m, 1:20 or 90 min
+too_long: That is too long, keep it under 100 years
+
+either:
+  text: Do you mean a time of day or two durations?
+  time: Time {start} + {duration}
+  sum: Sum of durations
+
+labels:
+  from: From
+  to: To
+  difference: Difference
+  altogether: Altogether
+  added: Added
+  subtracted: Subtracted
+  result: Result
+  calculation: Calculation
+  made: Counted
+weekdays:
+  monday: Monday
+  tuesday: Tuesday
+  wednesday: Wednesday
+  thursday: Thursday
+  friday: Friday
+  saturday: Saturday
+  sunday: Sunday
+
+context:
+  recent: Latest calculations
+
+actions:
+  convert: Converts an amount with its unit into another unit, or into every unit of its kind when no unit is given
+  calculate: Adds and subtracts amounts of one kind, like 2 kg + 30 dag, 3 km - 800 m or durations like 1:20 + 2:45
+  difference: Counts the time between two moments - when only times are given and the end is earlier, it ends the next day
+  shift: Gives the moment that comes some time after or before another moment, with its day of the week
+parameters:
+  amount: The amount with its unit, like 5 km, 300 g or 90 min
+  unit: The unit to convert into, like m, lb or h - leave it out to get every unit of the kind
+  expression: The calculation, like 2 kg + 30 dag, 3 km - 800 m or 1:20 + 2:45 + 0:35
+  start: The first moment, like 21:30, 30.10 21:30 or 2026-10-30 21:30 - leave it out for right now
+  end: The second moment, written the same way - leave it out for right now
+  duration: How long, like 3 h 20 min, 1:20 or 90 min
+  is_subtracted: True to go back in time instead of forward

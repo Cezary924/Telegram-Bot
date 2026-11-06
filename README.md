@@ -76,6 +76,6 @@ Every feature is a module - a directory the Bot loads on start. Feature modules 
 - Food diary 🍽️ (```/foodtracker```)
 - Drink tracker 🍺 (```/drinktracker```)
 - Virtual breathalyser 🌬️ (```/breathalyser```)
-- Unit converter 🧮 (```/unitconverter```)
+- Calculator of units and time 🧮 (```/calculator```)
 - Guess Top Spotify Artist ᯤ (```/topspotifyartist```)
 - Crystal ball 🔮 (```/crystalball```)

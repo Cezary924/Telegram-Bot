@@ -16,7 +16,7 @@ from modules.external.llm import module as llm
 
 real_stream = llm.stream
 stamp = re.compile(r"^\[(?:Now it is|Teraz jest): [^\n\]]*]\n")
-health_modules = ("bmi", "bodytracker", "breathalyser", "calories", "drinktracker", "foodtracker")
+other_modules = ("bmi", "bodytracker", "breathalyser", "calculator", "calories", "drinktracker", "foodtracker")
 
 
 def unstamped(message: dict, clocks: list[str]) -> dict:
@@ -81,7 +81,7 @@ def configure(app, monkeypatch, tokens: dict | None = None, **settings) -> None:
 def chat(app, model, monkeypatch):
     configure(app, monkeypatch, llm_url="http://model.local/v1", llm_model="small")
     app.storage.access.allow(1, "llm", True)
-    for name in health_modules:
+    for name in other_modules:
         app.storage.access.allow(1, name, False)
     return app
 
