@@ -100,6 +100,19 @@ def test_a_guest_reaches_nothing_guarded(router, services):
     assert every_way_in(router, user, "secret") == []
 
 
+def test_a_personal_matcher_is_not_asked_without_access(router, services):
+    asked = []
+    secret_module.matchers.insert(0, type(secret_module.matchers[0])(
+        lambda ctx: asked.append(ctx.user.id) or True, secret_module.matchers[0].handler, Role.GUEST, 99, 0, False,
+        (), True))
+    user = person(services, 2, Role.GUEST)
+    router.handle_message(make_message("anything", user_id=user))
+    services.storage.access.allow(user, "secret", True)
+    router.handle_message(make_message("anything", user_id=user))
+    secret_module.matchers.pop(0)
+    assert asked == [2] and reached == ["secret:matcher"]
+
+
 def test_a_guest_still_reaches_a_free_module(router, services):
     user = person(services, 2, Role.GUEST)
     router.handle_message(make_message("/free", user_id=user))

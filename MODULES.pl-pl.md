@@ -95,7 +95,7 @@ module = Module(
 | ```@module.view("nazwa", parent=, title=)```                                              | buduje ekran, umieszczony pod ```parent``` w drzewie modułu               |
 | ```@module.settings(role=)```                                                             | buduje ekran ustawień modułu, widoczny w ```/settings```                  |
 | ```@module.state("nazwa", role=, is_background=)```                                       | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
-| ```@module.match(predykat, priority=, role=, is_background=)```                           | przejmuje wiadomości pasujące do ```predykat(text)```                     |
+| ```@module.match(predykat, priority=, role=, is_background=, is_personal=)```             | przejmuje wiadomości pasujące do ```predykat(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                                          | uruchamia się co ```interval``` sekund we własnym wątku                   |
 | ```@module.action("nazwa", parameters=, optional=, description=, role=, is_confirmed=)``` | pozwala asystentowi zrobić ```nazwa``` za użytkownika                     |
 | ```@module.context()```                                                                   | mówi asystentowi, co moduł wie o użytkowniku                              |
@@ -120,6 +120,9 @@ module = Module(
   sekund trafia w pełną minutę zamiast dryfować od momentu startu Bota.
 - Matchery są sortowane po priorytecie malejąco, potem po nazwie modułu i kolejności deklaracji, więc wynik nie zależy
   od kolejności ładowania modułów.
+- ```is_personal=True``` daje predykatowi ```ctx``` piszącej osoby zamiast tekstu, więc matcher może wziąć tylko to, co
+  pasuje do jej własnych danych - na przykład nazw jej liczników - a resztę zostawić innym. Jest pytany tylko wtedy, gdy
+  osoba może używać modułu, i powinien być szybki, bo przechodzi przez niego każda wiadomość.
 
 ## 🖥️ Ekrany
 

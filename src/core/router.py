@@ -9,7 +9,7 @@ from core import callbacks, form as forms, middleware
 from core.context import User, can_use, controls_for, hub_for, create_context, heading_for, send_to, user_from_row
 from core.i18n import core_namespace, default_language
 from core.log import print_error, print_log
-from core.module import Module, settings_hub_view, settings_list_view, settings_origin
+from core.module import Matcher, Module, settings_hub_view, settings_list_view, settings_origin
 from core.roles import Role
 from core.services import Services
 from core.ui.html import escape, labelled
@@ -219,19 +219,29 @@ class Router:
         for module, matcher in self._services.registry.matchers():
             if message.content_type != "text" and message.content_type not in matcher.media:
                 continue
+            if matcher.is_personal and not self.may_use(module, user):
+                continue
             try:
-                if message.content_type == "text" and not matcher.predicate(message.text or ""):
+                if message.content_type == "text" and not self.is_matched(module, matcher, user, message):
                     continue
             except Exception as error:
                 print_error("Matcher failed in '" + module.name + "' - " +
                             type(error).__name__ + ".", str(error))
                 continue
-            if module.is_guarded and not can_use(self._services, user, module.name):
+            if not self.may_use(module, user):
                 continue
             self.run(module, matcher.handler, matcher.role, user, message,
                      is_background=matcher.is_background, is_typed=True)
             return True
         return False
+
+    def may_use(self, module: Module, user: User) -> bool:
+        return not module.is_guarded or can_use(self._services, user, module.name)
+
+    def is_matched(self, module: Module, matcher: Matcher, user: User, message: telebot.types.Message) -> bool:
+        if matcher.is_personal:
+            return bool(matcher.predicate(create_context(self._services, module, user, message)))
+        return bool(matcher.predicate(message.text or ""))
 
     # noinspection PyTypeChecker
     def answer(self, callback: telebot.types.CallbackQuery) -> None:

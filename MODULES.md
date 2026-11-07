@@ -96,7 +96,7 @@ module = Module(
 | ```@module.view("name", parent=, title=)```                                              | builds a screen, placed under ```parent``` in the module tree     |
 | ```@module.settings(role=)```                                                            | builds the module's settings screen, listed in ```/settings```    |
 | ```@module.state("name", role=, is_background=)```                                       | takes plain messages while the user sits on the screen ```name``` |
-| ```@module.match(predicate, priority=, role=, is_background=)```                         | takes messages matching ```predicate(text)```                     |
+| ```@module.match(predicate, priority=, role=, is_background=, is_personal=)```           | takes messages matching ```predicate(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                                         | runs every ```interval``` seconds in its own thread               |
 | ```@module.action("name", parameters=, optional=, description=, role=, is_confirmed=)``` | lets the assistant do ```name``` for the user                     |
 | ```@module.context()```                                                                  | tells the assistant what the module knows about the user          |
@@ -123,6 +123,9 @@ module = Module(
   seconds lands on the minute instead of drifting from whenever the Bot started.
 - Matchers are sorted by priority, highest first, then by module name and declaration order, so the outcome does not
   depend on the order modules are loaded.
+- ```is_personal=True``` hands the predicate the ```ctx``` of the person writing instead of the text, so a matcher can
+  take only what fits their own data - the names of their counters, for example - and leave the rest to the others.
+  It is asked only when the person may use the module, and it should be quick, since every message passes through it.
 
 ## 🖥️ Screens
 
