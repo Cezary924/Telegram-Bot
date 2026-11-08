@@ -2,6 +2,7 @@ downloader: true
 crystalball: true
 topspotifyartist: true
 reminder: true
+counter: true
 calculator: true
 llm: true
 bodytracker: true

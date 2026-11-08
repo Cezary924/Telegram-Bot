@@ -305,8 +305,8 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     assert bot.last.text == "The menu has been closed"
 
 
-guarded_modules = ["downloader", "llm", "reminder", "bodytracker", "bmi", "calories", "foodtracker", "drinktracker",
-                   "breathalyser", "calculator", "topspotifyartist", "crystalball"]
+guarded_modules = ["downloader", "llm", "reminder", "counter", "bodytracker", "bmi", "calories", "foodtracker",
+                   "drinktracker", "breathalyser", "calculator", "topspotifyartist", "crystalball"]
 
 
 def access_toggles(bot) -> list[str]:

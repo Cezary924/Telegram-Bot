@@ -70,6 +70,7 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 - Pobieranie filmów, muzyki i zdjęć 📥 (```/downloader```)
 - Asystent na lokalnym modelu językowym 🤖 (```/llm```)
 - Przypomnienia 🔔 (```/reminder```)
+- Liczniki 🔢 (```/counter```)
 - Dziennik ciała ⚖️ (```/bodytracker```)
 - BMI 🩺 (```/bmi```)
 - Kalkulator kalorii 🔥 (```/calories```)
