@@ -21,7 +21,7 @@ module = Module(name="llm", place=20, is_guarded=True, is_assistant=True,
                        'writing': "✍️", 'thinking': "💭", 'reasoning': "💭", 'history': "📜", 'resume': "▶️",
                        'export': "📄", 'delete': "🗑️", 'modules': "🧩",
                        'keeping': "⏳", 'wipe': "🗑️", 'conversation': "💬", 'previous': "⬅️", 'next': "➡️"},
-                endings={'how': "💬", 'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧",
+                endings={'how': "😊", 'fresh_done': "✅", 'failed': "💔", 'empty': "🤷", 'not_configured': "🔧",
                          'busy': "⏳", 'resumed': "✅", 'deleted': "✅", 'wiped': "✅", 'gone': "💔",
                          'too_big': "📦", 'unreadable': "💔", 'unsupported': "🤷", 'confirm': "👇",
                          'cancelled': "❌"})

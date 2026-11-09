@@ -4,7 +4,7 @@ description: Przypomina Ci o czymkolwiek o wyznaczonej porze
 commands.reminder: Ustaw i zarządzaj swoimi przypomnieniami
 
 title: Przypomnienia
-menu: Ustawione przez Ciebie przypomnienia
+how: Ustawiaj przypomnienia, a ja przypomnę Ci, o czym tylko chcesz
 set: Ustaw przypomnienie
 manage: Zarządzaj przypomnieniami
 

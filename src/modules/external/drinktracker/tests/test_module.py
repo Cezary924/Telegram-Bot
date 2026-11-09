@@ -119,7 +119,7 @@ def test_without_the_breathalyser_a_long_break_ends_a_session():
 def test_the_command_opens_a_menu_without_any_data(app, bot):
     send(app, "/drinktracker")
     assert labels(bot)[:5] == ["➕ Add a drink", "📜 History", "📈 Chart", "⚙️ Settings", "✖️ Close"]
-    assert "a break of 8 hours ends it" in bot.last.text and bot.last.text.endswith("🍻")
+    assert bot.last.text.endswith("Log your drinks and keep track of how much you drink 😊")
 
 
 def test_the_first_drink_asks_for_the_body_once_when_there_is_no_tracker(lonely):

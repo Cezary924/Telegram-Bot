@@ -569,7 +569,7 @@ def test_the_history_keeps_to_its_size(chat, bot, model, monkeypatch):
 
 def test_the_command_explains_and_leads_to_the_settings(chat, bot, model):
     say(chat, "/llm")
-    assert "every message that is neither a command nor a link" in bot.last.text
+    assert "send me a message that has nothing to do with any of my commands 😊" in bot.last.text
     assert ("⚙️ Settings", "core:settings:llm") in bot.last.buttons
 
 

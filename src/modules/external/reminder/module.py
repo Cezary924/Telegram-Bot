@@ -4,8 +4,8 @@ from core.api import (Answers, Button, Ctx, JobCtx, Module, Outcome, Problem, Qu
                       read_moment)
 
 module = Module(name="reminder", place=30, is_guarded=True, notifications="name",
-                icons={'name': "🔔", 'previous': "⬅️", 'next': "➡️"},
-                endings={'done': "✅", 'changed': "✅", 'deleted': "✅", 'gone': "💔"})
+                icons={'name': "🔔", 'set': "➕", 'previous': "⬅️", 'next': "➡️"},
+                endings={'how': "😊", 'done': "✅", 'changed': "✅", 'deleted': "✅", 'gone': "💔"})
 
 mark = "🔔 "
 interval = 60
@@ -89,8 +89,7 @@ def menu(ctx: Ctx) -> View:
     buttons = [Button(ctx.t("set"), "set")]
     if rows:
         buttons.append(Button(ctx.t("manage"), "manage"))
-    return View(text=labelled(ctx.t("menu"), len(rows)),
-                buttons=buttons)
+    return View(text=ctx.t("how"), buttons=buttons)
 
 
 # ----- setting -----

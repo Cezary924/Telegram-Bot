@@ -3,7 +3,7 @@ description: Zapisuje kalorie, które jesz, i porównuje każdy dzień z Twoim c
 
 commands.foodtracker: Zapisuj, co jesz, i porównuj to z dziennym celem
 
-how: Zapisuj kalorie tego, co jesz, od razu albo później. Z dziennikiem picia liczą się też kalorie z alkoholu
+how: Zapisuj swoje posiłki i śledź, ile kalorii jesz
 add: Dodaj posiłek
 today: Dzisiaj
 history: Historia

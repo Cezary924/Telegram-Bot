@@ -5,7 +5,7 @@ commands.admin: Wyświetl menu Administratora
 
 title: Admin
 notifications_label: Ogłoszenia
-menu: Wybierz zadanie z podanych
+menu: Wybierz opcję z podanych
 
 has_consent: tak
 no_consent: nie

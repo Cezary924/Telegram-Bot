@@ -3,7 +3,7 @@ description: Szacuje, ile alkoholu jest we krwi i kiedy z niej zniknie
 
 commands.breathalyser: Oszacuj stężenie alkoholu we krwi
 
-how: Oszacuję stężenie alkoholu we krwi na podstawie ciała i tego, co wypito, i narysuję, jak będzie spadać
+how: Aby oszacować, ile alkoholu jest we krwi, podaj mi, co zostało wypite
 warning: To tylko szacunek z prostego modelu i nigdy nie mówi, czy możesz prowadzić. Po alkoholu w ogóle nie siadaj za kierownicę
 count: Oszacuj
 settings_button: Ustawienia

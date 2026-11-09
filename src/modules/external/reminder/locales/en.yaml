@@ -4,7 +4,7 @@ description: Reminds you about anything at the time you set
 commands.reminder: Set and manage your reminders
 
 title: Reminders
-menu: Reminders you have set
+how: Set reminders and I will remind you about anything you like
 set: Set a reminder
 manage: Manage reminders
 

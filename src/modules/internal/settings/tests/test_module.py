@@ -20,7 +20,7 @@ settings_modules = ["downloader", "llm", "counter", "bodytracker", "foodtracker"
 
 def test_the_menu_lists_every_setting(app, bot):
     open_menu(app)
-    assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect the setting of the following:"
+    assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect one of the following options:"
     assert [data for _, data in bot.last.buttons] == [
         "settings:notifications", "settings:language", "settings:profile", "settings:modules", "settings:deletedata",
         "core:close"]
@@ -221,7 +221,7 @@ def test_module_settings_open_under_the_modules(app, bot):
     assert bot.last.text.startswith("<b>⚙️ Settings &gt; 🧩 Modules:</b>")
     press(app, "core:settings:extra")
     press(app, "core:home")
-    assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect the setting of the following:"
+    assert bot.last.text == "<b>⚙️ Settings:</b>\n\nSelect one of the following options:"
 
 
 def open_profile(app):

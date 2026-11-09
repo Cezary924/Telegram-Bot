@@ -3,7 +3,7 @@ description: Prowadzi historię wagi i wzrostu, z których korzystają inne funk
 
 commands.bodytracker: Zapisuj wagę i wzrost
 
-how: Zapisuj wagę za każdym razem, gdy staniesz na wadze, a wzrost, gdy się zmieni - skorzystają z nich funkcje BMI, kalorii i alkoholu
+how: Zapisuj swoją wagę i śledź jej zmiany
 log: Zapisz wagę
 history: Historia
 chart: Wykres

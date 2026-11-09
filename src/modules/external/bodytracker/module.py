@@ -12,7 +12,7 @@ module = Module(name="bodytracker", place=40, is_guarded=True,
                 icons={'name': "⚖️", 'log': "➕", 'history': "📜", 'chart': "📈", 'settings_button': "⚙️",
                        'set_height': "📏", 'heights': "📜", 'edit_value': "✏️", 'edit_when': "🕒", 'remove': "🗑️",
                        'previous': "⬅️", 'next': "➡️"},
-                endings={'how': "💪", 'saved': "✅", 'height_saved': "✅", 'changed': "✅", 'deleted': "✅",
+                endings={'how': "😊", 'saved': "✅", 'height_saved': "✅", 'changed': "✅", 'deleted': "✅",
                          'empty.weight': "🤷", 'empty.height': "🤷", 'gone': "💔"})
 
 fresh_days = 30

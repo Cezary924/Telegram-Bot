@@ -5,7 +5,7 @@ commands.admin: Show the Administrator menu
 
 title: Admin
 notifications_label: Announcements
-menu: Select the task of the following
+menu: Select one of the following options
 
 has_consent: given
 no_consent: not given

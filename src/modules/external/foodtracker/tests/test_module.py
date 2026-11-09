@@ -64,7 +64,7 @@ def test_the_command_opens_a_menu_without_any_data(app, bot):
     send(app, "/foodtracker")
     assert "500" not in bot.last.text
     assert labels(bot)[:5] == ["➕ Add a meal", "📅 Today", "📜 History", "📈 Chart", "⚙️ Settings"]
-    assert bot.last.text.endswith("😋")
+    assert bot.last.text.endswith("😊")
 
 
 def test_a_meal_is_asked_for_until_it_makes_sense(app, bot):

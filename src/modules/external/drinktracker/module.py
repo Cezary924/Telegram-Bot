@@ -15,7 +15,7 @@ module = Module(name="drinktracker", place=80, is_guarded=True, uses=["bodytrack
                        'previous': "⬅️", 'next': "➡️", 'settings_button': "⚙️", 'edit_name': "✏️", 'edit_emoji': "😀",
                        'edit_volume': "🥛", 'edit_strength': "💪", 'restore': "↩️", 'add_preset': "➕",
                        'remove_preset': "🗑️", 'restore_kinds': "↩️"},
-                endings={'how': "🍻", 'saved': "✅", 'body_saved': "✅", 'changed': "✅", 'deleted': "✅", 'empty': "🤷",
+                endings={'how': "😊", 'saved': "✅", 'body_saved': "✅", 'changed': "✅", 'deleted': "✅", 'empty': "🤷",
                          'chart_empty': "🤷", 'preset_saved': "✅", 'restored': "✅", 'preset_added': "✅",
                          'preset_removed': "✅", 'kinds_restored': "✅", 'gone': "💔"})
 
@@ -222,7 +222,7 @@ def command_drinktracker(ctx: Ctx) -> View:
 
 @module.view("menu")
 def menu(ctx: Ctx) -> View:
-    return View(text=ctx.t("how", gap=gap_hours),
+    return View(text=ctx.t("how"),
                 buttons=[Button(ctx.t("add"), "add"), Button(ctx.t("sessions"), "sessions"),
                          Button(ctx.t("chart"), "chart"), Button.settings(ctx.t("settings_button"), module.name)])
 

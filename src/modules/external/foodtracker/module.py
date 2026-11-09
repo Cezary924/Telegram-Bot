@@ -13,7 +13,7 @@ module = Module(name="foodtracker", place=70, is_guarded=True, uses=["bodytracke
                 icons={'name': "🍽️", 'add': "➕", 'today': "📅", 'history': "📜", 'chart': "📈",
                        'settings_button': "⚙️", 'set_goal': "🎯", 'auto_goal': "🔄", 'edit_kcal': "✏️",
                        'edit_when': "🕒", 'remove': "🗑️", 'previous': "⬅️", 'next': "➡️"},
-                endings={'how': "😋", 'saved': "✅", 'changed': "✅", 'deleted': "✅", 'empty': "🤷", 'no_meals': "🤷",
+                endings={'how': "😊", 'saved': "✅", 'changed': "✅", 'deleted': "✅", 'empty': "🤷", 'no_meals': "🤷",
                          'gone': "💔"})
 
 activities = ("sedentary", "light", "moderate", "active", "very_active")

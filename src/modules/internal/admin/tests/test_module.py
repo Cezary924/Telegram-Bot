@@ -32,7 +32,7 @@ def test_only_an_admin_may_open_the_menu(app, bot):
 
 def test_the_menu_lists_every_section(boss, bot):
     open_menu(boss)
-    assert bot.last.text == "<b>🛠️ Admin:</b>\n\nSelect the task of the following:"
+    assert bot.last.text == "<b>🛠️ Admin:</b>\n\nSelect one of the following options:"
     assert [data for _, data in bot.last.buttons] == [
         "admin:users", "admin:statistics", "admin:announcement",
         "admin:alerts", "admin:modules", "admin:defaults", "admin:bot", "core:close"]
