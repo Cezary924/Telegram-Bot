@@ -3,7 +3,6 @@ from dataclasses import replace
 from datetime import date, datetime, timedelta
 from functools import partial
 
-from matplotlib.dates import AutoDateLocator, ConciseDateFormatter
 from matplotlib.figure import Figure
 
 from core.api import (Answers, Button, Ctx, Html, Module, Outcome, Question, View, escape, italic, labelled,
@@ -20,6 +19,7 @@ activities = ("sedentary", "light", "moderate", "active", "very_active")
 told_days = 14
 kcal_limits = (1, 5000)
 chart_days = 30
+tick_count = 8
 page_size = 8
 moment_format = "%Y-%m-%d %H:%M"
 goal_key = "goal"
@@ -310,11 +310,14 @@ def draw(days: list[tuple[date, float, float]], wanted: float | None, texts: dic
     axes.set_facecolor(colors['surface'])
     moments = [day for day, _, _ in days]
     food = [value for _, value, _ in days]
-    axes.bar(moments, food, width=0.8, color=colors['food'], label=texts['food'])
+    bars = axes.bar(moments, food, width=0.8, color=colors['food'], label=texts['food'])
     if any(drunk for _, _, drunk in days):
-        axes.bar(moments, [drunk for _, _, drunk in days], width=0.8, bottom=food, color=colors['alcohol'],
-                 edgecolor=colors['surface'], linewidth=1, label=texts['alcohol'])
+        bars = axes.bar(moments, [drunk for _, _, drunk in days], width=0.8, bottom=food, color=colors['alcohol'],
+                        edgecolor=colors['surface'], linewidth=1, label=texts['alcohol'])
         axes.legend(frameon=False, loc="upper left", labelcolor=colors['ink'], fontsize=8)
+    axes.bar_label(bars, labels=["{:.0f}".format(eaten + drunk) if eaten + drunk else "" for _, eaten, drunk in days],
+                   padding=2, color=colors['ink'], fontsize=8)
+    axes.margins(y=0.12)
     if wanted is not None:
         axes.axhline(wanted, color=colors['goal'], linewidth=1.5, linestyle="--")
         axes.annotate(texts['goal'] + " " + "{:.0f}".format(wanted), (1, wanted), xycoords=("axes fraction", "data"),
@@ -328,9 +331,8 @@ def draw(days: list[tuple[date, float, float]], wanted: float | None, texts: dic
         axes.spines[side].set_visible(False)
     for side in ("left", "bottom"):
         axes.spines[side].set_color(colors['axis'])
-    locator = AutoDateLocator()
-    axes.xaxis.set_major_locator(locator)
-    axes.xaxis.set_major_formatter(ConciseDateFormatter(locator))
+    picked = moments[::-(-len(moments) // tick_count)]
+    axes.set_xticks(picked, labels=[day.strftime("%d.%m") for day in picked])
     figure.tight_layout()
     picture = io.BytesIO()
     figure.savefig(picture, format="png", facecolor=colors['surface'])
@@ -344,11 +346,15 @@ def open_chart(ctx: Ctx) -> View:
 
 @module.view("chart", parent="menu", title="chart")
 def chart(ctx: Ctx) -> View:
-    first = date.today() - timedelta(days=chart_days - 1)
-    food, drunk = daily(ctx, first), alcohol(ctx, first)
+    since = date.today() - timedelta(days=chart_days - 1)
+    food, drunk = daily(ctx, since), alcohol(ctx, since)
     if not food and not drunk:
         return View(text=ctx.t("empty"))
-    days = [first + timedelta(days=offset) for offset in range(chart_days)]
+    eaten = ctx.db.query_one("SELECT MIN(eaten_at) AS first FROM " + table(ctx) + " WHERE user_id = ?;",
+                             (ctx.user.id,))['first']
+    known = [date.fromisoformat(day[:10]) for day in list(drunk) + ([eaten] if eaten else [])]
+    first = max(since, min(known) - timedelta(days=1))
+    days = [first + timedelta(days=offset) for offset in range((date.today() - first).days + 1)]
     wanted = goal(ctx)
     photo = draw([(day, food.get(day.isoformat(), 0.0), drunk.get(day.isoformat(), 0.0)) for day in days], wanted,
                  {key: plain(ctx.t("chart_texts." + key)) for key in ("title", "food", "alcohol", "goal")})

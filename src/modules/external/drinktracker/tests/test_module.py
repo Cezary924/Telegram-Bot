@@ -327,6 +327,21 @@ def test_an_empty_chart_says_so(app, bot):
     assert bot.last.photo is None and "No drinks in the last 30 days" in bot.last.text
 
 
+def test_the_chart_starts_a_day_before_the_first_drink(app, bot, monkeypatch):
+    drawn = []
+    monkeypatch.setattr(drinktracker, "draw_days", lambda days, title: drawn.append(days) or b"png")
+    pour(app, 24 * 60)
+    pour(app, 48)
+    send(app, "/drinktracker")
+    click(app, bot, "drinktracker:chart")
+    assert len(drawn[0]) == drinktracker.chart_days
+    app.storage.database.execute("DELETE FROM " + app.storage.for_module("drinktracker").table("drinks") +
+                                 " WHERE drunk_at < ?;", ((datetime.now() - timedelta(days=30)).isoformat(),))
+    send(app, "/drinktracker")
+    click(app, bot, "drinktracker:chart")
+    assert [day for day, _ in drawn[1]] == [date.today() - timedelta(days=offset) for offset in (3, 2, 1, 0)]
+
+
 def test_the_days_chart_is_a_png():
     assert drinktracker.draw_days([(date.today() - timedelta(days=1), 20.0), (date.today(), 0.0)], "Alcohol")[:8] \
         == b"\x89PNG\r\n\x1a\n"

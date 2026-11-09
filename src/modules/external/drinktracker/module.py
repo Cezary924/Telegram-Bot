@@ -3,7 +3,6 @@ import json
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 
-from matplotlib.dates import AutoDateLocator, ConciseDateFormatter
 from matplotlib.figure import Figure
 
 from core.api import (Answers, Button, Ctx, Module, Outcome, Question, View, age_limits, escape, italic, labelled,
@@ -41,6 +40,7 @@ strength_limits = (0.5, 96)
 height_limits = (100, 250)
 weight_limits = (30, 300)
 chart_days = 30
+tick_count = 8
 page_size = 8
 moment_format = "%Y-%m-%d %H:%M"
 colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
@@ -610,12 +610,15 @@ def draw_days(days: list[tuple[date, float]], title: str) -> bytes:
     figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
     axes = figure.subplots()
     axes.set_facecolor(colors['surface'])
-    axes.bar([day for day, _ in days], [grams for _, grams in days], width=0.8, color=colors['line'])
+    moments = [day for day, _ in days]
+    bars = axes.bar(moments, [grams for _, grams in days], width=0.8, color=colors['line'])
+    axes.bar_label(bars, labels=["{:.0f}".format(grams) if grams else "" for _, grams in days], padding=2,
+                   color=colors['ink'], fontsize=8)
+    axes.margins(y=0.12)
     axes.grid(axis="y", color=colors['grid'], linewidth=0.8)
     axes.set_axisbelow(True)
-    locator = AutoDateLocator()
-    axes.xaxis.set_major_locator(locator)
-    axes.xaxis.set_major_formatter(ConciseDateFormatter(locator))
+    picked = moments[::-(-len(moments) // tick_count)]
+    axes.set_xticks(picked, labels=[day.strftime("%d.%m") for day in picked])
     axes.set_title(title, color=colors['ink'], loc="left")
     axes.set_ylabel("g", color=colors['muted'])
     axes.tick_params(colors=colors['muted'])
@@ -636,12 +639,15 @@ def open_chart(ctx: Ctx) -> View:
 
 @module.view("chart", parent="menu", title="chart")
 def chart(ctx: Ctx) -> View:
-    first = date.today() - timedelta(days=chart_days - 1)
-    rows = daily(ctx, first)
+    since = date.today() - timedelta(days=chart_days - 1)
+    rows = daily(ctx, since)
     if not rows:
         return View(text=ctx.t("chart_empty"))
+    drunk = ctx.db.query_one("SELECT MIN(drunk_at) AS first FROM " + drinks_table(ctx) + " WHERE user_id = ?;",
+                             (ctx.user.id,))['first']
+    first = max(since, date.fromisoformat(drunk[:10]) - timedelta(days=1))
     grams = {row['day']: row['grams'] for row in rows}
-    days = [first + timedelta(days=offset) for offset in range(chart_days)]
+    days = [first + timedelta(days=offset) for offset in range((date.today() - first).days + 1)]
     photo = draw_days([(day, grams.get(day.isoformat(), 0.0)) for day in days], plain(ctx.t("chart_title")))
     lines = [escape(row['day']) + " - " + ctx.t("day", drinks=row['drinks'], grams="{:.0f}".format(row['grams']),
                                                 kcal="{:.0f}".format(row['kcal'])) for row in rows]
