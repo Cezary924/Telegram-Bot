@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from core.api import Button, Ctx, Module, Outcome, View, bold, escape, italic, labelled, plain, read_moment
 
-module = Module(name="calculator", place=100, is_guarded=True, formerly=["unitconverter"],
+module = Module(name="calculator", place=100, is_guarded=True,
                 icons={'name': "🧮", 'history': "📜", 'remove': "🗑️", 'previous': "⬅️", 'next': "➡️"},
                 endings={'how': "😊", 'deleted': "✅", 'no_history': "🤷", 'gone': "💔"})
 

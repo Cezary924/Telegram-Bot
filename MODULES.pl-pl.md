@@ -61,7 +61,6 @@ module = Module(
     name="reminder",  # małe litery, cyfry, podkreślenia
     requires=["downloader"],  # inne moduły, które muszą się załadować wcześniej
     uses=["bodytracker"],  # inne moduły, z którymi współpracuje, gdy są, a bez nich działa i tak
-    formerly=["unitconverter"],  # nazwy, które miał wcześniej i których dane przejmuje
     tokens=["service_key"],  # jedyne sekrety, które ten moduł może odczytać
     config_keys=["service_url"],  # jedyne wpisy z config.yaml, które może odczytać
     notifications="name",  # klucz tekstu, pod którym jego powiadomienia widać w /settings
@@ -75,12 +74,6 @@ module = Module(
 > To, co moduł wysyła sam z siebie - ```ctx.notify``` i ```JobCtx.send``` - jest powiadomieniem: użytkownik decyduje w
 > ```/settings```, czy ma dzwonić, i może zablokować wszystkie powiadomienia naraz. Wyciszony moduł dalej dostarcza
 > wiadomości, tylko po cichu. Odpowiedź na coś, co użytkownik zrobił, dzwoni zawsze.
-
-> Moduł po zmianie nazwy zachowuje to, co ludzie mają: przy starcie rdzeń przenosi dostępy, prośby, stan,
-> powiadomienia, ekrany i tabele ```module_<stara>_``` każdej nazwy z ```formerly``` na nową, nie ruszając tego, co nowa
-> nazwa już ma. Wpis w ```modules.yaml``` pod starą nazwą jest przepisywany na nową, dopóki nowej tam nie ma, więc
-> wyłączony moduł zostaje wyłączony. Moduł, którego stara nazwa wciąż ma własny katalog, jest pomijany, więc nigdy nie
-> zabierze tego, co należy do innego modułu.
 
 > Moduł potrzebujący paczki z pip dokłada własny ```requirements.txt``` obok ```module.py```, a kontrakt odrzuca moduł
 > importujący coś, czego nie zadeklarował. Liczy się nazwa pakietu, nie nazwa importu, więc ```bs4``` deklaruje się jako
@@ -120,9 +113,9 @@ module = Module(
   sekund trafia w pełną minutę zamiast dryfować od momentu startu Bota.
 - Matchery są sortowane po priorytecie malejąco, potem po nazwie modułu i kolejności deklaracji, więc wynik nie zależy
   od kolejności ładowania modułów.
-- ```is_personal=True``` daje predykatowi ```ctx``` piszącej osoby zamiast tekstu, więc matcher może wziąć tylko to, co
-  pasuje do jej własnych danych - na przykład nazw jej liczników - a resztę zostawić innym. Jest pytany tylko wtedy, gdy
-  osoba może używać modułu, i powinien być szybki, bo przechodzi przez niego każda wiadomość.
+- Z ```is_personal=True``` predykat dostaje ```ctx``` zamiast samego tekstu, więc może sprawdzić dane osoby, która
+  pisze. Licznik bierze tak ```Kawa +1``` tylko od kogoś, kto ma licznik Kawa - u innych wiadomość idzie dalej. Taki
+  predykat sprawdza każdą wiadomość, więc musi być szybki.
 
 ## 🖥️ Ekrany
 
@@ -214,11 +207,12 @@ def count(ctx: Ctx) -> View:
   ```high```. ```{unit}``` w pytaniu podaje jednostkę, a ```ctx.profile.weight(kg)``` i ```ctx.profile.height(cm)```
   pokazują wartość z powrotem tak samo.
 - ```text``` jest przycinany i musi mieć od ```low``` (co najmniej 1) do ```high``` znaków.
-- Na ```choice``` odpowiada się przyciskami opisanymi tekstami ```<klucz>.<wybór>```, a na ```moment``` przyciskami
-  Teraz, 30 min, 1 h i 2 h temu albo wpisanym ```21:30```, ```21.30```, ```2026-10-30 21:30```, ```30.10.2026 21:30```
-  lub ```30.10 21:30``` w bieżącym roku, nigdy z przyszłości i najwyżej ```back``` godzin wstecz - ```back=None```
-  pozwala cofnąć się dowolnie daleko. ```read_moment(text, now, is_future=)``` czyta te same zapisy na potrzeby
-  własnych sprawdzeń modułu.
+- Na ```choice``` odpowiada się przyciskami opisanymi tekstami ```<klucz>.<wybór>```.
+- Na ```moment``` odpowiada się przyciskiem Teraz, 30 min, 1 h albo 2 h temu, albo wpisuje się godzinę lub datę z
+  godziną: ```21:30```, ```21.30```, ```30.10 21:30```, ```30.10.2026 21:30``` czy ```2026-10-30 21:30```. Data bez
+  roku jest z bieżącego roku. Chwila nie może być z przyszłości ani sprzed więcej niż ```back``` godzin, a
+  ```back=None``` znosi ten limit.
+- ```read_moment(text)``` zamienia taki zapis na datę, gdy moduł czyta go sam, poza formularzem.
 - ```clear=``` dodaje przycisk opisany tym kluczem tekstu, który odpowiada ```None``` - na odpowiedź, której
   użytkownik woli nie podawać. ```is_needed=``` dostaje dotychczasowe odpowiedzi i pomija pytanie, gdy zwróci
   ```False```, więc formularz pyta o ostatni drink tylko wtedy, gdy był więcej niż jeden.

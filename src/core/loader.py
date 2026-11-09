@@ -104,8 +104,6 @@ class Loader:
         return list(placed.values())
 
     def install(self, module: Module, registry: Registry) -> None:
-        for old in module.formerly:
-            self._storage.take_over(old, module.name)
         self._catalog.load_directory(module.name, os.path.join(module.path, locales_name))
         self._catalog.add_marks(module.name, module.icons, module.endings)
         schema_path = os.path.join(module.path, schema_name)
@@ -114,35 +112,21 @@ class Loader:
                 self._storage.for_module(module.name).apply_schema(f.read())
         registry.add(module)
 
-    def carry_over_switch(self, module: Module) -> None:
-        listed = self._config.listed_modules()
-        old = next((old for old in module.formerly if old in listed), None)
-        if not module.is_internal and old is not None and module.name not in listed:
-            self._config.set_module_enabled(module.name, self._config.is_module_enabled(old))
-
-    def warn_about_unknown_entries(self, present: set[str], modules: list[Module]) -> None:
-        found = present | {old for module in modules for old in module.formerly}
+    def warn_about_unknown_entries(self, sources: list[tuple[str, str, bool]]) -> None:
+        found = {name for directory, _, _ in sources for name in discover(directory)}
         for name in self._config.listed_modules():
             if name not in found:
                 print_error("Module '" + name + "' is listed in modules.yaml but has no directory.")
 
     def load(self, registry: Registry, sources: list[tuple[str, str, bool]]) -> Registry:
+        self.warn_about_unknown_entries(sources)
         modules = []
         for directory, package, is_internal in sources:
             modules.extend(self.collect(directory, package, is_internal))
-        present = {name for directory, _, _ in sources for name in discover(directory)}
-        self.warn_about_unknown_entries(present, modules)
-        for module in modules:
-            self.carry_over_switch(module)
-        modules = [module for module in modules if module.is_internal or self._config.is_module_enabled(module.name)]
         for module in self.ordered(self.resolve(modules)):
             failed = next((name for name in module.requires if name in self.skipped), None)
             if failed is not None:
                 self._skip(module.name, "requires '" + failed + "'")
-                continue
-            kept = next((old for old in module.formerly if old in present), None)
-            if kept is not None:
-                self._skip(module.name, "was formerly '" + kept + "', which is still there")
                 continue
             try:
                 self.install(module, registry)

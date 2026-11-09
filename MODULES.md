@@ -61,7 +61,6 @@ module = Module(
     name="reminder",  # lowercase letters, digits, underscores
     requires=["downloader"],  # other modules that must be loaded first
     uses=["bodytracker"],  # other modules it works with when they are there, and without them otherwise
-    formerly=["unitconverter"],  # names it had before, whose data it takes over
     tokens=["service_key"],  # the only secrets this module can read
     config_keys=["service_url"],  # the only entries of config.yaml it can read
     notifications="name",  # the text key its notifications are listed under in /settings
@@ -75,12 +74,6 @@ module = Module(
 > What a module sends on its own - ```ctx.notify``` and ```JobCtx.send``` - is a notification: the user decides in
 > ```/settings``` whether it makes a sound, and can block every notification at once. A user who turned a module down
 > still gets its messages, only silently. A reply to something the user did always makes a sound.
-
-> A module renamed keeps what people have: on start the core moves access, requests, state, notifications, screens
-> and the ```module_<old>_``` tables of every name in ```formerly``` to the new one, leaving alone what the new name
-> already has. An entry in ```modules.yaml``` under an old name is copied to the new one while the new one is missing
-> there, so a module turned off stays off. A module whose old name still has its own directory is skipped, so it never
-> takes what belongs to another module.
 
 > A module that needs a pip package ships its own ```requirements.txt``` next to ```module.py```, and the contract
 > refuses a module that imports something it did not declare. The name of the package counts, not the name of the
@@ -123,9 +116,9 @@ module = Module(
   seconds lands on the minute instead of drifting from whenever the Bot started.
 - Matchers are sorted by priority, highest first, then by module name and declaration order, so the outcome does not
   depend on the order modules are loaded.
-- ```is_personal=True``` hands the predicate the ```ctx``` of the person writing instead of the text, so a matcher can
-  take only what fits their own data - the names of their counters, for example - and leave the rest to the others.
-  It is asked only when the person may use the module, and it should be quick, since every message passes through it.
+- With ```is_personal=True``` the predicate gets the ```ctx``` instead of just the text, so it can check the data of
+  the person writing. This is how the counter takes ```Coffee +1``` only from someone who has a Coffee counter - for
+  everyone else the message moves on. Such a predicate checks every message, so it has to be quick.
 
 ## 🖥️ Screens
 
@@ -217,10 +210,12 @@ def count(ctx: Ctx) -> View:
   ```high``` included. ```{unit}``` in the question names the unit, and ```ctx.profile.weight(kg)``` and
   ```ctx.profile.height(cm)``` show a value back the same way.
 - A ```text``` is stripped and must be between ```low``` (at least 1) and ```high``` characters long.
-- A ```choice``` is answered with buttons named ```<key>.<choice>```, a ```moment``` with Now, 30 min, 1 h and 2 h ago
-  or a typed ```21:30```, ```21.30```, ```2026-10-30 21:30```, ```30.10.2026 21:30``` or ```30.10 21:30``` in the
-  current year, never in the future and at most ```back``` hours ago - ```back=None``` lets it go back as far as the
-  user wants. ```read_moment(text, now, is_future=)``` reads the same ways of writing it for a module's own checks.
+- A ```choice``` is answered with buttons named ```<key>.<choice>```.
+- A ```moment``` is answered with the button Now, 30 min, 1 h or 2 h ago, or with a typed time or date and time:
+  ```21:30```, ```21.30```, ```30.10 21:30```, ```30.10.2026 21:30``` or ```2026-10-30 21:30```. A date without a year
+  is in the current year. The moment cannot be in the future or more than ```back``` hours ago, and ```back=None```
+  lifts that limit.
+- ```read_moment(text)``` turns such a written moment into a date when a module reads it on its own, outside a form.
 - ```clear=``` adds a button, named by that text key, that answers with ```None``` - for an answer the user would
   rather not give. ```is_needed=``` gets the answers so far and skips the question when it says ```False```, so a
   form asks about the last drink only when there was more than one.

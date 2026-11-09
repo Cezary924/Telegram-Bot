@@ -74,7 +74,7 @@ def test_only_a_full_date_is_understood(text, is_valid):
 
 def test_the_menu_tells_how_and_offers_to_set_one(app, bot):
     send(app, "/reminder")
-    assert bot.last.text == "<b>🔔 Reminders:</b>\n\nSet reminders and I will remind you about anything you like 😊"
+    assert bot.last.text == "<b>🔔 Reminders:</b>\n\nSet reminders and I will remind you of them with a notification 😊"
     assert [text for text, _ in bot.last.buttons][:1] == ["➕ Set a reminder"]
 
 

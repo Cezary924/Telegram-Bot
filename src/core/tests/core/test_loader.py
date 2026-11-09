@@ -1,4 +1,3 @@
-import importlib
 import os
 import pytest
 
@@ -150,44 +149,3 @@ def test_skips_a_module_whose_schema_breaks_the_prefix_rule(loader, registry):
 def test_a_refused_schema_creates_no_tables(registry, services):
     assert services.storage.for_module("module8").table_names() == []
     assert "items" not in services.storage.database.table_names()
-
-
-def fixture_module(name: str) -> Module:
-    return importlib.import_module("core.tests.fixtures.external." + name + ".module").module
-
-
-@pytest.fixture
-def renamed(monkeypatch):
-    found = fixture_module("module2")
-    monkeypatch.setattr(found, "formerly", ["module0"])
-
-
-def test_a_renamed_module_takes_over_its_old_data_on_start(services, module_sources, renamed):
-    services.storage.users.save(1, "First", "Last", "username")
-    services.storage.module_state.set(1, "module0", "key", "value")
-    Loader(services.config, services.catalog, services.storage).load(Registry(), module_sources)
-    assert services.storage.module_state.get(1, "module2", "key") == "value"
-
-
-def test_an_old_name_turned_off_keeps_the_module_off(services, module_sources, config, tmp_path, renamed, capsys):
-    registry = load_with_modules_yaml(services, module_sources, tmp_path, "module0: false\n")
-    assert "module2" not in registry.names()
-    assert "module0" not in capsys.readouterr().out
-    assert not Config().is_module_enabled("module2")
-
-
-def test_the_new_name_decides_once_it_is_listed(services, module_sources, config, tmp_path, renamed):
-    registry = load_with_modules_yaml(services, module_sources, tmp_path, "module0: false\nmodule2: true\n")
-    assert "module2" in registry.names()
-
-
-def test_a_module_cannot_take_over_one_that_is_still_there(services, module_sources, monkeypatch):
-    found = fixture_module("module11")
-    monkeypatch.setattr(found, "formerly", ["module2"])
-    services.storage.users.save(1, "First", "Last", "username")
-    services.storage.module_state.set(1, "module2", "key", "value")
-    loader = Loader(services.config, services.catalog, services.storage)
-    registry = loader.load(Registry(), module_sources)
-    assert loader.skipped["module11"] == "was formerly 'module2', which is still there"
-    assert "module2" in registry.names()
-    assert services.storage.module_state.get(1, "module2", "key") == "value"

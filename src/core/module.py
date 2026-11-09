@@ -131,7 +131,6 @@ class Module:
     description: str = "description"
     requires: list[str] = field(default_factory=list)
     uses: list[str] = field(default_factory=list)
-    formerly: list[str] = field(default_factory=list)
     tokens: list[str] = field(default_factory=list)
     config_keys: list[str] = field(default_factory=list)
     notifications: str = ""
@@ -159,9 +158,6 @@ class Module:
     def __post_init__(self) -> None:
         if not name_pattern.fullmatch(self.name):
             raise ValueError("Module name must be lowercase letters, digits and underscores: " + self.name)
-        for old in self.formerly:
-            if not name_pattern.fullmatch(old) or old == self.name:
-                raise ValueError("Module '" + self.name + "' cannot formerly be called '" + old + "'")
 
     @property
     def table_prefix(self) -> str:

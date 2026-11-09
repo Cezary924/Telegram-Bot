@@ -3,7 +3,7 @@ description: Szacuje, ile energii organizm spala w ciągu dnia
 
 commands.calories: Oblicz dzienne zapotrzebowanie na kalorie
 
-how: Aby obliczyć dzienne zapotrzebowanie na kalorie, wystarczy, że podasz mi kilka danych o sobie
+how: Aby obliczyć dzienne zapotrzebowanie na kalorie, wystarczy, że podasz mi kilka danych o danej osobie
 count: Oblicz
 from_tracker: z Twoich danych
 save_new: Zapisz nowe dane o sobie

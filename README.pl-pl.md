@@ -77,6 +77,6 @@ Każda funkcja jest modułem - katalogiem, który Bot wczytuje przy starcie. Mod
 - Dziennik jedzenia 🍽️ (```/foodtracker```)
 - Dziennik picia 🍺 (```/drinktracker```)
 - Wirtualny alkomat 🌬️ (```/breathalyser```)
-- Kalkulator jednostek i czasu 🧮 (```/calculator```)
+- Kalkulator, konwerter jednostek 🧮 (```/calculator```)
 - Zgadywanie topowego artysty Spotify ᯤ (```/topspotifyartist```)
 - Magiczna kryształowa kula 🔮 (```/crystalball```)
