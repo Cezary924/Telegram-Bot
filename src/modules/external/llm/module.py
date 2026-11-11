@@ -29,8 +29,8 @@ module = Module(name="llm", place=20, is_guarded=True, is_assistant=True,
 priority = -100
 continue_within = 15 * 60
 ask_within = 60 * 60
-history_messages = 30
-history_characters = 24000
+history_messages = 20
+history_characters = 10000
 edit_every = 3.0
 tick = 1.5
 message_limit = 4096
