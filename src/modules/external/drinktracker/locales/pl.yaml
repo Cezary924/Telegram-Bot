@@ -3,7 +3,7 @@ description: Zapisuje, co pijesz, dzieli to na sesje i z wirtualnym alkomatem sz
 
 commands.drinktracker: Zapisz drinka i przejrzyj swoje sesje
 
-how: Zapisuj każdego drinka, od razu albo później. Z wirtualnym alkomatem sesja trwa od pierwszego drinka, aż znów wytrzeźwiejesz, a bez niego kończy ją {gap} godzin przerwy
+how: Zapisuj swoje trunki i śledź, ile pijesz
 add: Dodaj drinka
 sessions: Historia
 session: Sesja

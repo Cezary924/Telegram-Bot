@@ -1,0 +1,104 @@
+name: Counters
+description: Counts anything you like, with goals and a reset every day, week or month
+
+commands.counter: Count coffees, push-ups and anything else
+
+how: Create counters and count anything you like
+new: New counter
+settings_button: Settings
+type_amount: Type an amount
+edit: Edit
+remove: Delete
+history: History
+chart: Chart
+edit_name: Name
+edit_step: Step
+edit_goal: Goal
+edit_period: Reset
+entry: Entry
+edit_amount: Change the amount
+edit_when: Change the date and time
+erase: Delete
+undo: Undo
+open: Open the counter
+set_week: Pick the first day of the week
+one_step: One at a time
+no_goal: No goal
+none: Not set
+
+created: The counter has been made
+changed: The counter has been changed
+deleted: The counter has been deleted
+changed_entry: The entry has been changed
+deleted_entry: The entry has been deleted
+added: Counted {amount}
+undone: Taken back {amount}
+reached: The goal has been reached
+empty: Nothing has been counted in the time the chart shows
+no_changes: Nothing has been counted yet
+gone: This counter is no longer there
+gone_entry: This entry is no longer there
+pick: Tap an entry to change or delete it. Page {page} of {pages}, {total} entries
+previous: Previous
+next: Next
+sure: Do you really want to delete this counter with everything it has counted?
+sure_entry: Do you really want to delete this entry?
+full: You already have {limit} counters, delete one to make another
+settings_text: Counters that start from zero every week do it on this day
+
+labels:
+  name: Name
+  step: Step
+  goal: Goal
+  period: Reset
+  counter: Counter
+  amount: Amount
+  when: When
+  after: After that
+  week: First day of the week
+period:
+  never: Never
+  daily: Every day
+  weekly: Every week
+  monthly: Every month
+now:
+  never: in total
+  daily: today
+  weekly: this week
+  monthly: this month
+week:
+  monday: Monday
+  sunday: Sunday
+chart_texts:
+  never: Counter {name} over time
+  daily: Counter {name} per day
+  weekly: Counter {name} per week
+  monthly: Counter {name} per month
+  goal: Goal
+
+ask:
+  name: Write a name for the counter
+  step: How much should one tap of plus or minus count? Write a number, like 10 or 0.5
+  goal: Write the goal to reach before the next reset, like 8, or leave the counter without one
+  period: When should the counter start from zero?
+  amount: Write how much to add, like 5, or how much to take away, like -2
+  when: When was it?
+  week: Which day does your week start on?
+wrong:
+  amount: Write a number, like 5 or -2
+  zero: Write a number other than zero
+  too_much: Write a number between -{high} and {high}
+  letter: A name needs at least one letter
+  sign: A name cannot begin or end with a plus or minus and a number, as in Coffee +1
+  taken: You already have a counter called {name}
+
+add_sure: Count this?
+missing: There is no counter with this name - check the list of the counters of the user
+
+actions:
+  add: Adds an amount to one of the counters of the user, or takes it away when negative. The user confirms it with a button
+  list: Lists the counters of the user with the value since the last reset, the step, the goal and how often they start from zero
+  history: Gives the latest entries of one counter of the user with their time
+parameters:
+  counter: The name of the counter, as the user calls it
+  amount: How much to add, negative to take away

@@ -121,6 +121,14 @@ def test_a_future_moment_puts_a_bare_time_ahead():
     assert read_moment("29.10.2026 10:00", now, is_future=True) == datetime(2026, 10, 29, 10, 0)
 
 
+def test_a_day_and_month_without_the_year_mean_the_current_year():
+    now = datetime(2026, 10, 30, 22, 0)
+    assert read_moment("30.10 21:30", now) == datetime(2026, 10, 30, 21, 30)
+    assert read_moment("24.12  18.00", now, is_future=True) == datetime(2026, 12, 24, 18, 0)
+    assert read_moment("29.02 10:00", now) is None
+    assert parse_moment("30.10 23:00", now, 48) is None
+
+
 def test_a_moment_without_a_limit_only_has_to_have_passed():
     now = datetime(2026, 10, 30, 22, 0)
     assert parse_moment("2020-01-01 08:00", now, None) == datetime(2020, 1, 1, 8, 0)

@@ -3,7 +3,7 @@ description: Logs what you drink, splits it into sessions and estimates each of 
 
 commands.drinktracker: Log a drink and look back at your sessions
 
-how: Log every drink, now or later. With the virtual breathalyser a session lasts from the first drink until you are sober again, and without it a break of {gap} hours ends it
+how: Log your drinks and keep track of how much you drink
 add: Add a drink
 sessions: History
 session: Session

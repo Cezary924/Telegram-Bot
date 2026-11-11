@@ -4,7 +4,7 @@ description: Rozmawia z Tobą przez lokalny model językowy
 commands.llm: Dowiedz się, jak rozmawiać z asystentem
 
 title: Asystent
-how: Po prostu do mnie napisz albo wyślij zdjęcie, głosówkę, film czy plik tekstowy - każda wiadomość, która nie jest komendą ani linkiem, trafia do modelu językowego. Rozmowa trwa, dopóki piszesz, a godzina ciszy zaczyna nową
+how: Aby porozmawiać z asystentem, wyślij mi wiadomość, która nie nawiązuje do żadnej mojej komendy
 new: Nowa rozmowa
 fresh_done: Zaczęła się nowa rozmowa
 continue: Kontynuuj

@@ -3,7 +3,7 @@ description: Works out your body mass index, and with the body tracker shows how
 
 commands.bmi: Work out a BMI
 
-how: Work out the body mass index from a weight and a height
+how: To work out the body mass index, all you have to do is give me a weight and a height
 count: Work it out
 history: History
 history_text: Results

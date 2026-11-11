@@ -44,7 +44,7 @@ run_pattern = re.compile(r"\d+(?:[.,]\d+)*")
 separator_pattern = re.compile(r"[+;\n]|,(?!\d)|(?<!\d),")
 readings_limit = 256
 colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
-          'line': "#2a78d6", 'after_use': "#fab219", 'insobriety': "#d03b3b"}
+          'sober': "#0ca30c", 'after_use': "#fab219", 'insobriety': "#d03b3b"}
 
 
 # ----- the model -----
@@ -436,24 +436,46 @@ def save(ctx: Ctx) -> View:
     return View(text=ctx.t("saved"))
 
 
+def colored_runs(points: list[tuple[float, float]], edges: list[float],
+                 coloring) -> list[tuple[list[float], list[float], str]]:
+    found: list[tuple[list[float], list[float], str]] = []
+    for (x0, y0), (x1, y1) in zip(points, points[1:]):
+        cuts = sorted(cut for cut in ((limit - y0) / (y1 - y0) for limit in edges if y0 != y1) if 0 < cut < 1)
+        for start, end in zip([0.0] + cuts, cuts + [1.0]):
+            color = coloring(y0 + (y1 - y0) * (start + end) / 2)
+            if not found or found[-1][2] != color:
+                found.append(([x0 + (x1 - x0) * start], [y0 + (y1 - y0) * start], color))
+            found[-1][0].append(x0 + (x1 - x0) * end)
+            found[-1][1].append(y0 + (y1 - y0) * end)
+    return found
+
+
+def color_of(level: float) -> str:
+    return colors['insobriety' if level >= insobriety else 'after_use' if level >= after_use else 'sober']
+
+
 def draw(points: list[tuple[datetime, float]], now: datetime | None, texts: dict) -> bytes:
     figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
     axes = figure.subplots()
     axes.set_facecolor(colors['surface'])
     top = max([level for _, level in points] + [insobriety]) * 1.15
+    axes.axhspan(0, after_use, color=colors['sober'], alpha=0.10, linewidth=0)
     axes.axhspan(after_use, insobriety, color=colors['after_use'], alpha=0.18, linewidth=0)
     axes.axhspan(insobriety, top, color=colors['insobriety'], alpha=0.12, linewidth=0)
     for limit, key in ((after_use, "after_use"), (insobriety, "insobriety")):
+        axes.axhline(limit, color=colors[key], linewidth=1, linestyle="--")
         axes.annotate("{:g}‰ ".format(limit) + texts[key], (0.01, limit), xycoords=("axes fraction", "data"),
                       xytext=(0, 3), textcoords="offset points", color=colors['ink'], fontsize=8,
                       bbox={'facecolor': colors['surface'], 'edgecolor': "none", 'alpha': 0.8, 'pad': 1})
     moments = [moment for moment, _ in points]
-    axes.plot(moments, [level for _, level in points], color=colors['line'], linewidth=2)
+    for xs, ys, color in colored_runs([(date2num(moment), level) for moment, level in points], [after_use, insobriety],
+                                      color_of):
+        axes.plot(xs, ys, color=color, linewidth=2)
     if now is not None:
         axes.axvline(date2num(now), color=colors['muted'], linewidth=1, linestyle="--")
         axes.annotate(texts['now'], (now, top), xytext=(3, -12), textcoords="offset points", color=colors['muted'],
                       fontsize=8)
-    axes.plot([moments[-1]], [0], marker="o", markersize=6, color=colors['line'])
+    axes.plot([moments[-1]], [0], marker="o", markersize=6, color=colors['sober'])
     axes.annotate(texts['sober'] + " " + moments[-1].strftime("%H:%M"), (moments[-1], 0), xytext=(-4, 8),
                   textcoords="offset points", ha="right", color=colors['ink'], fontsize=8)
     axes.set_ylim(0, top)

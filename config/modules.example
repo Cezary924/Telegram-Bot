@@ -2,7 +2,8 @@ downloader: true
 crystalball: true
 topspotifyartist: true
 reminder: true
-unitconverter: true
+counter: true
+calculator: true
 llm: true
 bodytracker: true
 bmi: true

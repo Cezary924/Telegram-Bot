@@ -67,7 +67,7 @@ def test_the_command_opens_a_menu_without_any_data(app, bot):
     send(app, "/bodytracker")
     assert "80" not in bot.last.text
     assert labels_of(bot)[:4] == ["➕ Log the weight", "📜 History", "📈 Chart", "⚙️ Settings"]
-    assert bot.last.text.endswith("💪")
+    assert bot.last.text.endswith("😊")
 
 
 def test_a_weight_is_stored_in_kilograms(app, bot):

@@ -16,7 +16,8 @@ from modules.external.llm import module as llm
 
 real_stream = llm.stream
 stamp = re.compile(r"^\[(?:Now it is|Teraz jest): [^\n\]]*]\n")
-health_modules = ("bmi", "bodytracker", "breathalyser", "calories", "drinktracker", "foodtracker")
+other_modules = ("bmi", "bodytracker", "breathalyser", "calculator", "calories", "counter", "drinktracker",
+                 "foodtracker")
 
 
 def unstamped(message: dict, clocks: list[str]) -> dict:
@@ -81,7 +82,7 @@ def configure(app, monkeypatch, tokens: dict | None = None, **settings) -> None:
 def chat(app, model, monkeypatch):
     configure(app, monkeypatch, llm_url="http://model.local/v1", llm_model="small")
     app.storage.access.allow(1, "llm", True)
-    for name in health_modules:
+    for name in other_modules:
         app.storage.access.allow(1, name, False)
     return app
 
@@ -568,7 +569,7 @@ def test_the_history_keeps_to_its_size(chat, bot, model, monkeypatch):
 
 def test_the_command_explains_and_leads_to_the_settings(chat, bot, model):
     say(chat, "/llm")
-    assert "every message that is neither a command nor a link" in bot.last.text
+    assert "send me a message that has nothing to do with any of my commands 😊" in bot.last.text
     assert ("⚙️ Settings", "core:settings:llm") in bot.last.buttons
 
 

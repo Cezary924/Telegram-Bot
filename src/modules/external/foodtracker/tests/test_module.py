@@ -64,7 +64,7 @@ def test_the_command_opens_a_menu_without_any_data(app, bot):
     send(app, "/foodtracker")
     assert "500" not in bot.last.text
     assert labels(bot)[:5] == ["➕ Add a meal", "📅 Today", "📜 History", "📈 Chart", "⚙️ Settings"]
-    assert bot.last.text.endswith("😋")
+    assert bot.last.text.endswith("😊")
 
 
 def test_a_meal_is_asked_for_until_it_makes_sense(app, bot):
@@ -209,6 +209,24 @@ def test_the_chart_tells_the_goal_and_says_when_the_month_is_empty(lonely):
     click(lonely, bot, "foodtracker:chart")
     assert bot.last.photo is not None
     assert bot.last.text.endswith(":</b>\n\nGoal: <i>2000 kcal</i>\n" + date.today().isoformat() + " - 500 kcal")
+
+
+def test_the_chart_starts_a_day_before_the_first_meal(lonely, monkeypatch):
+    drawn = []
+    monkeypatch.setattr(foodtracker, "draw", lambda days, wanted, texts: drawn.append(days) or b"png")
+    lonely.storage.database.execute("INSERT INTO " + lonely.storage.for_module("foodtracker").table("meals") +
+                                    " (user_id, kcal, eaten_at) VALUES (1, 500, ?), (1, 700, ?);",
+                                    ((datetime.now() - timedelta(days=60)).isoformat(timespec="seconds"),
+                                     (datetime.now() - timedelta(days=2)).isoformat(timespec="seconds")))
+    send(lonely, "/foodtracker")
+    click(lonely, lonely.services.bot, "foodtracker:chart")
+    assert len(drawn[0]) == foodtracker.chart_days
+    lonely.storage.database.execute("DELETE FROM " + lonely.storage.for_module("foodtracker").table("meals") +
+                                    " WHERE kcal = 500;")
+    send(lonely, "/foodtracker")
+    click(lonely, lonely.services.bot, "foodtracker:chart")
+    assert [day for day, _, _ in drawn[1]] == [date.today() - timedelta(days=offset) for offset in (3, 2, 1, 0)]
+    assert [eaten for _, eaten, _ in drawn[1]] == [0.0, 700.0, 0.0, 0.0]
 
 
 def test_the_chart_is_a_png():

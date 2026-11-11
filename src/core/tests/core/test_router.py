@@ -701,6 +701,24 @@ def test_a_matcher_sees_the_text_not_the_message(router, bot, services, settled)
     assert seen == ["value1"]
 
 
+def test_a_personal_matcher_sees_the_person_and_their_data(router, bot, services, settled):
+    seen = []
+
+    def mine(ctx) -> bool:
+        seen.append((ctx.user.id, ctx.text, ctx.state.get("word")))
+        return ctx.text == ctx.state.get("word")
+
+    module1.matchers.insert(0, type(module1.matchers[0])(
+        mine, matcher1, Role.GUEST, 99, 0, False, (), True))
+    services.storage.module_state.set(1, "module1", "word", "hello")
+    router.handle_message(make_message("value1"))
+    assert bot.last.text == core_text(services, "unknown_message")
+    router.handle_message(make_message("hello"))
+    module1.matchers.pop(0)
+    assert seen == [(1, "value1", "hello"), (1, "hello", "hello")]
+    assert bot.last.text == "matcher1"
+
+
 @pytest.fixture
 def named(tmp_path, services, bot):
     """A Router whose configuration names someone as the Bot owner."""

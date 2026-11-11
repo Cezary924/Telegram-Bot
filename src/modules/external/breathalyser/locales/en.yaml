@@ -3,7 +3,7 @@ description: Estimates how much alcohol is in the blood and when it will be gone
 
 commands.breathalyser: Estimate the blood alcohol
 
-how: I will estimate the blood alcohol from the body and what was drunk, and draw how it falls over time
+how: To estimate how much alcohol is in the blood, tell me what was drunk
 warning: This is only an estimate from a simple model and it never tells you whether you can drive. After drinking, do not drive at all
 count: Estimate
 settings_button: Settings

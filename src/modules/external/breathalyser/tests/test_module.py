@@ -317,6 +317,14 @@ def test_the_body_follows_the_units_of_the_user(app, bot):
     assert "Weight: <i>176.4 lb</i> (from your saved details)" in bot.last.text
 
 
+def test_the_curve_takes_the_color_of_each_state():
+    assert breathalyser.color_of(0.1) == breathalyser.colors['sober']
+    assert breathalyser.color_of(0.3) == breathalyser.colors['after_use']
+    assert breathalyser.color_of(0.5) == breathalyser.colors['insobriety']
+    runs = breathalyser.colored_runs([(0, 0.0), (1, 0.8)], [0.2, 0.5], breathalyser.color_of)
+    assert [color for _, _, color in runs] == [breathalyser.colors[key] for key in ("sober", "after_use", "insobriety")]
+
+
 def test_the_curve_is_a_png():
     start = datetime.now() - timedelta(hours=1)
     points = breathalyser.simulate([(0, 40, "meal")], breathalyser.per_gram(("female", 30, 165, 60)), 0.15)

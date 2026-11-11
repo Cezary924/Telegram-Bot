@@ -1,0 +1,104 @@
+name: Liczniki
+description: Liczy, co tylko chcesz, z celami i zerowaniem co dzień, tydzień albo miesiąc
+
+commands.counter: Licz kawy, pompki i wszystko inne
+
+how: Zakładaj liczniki i licz, co tylko chcesz
+new: Nowy licznik
+settings_button: Ustawienia
+type_amount: Wpisz ilość
+edit: Zmień
+remove: Usuń
+history: Historia
+chart: Wykres
+edit_name: Nazwa
+edit_step: Krok
+edit_goal: Cel
+edit_period: Zerowanie
+entry: Wpis
+edit_amount: Zmień ilość
+edit_when: Zmień datę i godzinę
+erase: Usuń
+undo: Cofnij
+open: Otwórz licznik
+set_week: Wybierz pierwszy dzień tygodnia
+one_step: Po jednym
+no_goal: Bez celu
+none: Nie ustawiono
+
+created: Licznik został założony
+changed: Licznik został zmieniony
+deleted: Licznik został usunięty
+changed_entry: Wpis został zmieniony
+deleted_entry: Wpis został usunięty
+added: Zapisano {amount}
+undone: Cofnięto {amount}
+reached: Cel został osiągnięty
+empty: W czasie, który pokazuje wykres, nic nie zostało policzone
+no_changes: Nic jeszcze nie zostało policzone
+gone: Tego licznika już nie ma
+gone_entry: Tego wpisu już nie ma
+pick: Dotknij wpisu, żeby go zmienić albo usunąć. Strona {page} z {pages}, wpisów {total}
+previous: Poprzednia
+next: Następna
+sure: Czy na pewno chcesz usunąć ten licznik razem ze wszystkim, co policzył?
+sure_entry: Czy na pewno chcesz usunąć ten wpis?
+full: Masz już {limit} liczników, usuń któryś, żeby założyć kolejny
+settings_text: Liczniki, które co tydzień zaczynają od zera, robią to w ten dzień
+
+labels:
+  name: Nazwa
+  step: Krok
+  goal: Cel
+  period: Zerowanie
+  counter: Licznik
+  amount: Ilość
+  when: Kiedy
+  after: Potem
+  week: Pierwszy dzień tygodnia
+period:
+  never: Nigdy
+  daily: Codziennie
+  weekly: Co tydzień
+  monthly: Co miesiąc
+now:
+  never: łącznie
+  daily: dzisiaj
+  weekly: w tym tygodniu
+  monthly: w tym miesiącu
+week:
+  monday: Poniedziałek
+  sunday: Niedziela
+chart_texts:
+  never: Licznik {name} w czasie
+  daily: Licznik {name} dziennie
+  weekly: Licznik {name} tygodniowo
+  monthly: Licznik {name} miesięcznie
+  goal: Cel
+
+ask:
+  name: Napisz nazwę licznika
+  step: Ile ma liczyć jedno dotknięcie plusa albo minusa? Napisz liczbę, na przykład 10 albo 0,5
+  goal: Napisz cel do osiągnięcia przed kolejnym zerowaniem, na przykład 8, albo zostaw licznik bez celu
+  period: Kiedy licznik ma zaczynać od zera?
+  amount: Napisz, ile doliczyć, na przykład 5, albo ile odjąć, na przykład -2
+  when: Kiedy to było?
+  week: Od jakiego dnia zaczyna się Twój tydzień?
+wrong:
+  amount: Napisz liczbę, na przykład 5 albo -2
+  zero: Napisz liczbę inną niż zero
+  too_much: Napisz liczbę od -{high} do {high}
+  letter: Nazwa musi mieć przynajmniej jedną literę
+  sign: Nazwa nie może zaczynać się ani kończyć plusem albo minusem z liczbą, jak w Kawa +1
+  taken: Masz już licznik o nazwie {name}
+
+add_sure: Doliczyć to?
+missing: Nie ma licznika o tej nazwie - sprawdź listę liczników użytkownika
+
+actions:
+  add: Dolicza ilość do jednego z liczników użytkownika albo ją odejmuje, gdy jest ujemna. Użytkownik potwierdza to przyciskiem
+  list: Wymienia liczniki użytkownika z wartością od ostatniego zerowania, krokiem, celem i tym, jak często zaczynają od zera
+  history: Podaje ostatnie wpisy jednego licznika użytkownika z ich czasem
+parameters:
+  counter: Nazwa licznika, tak jak nazywa go użytkownik
+  amount: Ile doliczyć, ujemna liczba, żeby odjąć

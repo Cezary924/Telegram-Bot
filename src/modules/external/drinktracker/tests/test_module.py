@@ -119,7 +119,7 @@ def test_without_the_breathalyser_a_long_break_ends_a_session():
 def test_the_command_opens_a_menu_without_any_data(app, bot):
     send(app, "/drinktracker")
     assert labels(bot)[:5] == ["➕ Add a drink", "📜 History", "📈 Chart", "⚙️ Settings", "✖️ Close"]
-    assert "a break of 8 hours ends it" in bot.last.text and bot.last.text.endswith("🍻")
+    assert bot.last.text.endswith("Log your drinks and keep track of how much you drink 😊")
 
 
 def test_the_first_drink_asks_for_the_body_once_when_there_is_no_tracker(lonely):
@@ -325,6 +325,21 @@ def test_an_empty_chart_says_so(app, bot):
     send(app, "/drinktracker")
     click(app, bot, "drinktracker:chart")
     assert bot.last.photo is None and "No drinks in the last 30 days" in bot.last.text
+
+
+def test_the_chart_starts_a_day_before_the_first_drink(app, bot, monkeypatch):
+    drawn = []
+    monkeypatch.setattr(drinktracker, "draw_days", lambda days, title: drawn.append(days) or b"png")
+    pour(app, 24 * 60)
+    pour(app, 48)
+    send(app, "/drinktracker")
+    click(app, bot, "drinktracker:chart")
+    assert len(drawn[0]) == drinktracker.chart_days
+    app.storage.database.execute("DELETE FROM " + app.storage.for_module("drinktracker").table("drinks") +
+                                 " WHERE drunk_at < ?;", ((datetime.now() - timedelta(days=30)).isoformat(),))
+    send(app, "/drinktracker")
+    click(app, bot, "drinktracker:chart")
+    assert [day for day, _ in drawn[1]] == [date.today() - timedelta(days=offset) for offset in (3, 2, 1, 0)]
 
 
 def test_the_days_chart_is_a_png():

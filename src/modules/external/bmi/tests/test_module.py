@@ -158,6 +158,14 @@ def test_heights_and_weights_follow_the_units_of_the_user(app, bot):
     assert "Weight: <i>176.0 lb</i>" in bot.last.text and "Height: <i>5 ft 11 in</i>" in bot.last.text
 
 
+def test_the_line_takes_the_color_of_each_category():
+    assert bmi.color_of(15) == bmi.colors['obese'] and bmi.color_of(17) == bmi.colors['over']
+    assert bmi.color_of(22) == bmi.colors['normal'] and bmi.color_of(27) == bmi.colors['over']
+    assert bmi.color_of(31) == bmi.colors['obese']
+    assert bmi.colored_runs([(0, 24), (2, 28)], [25.0], bmi.color_of) == [
+        ([0, 0.5], [24, 25.0], bmi.colors['normal']), ([0.5, 2], [25.0, 28], bmi.colors['over'])]
+
+
 def test_the_chart_is_a_png():
     assert bmi.draw([(datetime.now() - timedelta(days=5), 26.1), (datetime.now(), 24.8)], "BMI")[:8] == \
         b"\x89PNG\r\n\x1a\n"

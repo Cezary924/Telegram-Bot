@@ -3,7 +3,7 @@ description: Logs the calories you eat and compares each day with your goal
 
 commands.foodtracker: Log what you eat and compare it with your daily goal
 
-how: Log the calories of what you eat, now or later. With the drink tracker the calories of alcohol count too
+how: Log your meals and keep track of how many calories you eat
 add: Add a meal
 today: Today
 history: History

@@ -3,7 +3,7 @@ description: Oblicza wskaźnik masy ciała, a z dziennikiem ciała pokazuje, jak
 
 commands.bmi: Oblicz BMI
 
-how: Oblicz wskaźnik masy ciała z wagi i wzrostu
+how: Aby obliczyć wskaźnik masy ciała, wystarczy, że podasz mi wagę i wzrost
 count: Oblicz
 history: Historia
 history_text: Wyniki

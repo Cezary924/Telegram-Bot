@@ -3,7 +3,7 @@ description: Keeps the history of your weight and height that the other health f
 
 commands.bodytracker: Log your weight and height
 
-how: Log your weight every time you step on the scales, and your height when it changes - BMI, calories and alcohol all use them
+how: Log your weight and keep track of how it changes
 log: Log the weight
 history: History
 chart: Chart

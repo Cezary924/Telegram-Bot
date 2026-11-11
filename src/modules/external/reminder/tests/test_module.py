@@ -72,10 +72,10 @@ def test_only_a_full_date_is_understood(text, is_valid):
     assert (reminder.parse_date(text) is not None) == is_valid
 
 
-def test_the_menu_counts_what_is_set(app, bot):
+def test_the_menu_tells_how_and_offers_to_set_one(app, bot):
     send(app, "/reminder")
-    assert "<i>0</i>" in bot.last.text
-    assert [text for text, _ in bot.last.buttons][:1] == ["Set a reminder"]
+    assert bot.last.text == "<b>🔔 Reminders:</b>\n\nSet reminders and I will remind you of them with a notification 😊"
+    assert [text for text, _ in bot.last.buttons][:1] == ["➕ Set a reminder"]
 
 
 def test_managing_shows_up_only_with_something_to_manage(app, bot):

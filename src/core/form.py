@@ -14,7 +14,9 @@ default_offer = "core:form.offer"
 state_prefix = "form."
 moment_choices = (0, 30, 60, 120)
 time_formats = ("%H:%M", "%H.%M")
-moment_formats = time_formats + ("%Y-%m-%d %H:%M", "%Y-%m-%d %H.%M", "%d.%m.%Y %H:%M", "%d.%m.%Y %H.%M")
+yearless_formats = ("%d.%m %H:%M", "%d.%m %H.%M")
+moment_formats = (time_formats + ("%Y-%m-%d %H:%M", "%Y-%m-%d %H.%M", "%d.%m.%Y %H:%M", "%d.%m.%Y %H.%M")
+                  + yearless_formats)
 key_pattern = re.compile(r"[a-z][a-z0-9_]*")
 
 
@@ -99,9 +101,13 @@ def number(text: str) -> float | None:
 
 def read_moment(text: str, now: datetime | None = None, is_future: bool = False) -> datetime | None:
     now = now or datetime.now()
+    text = " ".join(text.split())
     for pattern in moment_formats:
         try:
-            moment = datetime.strptime(" ".join(text.split()), pattern)
+            if pattern in yearless_formats:
+                moment = datetime.strptime(text + " " + str(now.year), pattern + " %Y")
+            else:
+                moment = datetime.strptime(text, pattern)
         except ValueError:
             continue
         if pattern in time_formats:

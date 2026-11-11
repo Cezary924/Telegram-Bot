@@ -131,6 +131,9 @@ def test_matcher_records_priority_and_order(module):
     assert [matcher.priority for matcher in module.matchers] == [10, 0]
     assert [matcher.order for matcher in module.matchers] == [0, 1]
     assert module.matchers[0].predicate is predicate
+    assert not module.matchers[0].is_personal
+    module.match(predicate, is_personal=True)(handler)
+    assert module.matchers[2].is_personal
 
 
 def test_matchers_may_repeat(module):

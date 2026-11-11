@@ -3,7 +3,7 @@ description: Estimates how much energy a body burns in a day
 
 commands.calories: Work out a daily calorie need
 
-how: Work out how much energy a body burns in a day with the Mifflin-St Jeor formula and the activity level
+how: To work out your daily calorie needs, all you have to do is give me a few details about the person
 count: Work it out
 from_tracker: from your saved details
 save_new: Save the new details about me

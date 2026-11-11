@@ -53,6 +53,7 @@ class Matcher:
     order: int
     is_background: bool
     media: tuple[str, ...] = ()
+    is_personal: bool = False
 
 
 @dataclass(frozen=True)
@@ -192,10 +193,10 @@ class Module:
         return decorator
 
     def match(self, predicate: Callable, priority: int = 0, role: Role = Role.GUEST,
-              is_background: bool = False, media: tuple[str, ...] = ()) -> Callable:
+              is_background: bool = False, media: tuple[str, ...] = (), is_personal: bool = False) -> Callable:
         def decorator(handler: Callable) -> Callable:
             self.matchers.append(Matcher(predicate, handler, role, priority, len(self.matchers),
-                                         is_background, media))
+                                         is_background, media, is_personal))
             return handler
 
         return decorator

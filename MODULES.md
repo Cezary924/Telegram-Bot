@@ -89,7 +89,7 @@ module = Module(
 | ```@module.view("name", parent=, title=)```                                              | builds a screen, placed under ```parent``` in the module tree     |
 | ```@module.settings(role=)```                                                            | builds the module's settings screen, listed in ```/settings```    |
 | ```@module.state("name", role=, is_background=)```                                       | takes plain messages while the user sits on the screen ```name``` |
-| ```@module.match(predicate, priority=, role=, is_background=)```                         | takes messages matching ```predicate(text)```                     |
+| ```@module.match(predicate, priority=, role=, is_background=, is_personal=)```           | takes messages matching ```predicate(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                                         | runs every ```interval``` seconds in its own thread               |
 | ```@module.action("name", parameters=, optional=, description=, role=, is_confirmed=)``` | lets the assistant do ```name``` for the user                     |
 | ```@module.context()```                                                                  | tells the assistant what the module knows about the user          |
@@ -116,6 +116,9 @@ module = Module(
   seconds lands on the minute instead of drifting from whenever the Bot started.
 - Matchers are sorted by priority, highest first, then by module name and declaration order, so the outcome does not
   depend on the order modules are loaded.
+- With ```is_personal=True``` the predicate gets the ```ctx``` instead of just the text, so it can check the data of
+  the person writing. This is how the counter takes ```Coffee +1``` only from someone who has a Coffee counter - for
+  everyone else the message moves on. Such a predicate checks every message, so it has to be quick.
 
 ## 🖥️ Screens
 
@@ -207,9 +210,12 @@ def count(ctx: Ctx) -> View:
   ```high``` included. ```{unit}``` in the question names the unit, and ```ctx.profile.weight(kg)``` and
   ```ctx.profile.height(cm)``` show a value back the same way.
 - A ```text``` is stripped and must be between ```low``` (at least 1) and ```high``` characters long.
-- A ```choice``` is answered with buttons named ```<key>.<choice>```, a ```moment``` with Now, 30 min, 1 h and 2 h ago
-  or a typed ```21:30```, ```21.30```, ```2026-10-30 21:30``` or ```30.10.2026 21:30```, never in the future and at
-  most ```back``` hours ago - ```back=None``` lets it go back as far as the user wants.
+- A ```choice``` is answered with buttons named ```<key>.<choice>```.
+- A ```moment``` is answered with the button Now, 30 min, 1 h or 2 h ago, or with a typed time or date and time:
+  ```21:30```, ```21.30```, ```30.10 21:30```, ```30.10.2026 21:30``` or ```2026-10-30 21:30```. A date without a year
+  is in the current year. The moment cannot be in the future or more than ```back``` hours ago, and ```back=None```
+  lifts that limit.
+- ```read_moment(text)``` turns such a written moment into a date when a module reads it on its own, outside a form.
 - ```clear=``` adds a button, named by that text key, that answers with ```None``` - for an answer the user would
   rather not give. ```is_needed=``` gets the answers so far and skips the question when it says ```False```, so a
   form asks about the last drink only when there was more than one.

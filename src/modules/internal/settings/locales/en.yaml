@@ -4,7 +4,7 @@ description: Language, notifications, data about you and its deletion
 commands.settings: Show the settings menu
 
 title: Settings
-menu: Select the setting of the following
+menu: Select one of the following options
 
 notifications: Notifications
 notifications_text: Choose what may make a sound. Everything else still arrives, just silently

@@ -88,7 +88,7 @@ module = Module(
 | ```@module.view("nazwa", parent=, title=)```                                              | buduje ekran, umieszczony pod ```parent``` w drzewie modułu               |
 | ```@module.settings(role=)```                                                             | buduje ekran ustawień modułu, widoczny w ```/settings```                  |
 | ```@module.state("nazwa", role=, is_background=)```                                       | przejmuje zwykłe wiadomości, gdy użytkownik siedzi na ekranie ```nazwa``` |
-| ```@module.match(predykat, priority=, role=, is_background=)```                           | przejmuje wiadomości pasujące do ```predykat(text)```                     |
+| ```@module.match(predykat, priority=, role=, is_background=, is_personal=)```             | przejmuje wiadomości pasujące do ```predykat(text)```                     |
 | ```@module.job(interval=, name=, is_aligned=)```                                          | uruchamia się co ```interval``` sekund we własnym wątku                   |
 | ```@module.action("nazwa", parameters=, optional=, description=, role=, is_confirmed=)``` | pozwala asystentowi zrobić ```nazwa``` za użytkownika                     |
 | ```@module.context()```                                                                   | mówi asystentowi, co moduł wie o użytkowniku                              |
@@ -113,6 +113,9 @@ module = Module(
   sekund trafia w pełną minutę zamiast dryfować od momentu startu Bota.
 - Matchery są sortowane po priorytecie malejąco, potem po nazwie modułu i kolejności deklaracji, więc wynik nie zależy
   od kolejności ładowania modułów.
+- Z ```is_personal=True``` predykat dostaje ```ctx``` zamiast samego tekstu, więc może sprawdzić dane osoby, która
+  pisze. Licznik bierze tak ```Kawa +1``` tylko od kogoś, kto ma licznik Kawa - u innych wiadomość idzie dalej. Taki
+  predykat sprawdza każdą wiadomość, więc musi być szybki.
 
 ## 🖥️ Ekrany
 
@@ -204,10 +207,12 @@ def count(ctx: Ctx) -> View:
   ```high```. ```{unit}``` w pytaniu podaje jednostkę, a ```ctx.profile.weight(kg)``` i ```ctx.profile.height(cm)```
   pokazują wartość z powrotem tak samo.
 - ```text``` jest przycinany i musi mieć od ```low``` (co najmniej 1) do ```high``` znaków.
-- Na ```choice``` odpowiada się przyciskami opisanymi tekstami ```<klucz>.<wybór>```, a na ```moment``` przyciskami
-  Teraz, 30 min, 1 h i 2 h temu albo wpisanym ```21:30```, ```21.30```, ```2026-10-30 21:30``` lub
-  ```30.10.2026 21:30```, nigdy z przyszłości i najwyżej ```back``` godzin wstecz - ```back=None``` pozwala cofnąć się
-  dowolnie daleko.
+- Na ```choice``` odpowiada się przyciskami opisanymi tekstami ```<klucz>.<wybór>```.
+- Na ```moment``` odpowiada się przyciskiem Teraz, 30 min, 1 h albo 2 h temu, albo wpisuje się godzinę lub datę z
+  godziną: ```21:30```, ```21.30```, ```30.10 21:30```, ```30.10.2026 21:30``` czy ```2026-10-30 21:30```. Data bez
+  roku jest z bieżącego roku. Chwila nie może być z przyszłości ani sprzed więcej niż ```back``` godzin, a
+  ```back=None``` znosi ten limit.
+- ```read_moment(text)``` zamienia taki zapis na datę, gdy moduł czyta go sam, poza formularzem.
 - ```clear=``` dodaje przycisk opisany tym kluczem tekstu, który odpowiada ```None``` - na odpowiedź, której
   użytkownik woli nie podawać. ```is_needed=``` dostaje dotychczasowe odpowiedzi i pomija pytanie, gdy zwróci
   ```False```, więc formularz pyta o ostatni drink tylko wtedy, gdy był więcej niż jeden.

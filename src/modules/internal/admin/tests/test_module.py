@@ -32,7 +32,7 @@ def test_only_an_admin_may_open_the_menu(app, bot):
 
 def test_the_menu_lists_every_section(boss, bot):
     open_menu(boss)
-    assert bot.last.text == "<b>🛠️ Admin:</b>\n\nSelect the task of the following:"
+    assert bot.last.text == "<b>🛠️ Admin:</b>\n\nSelect one of the following options:"
     assert [data for _, data in bot.last.buttons] == [
         "admin:users", "admin:statistics", "admin:announcement",
         "admin:alerts", "admin:modules", "admin:defaults", "admin:bot", "core:close"]
@@ -305,8 +305,8 @@ def test_going_back_walks_up_the_whole_tree(boss, bot):
     assert bot.last.text == "The menu has been closed"
 
 
-guarded_modules = ["downloader", "llm", "reminder", "bodytracker", "bmi", "calories", "foodtracker", "drinktracker",
-                   "breathalyser", "unitconverter", "topspotifyartist", "crystalball"]
+guarded_modules = ["downloader", "llm", "reminder", "counter", "bodytracker", "bmi", "calories", "foodtracker",
+                   "drinktracker", "breathalyser", "calculator", "topspotifyartist", "crystalball"]
 
 
 def access_toggles(bot) -> list[str]:
