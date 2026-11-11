@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from core.api import Ctx, Outcome
+from core.chart import colored_runs
 from core.testing import make_callback, make_message
 from modules.external.bmi import module as bmi
 
@@ -162,7 +163,7 @@ def test_the_line_takes_the_color_of_each_category():
     assert bmi.color_of(15) == bmi.colors['obese'] and bmi.color_of(17) == bmi.colors['over']
     assert bmi.color_of(22) == bmi.colors['normal'] and bmi.color_of(27) == bmi.colors['over']
     assert bmi.color_of(31) == bmi.colors['obese']
-    assert bmi.colored_runs([(0, 24), (2, 28)], [25.0], bmi.color_of) == [
+    assert colored_runs([(0, 24), (2, 28)], [25.0], bmi.color_of) == [
         ([0, 0.5], [24, 25.0], bmi.colors['normal']), ([0.5, 2], [25.0, 28], bmi.colors['over'])]
 
 

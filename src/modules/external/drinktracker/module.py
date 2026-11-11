@@ -1,12 +1,10 @@
-import io
 import json
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 
-from matplotlib.figure import Figure
-
 from core.api import (Answers, Button, Ctx, Module, Outcome, Question, View, age_limits, escape, italic, labelled,
                       past_moment, plain, sexes, years_before)
+from core.chart import bar_values, canvas, date_ticks, palette, picture
 
 module = Module(name="drinktracker", place=80, is_guarded=True, uses=["bodytracker", "breathalyser"],
                 icons={'name': "🍺", 'add': "➕", 'sessions': "📜", 'chart': "📈", 'curve': "📈", 'custom': "✏️",
@@ -40,11 +38,8 @@ strength_limits = (0.5, 96)
 height_limits = (100, 250)
 weight_limits = (30, 300)
 chart_days = 30
-tick_count = 8
 page_size = 8
 moment_format = "%Y-%m-%d %H:%M"
-colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
-          'line': "#2a78d6"}
 
 
 def drinks_table(ctx: Ctx) -> str:
@@ -607,29 +602,12 @@ def daily(ctx: Ctx, since: date) -> list:
 
 
 def draw_days(days: list[tuple[date, float]], title: str) -> bytes:
-    figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
-    axes = figure.subplots()
-    axes.set_facecolor(colors['surface'])
+    figure, axes = canvas(title, "g", grid="y")
     moments = [day for day, _ in days]
-    bars = axes.bar(moments, [grams for _, grams in days], width=0.8, color=colors['line'])
-    axes.bar_label(bars, labels=["{:.0f}".format(grams) if grams else "" for _, grams in days], padding=2,
-                   color=colors['ink'], fontsize=8)
-    axes.margins(y=0.12)
-    axes.grid(axis="y", color=colors['grid'], linewidth=0.8)
-    axes.set_axisbelow(True)
-    picked = moments[::-(-len(moments) // tick_count)]
-    axes.set_xticks(picked, labels=[day.strftime("%d.%m") for day in picked])
-    axes.set_title(title, color=colors['ink'], loc="left")
-    axes.set_ylabel("g", color=colors['muted'])
-    axes.tick_params(colors=colors['muted'])
-    for side in ("top", "right"):
-        axes.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        axes.spines[side].set_color(colors['axis'])
-    figure.tight_layout()
-    picture = io.BytesIO()
-    figure.savefig(picture, format="png", facecolor=colors['surface'])
-    return picture.getvalue()
+    bars = axes.bar(moments, [grams for _, grams in days], width=0.8, color=palette['blue'])
+    bar_values(axes, bars, ["{:.0f}".format(grams) if grams else "" for _, grams in days])
+    date_ticks(axes, moments, "%d.%m")
+    return picture(figure)
 
 
 @module.callback("chart", is_background=True)

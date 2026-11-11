@@ -1,4 +1,3 @@
-import io
 import re
 import unicodedata
 from dataclasses import replace
@@ -6,10 +5,9 @@ from datetime import datetime, time, timedelta
 from functools import partial
 from itertools import accumulate
 
-from matplotlib.figure import Figure
-
 from core.api import (Answers, Button, Ctx, Module, Outcome, Problem, Question, View, bold, escape, italic, labelled,
                       plain)
+from core.chart import bar_values, canvas, date_ticks, goal_line, palette, picture
 
 module = Module(name="counter", place=35, is_guarded=True,
                 icons={'name': "🔢", 'new': "➕", 'settings_button': "⚙️", 'type_amount': "✍️", 'edit': "✏️",
@@ -36,11 +34,9 @@ bar_size = 10
 bar_widths = {'daily': 0.8, 'weekly': 5.0, 'monthly': 20.0}
 bar_middles = {'daily': 0.0, 'weekly': 3.5, 'monthly': 15.0}
 day_formats = {'daily': "%d.%m", 'weekly': "%d.%m", 'monthly': "%m.%Y"}
-tick_count = 8
 week_key = "week"
 reached_key = "reached."
-colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
-          'count': "#2a78d6", 'goal': "#0b0b0b", 'reached': "#0ca30c", 'missed': "#d03b3b"}
+colors = {'count': palette['blue'], 'reached': palette['green'], 'missed': palette['red']}
 number = r"[+-]\s*\d+(?:[.,]\d+)?"
 trailing = re.compile(r"(?P<name>.*?\S)\s*(?P<amount>" + number + ")")
 leading = re.compile(r"(?P<amount>" + number + r")\s*(?P<name>\S.*)")
@@ -646,42 +642,24 @@ def bar_colors(values: list[float], wanted: float | None) -> list[str]:
 
 def draw(points: list[tuple[datetime, float]], wanted: float | None, texts: dict, is_running: bool,
          period: str) -> bytes:
-    figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
-    axes = figure.subplots()
-    axes.set_facecolor(colors['surface'])
+    figure, axes = canvas(texts['title'], grid="both" if is_running else "y")
     moments = [moment + timedelta(days=0.0 if is_running else bar_middles[period]) for moment, _ in points]
     values = [value for _, value in points]
     labels = value_labels(values, is_running)
     if is_running:
         axes.plot(moments, values, color=colors['count'], linewidth=2, marker="o", markersize=3)
-        axes.grid(color=colors['grid'], linewidth=0.8)
         for moment, value, label in zip(moments, values, labels):
             if label:
                 axes.annotate(label, (moment, value), xytext=(0, 5), textcoords="offset points", ha="center",
-                              color=colors['ink'], fontsize=8)
+                              color=palette['ink'], fontsize=8)
+        axes.margins(y=0.12)
     else:
         bars = axes.bar(moments, values, width=bar_widths[period], color=bar_colors(values, wanted))
-        axes.bar_label(bars, labels=labels, padding=2, color=colors['ink'], fontsize=8)
-        axes.grid(axis="y", color=colors['grid'], linewidth=0.8)
-    axes.margins(y=0.12)
-    axes.set_axisbelow(True)
+        bar_values(axes, bars, labels)
     if wanted is not None:
-        axes.axhline(wanted, color=colors['goal'], linewidth=1.5, linestyle="--")
-        axes.annotate(texts['goal'] + " " + number_text(wanted), (1, wanted), xycoords=("axes fraction", "data"),
-                      xytext=(0, 4), textcoords="offset points", ha="right", color=colors['ink'], fontsize=8)
-    axes.set_title(texts['title'], color=colors['ink'], loc="left", parse_math=False)
-    axes.tick_params(colors=colors['muted'])
-    for side in ("top", "right"):
-        axes.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        axes.spines[side].set_color(colors['axis'])
-    picked = range(0, len(points), -(-len(points) // tick_count))
-    axes.set_xticks([moments[index] for index in picked],
-                    labels=[points[index][0].strftime(day_formats[period]) for index in picked])
-    figure.tight_layout()
-    picture = io.BytesIO()
-    figure.savefig(picture, format="png", facecolor=colors['surface'])
-    return picture.getvalue()
+        goal_line(axes, wanted, texts['goal'] + " " + number_text(wanted))
+    date_ticks(axes, [moment for moment, _ in points], day_formats[period], moments)
+    return picture(figure)
 
 
 @module.callback("chart", is_background=True)
@@ -716,10 +694,10 @@ def chart(ctx: Ctx) -> View:
     photo = draw(list(shown.items()), row['goal'],
                  {'title': plain(ctx.t("chart_texts." + row['period'], name=bare_name(row['name']))),
                   'goal': plain(ctx.t("chart_texts.goal"))}, is_running, period)
-    goal_line = [labelled(ctx.t("labels.goal"), number_text(row['goal']))] if row['goal'] is not None else []
+    goal_text = [labelled(ctx.t("labels.goal"), number_text(row['goal']))] if row['goal'] is not None else []
     lines = [escape(label_of(period, start) + " - " + number_text(shown[start])) for start in sorted(seen)]
     ctx.log("Counter chart shown")
-    return View(text="\n".join(goal_line + lines), photo=photo, argument=str(row['id']))
+    return View(text="\n".join(goal_text + lines), photo=photo, argument=str(row['id']))
 
 
 # ----- settings -----

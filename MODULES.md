@@ -466,6 +466,24 @@ wrap too; ```escape``` is for the rest of what a module glues together by hand. 
 already and is never escaped twice. Buttons and the Telegram command menu take plain text, and the core strips the
 markup from them itself.
 
+## 📈 Charts
+
+```core.chart``` draws charts in one style. ```canvas(title, unit, grid=)``` gives a ready canvas, and
+```picture(figure)``` turns it into a PNG for ```View(photo=)```. Next to them are ```date_ticks``` and ```date_axis```
+for dates on the axis, ```bar_values``` for numbers above bars, ```goal_line``` and ```moment_line``` for a goal and a
+moment, and ```colored_line```, which colors a line by its limits. Colors come from ```palette```. A module importing it
+names ```matplotlib``` in its ```requirements.txt```.
+
+```python
+from core.chart import bar_values, canvas, date_ticks, palette, picture
+
+figure, axes = canvas(ctx.t("chart_title"), "kcal", grid="y")
+bars = axes.bar(days, totals, width=0.8, color=palette['blue'])
+bar_values(axes, bars, ["{:.0f}".format(total) for total in totals])
+date_ticks(axes, days, "%d.%m")
+return View(photo=picture(figure))
+```
+
 ## 🗄️ Tables
 
 A module owns tables prefixed with ```module_<name>_```. Put them in ```schema.sql``` next to ```module.py``` and the
@@ -529,7 +547,7 @@ youtube: false
 - every text is one bare line, with no quotes, line breaks, tags or Markdown,
 - callback names leave room for arguments within Telegram's 64 byte limit,
 - ```schema.sql``` creates objects carrying the module prefix only,
-- an external module imports only ```core.api``` and ```core.testing``` from the core, and from other modules only those
-  listed in ```requires``` or ```uses```,
+- an external module imports only ```core.api```, ```core.chart``` and ```core.testing``` from the core, and from other
+  modules only those listed in ```requires``` or ```uses```,
 - every package the module imports outside its ```tests``` is named in its own ```requirements.txt```,
 - the module has a ```tests``` directory.

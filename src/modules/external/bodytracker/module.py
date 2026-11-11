@@ -1,12 +1,9 @@
-import io
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import datetime, timedelta
 
-from matplotlib.dates import AutoDateLocator, ConciseDateFormatter
-from matplotlib.figure import Figure
-
 from core.api import Answers, Button, Ctx, Module, Outcome, Question, View, escape, italic, labelled, past_moment
+from core.chart import canvas, date_axis, palette, picture
 
 module = Module(name="bodytracker", place=40, is_guarded=True,
                 icons={'name': "⚖️", 'log': "➕", 'history': "📜", 'chart': "📈", 'settings_button': "⚙️",
@@ -22,8 +19,6 @@ history_limit = 60
 page_size = 8
 moment_format = "%Y-%m-%d %H:%M"
 kinds = {'weight': "weights", 'height': "heights"}
-colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
-          'line': "#2a78d6"}
 
 
 def table(ctx: Ctx, kind: str) -> str:
@@ -389,26 +384,11 @@ def gone(ctx: Ctx) -> View:
 # ----- the chart -----
 
 def draw(points: list[tuple[datetime, float]], title: str, unit: str) -> bytes:
-    figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
-    axes = figure.subplots()
-    axes.set_facecolor(colors['surface'])
-    axes.plot([moment for moment, _ in points], [value for _, value in points], color=colors['line'],
+    figure, axes = canvas(title, unit)
+    axes.plot([moment for moment, _ in points], [value for _, value in points], color=palette['blue'],
               linewidth=2, marker="o", markersize=5)
-    axes.set_title(title, color=colors['ink'], loc="left")
-    axes.set_ylabel(unit, color=colors['muted'])
-    axes.grid(color=colors['grid'], linewidth=0.8)
-    axes.tick_params(colors=colors['muted'])
-    for side in ("top", "right"):
-        axes.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        axes.spines[side].set_color(colors['axis'])
-    locator = AutoDateLocator()
-    axes.xaxis.set_major_locator(locator)
-    axes.xaxis.set_major_formatter(ConciseDateFormatter(locator))
-    figure.tight_layout()
-    picture = io.BytesIO()
-    figure.savefig(picture, format="png", facecolor=colors['surface'])
-    return picture.getvalue()
+    date_axis(axes)
+    return picture(figure)
 
 
 @module.callback("chart", is_background=True)
