@@ -639,12 +639,12 @@ def folded(ctx: Ctx, thinking: str, room: int) -> str:
     if not shown or room < 200:
         return ""
     title = ctx.t("reasoning")
-    return "<blockquote expandable>" + escape(title + "\n" + tail(shown, room - len(title) - 60)) + "</blockquote>\n"
+    return "\n<blockquote expandable>" + escape(title + "\n" + tail(shown, room - len(title) - 60)) + "</blockquote>"
 
 
 def delivered(ctx: Ctx, thinking: str, answer: str) -> list[str]:
     parts = [to_html(part) for part in parts_of(answer.strip())]
-    return [folded(ctx, thinking, message_limit - len(parts[0]) - 100) + parts[0]] + parts[1:]
+    return parts[:-1] + [parts[-1] + folded(ctx, thinking, message_limit - len(parts[-1]) - 100)]
 
 
 def talk(ctx: Ctx, conversation: int, asked: int, live: int | None, attached: list[dict]) -> None:

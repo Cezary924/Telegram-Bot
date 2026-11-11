@@ -209,13 +209,21 @@ def test_thinking_is_off_by_default_and_on_when_chosen(chat, bot, model):
     assert model.thinking == [False, True]
 
 
-def test_thinking_is_folded_above_the_answer(chat, bot, model):
+def test_thinking_is_folded_below_the_answer(chat, bot, model):
     chat.storage.module_state.set(1, "llm", "thinking", "1")
     model.answer = [("thinking", "Two and <two>"), ("answer", "Four")]
     say(chat, "2+2?")
-    assert bot.last.text.startswith("<blockquote expandable>💭 Reasoning\n")
-    assert "Two and &lt;two&gt;</blockquote>\nFour" in bot.last.text
+    assert bot.last.text == "Four\n<blockquote expandable>💭 Reasoning\nTwo and &lt;two&gt;</blockquote>"
     assert stored(chat)[-1] == (1, "assistant", "Four")
+
+
+def test_a_long_answer_ends_with_the_thinking(chat, bot, model):
+    chat.storage.module_state.set(1, "llm", "thinking", "1")
+    model.answer = [("thinking", "Counting."), ("answer", "\n\n".join(["word " * 300] * 4))]
+    say(chat, "count")
+    parts = answers(bot)
+    assert len(parts) > 1 and all("blockquote" not in part for part in parts[:-1])
+    assert parts[0].startswith("word") and parts[-1].endswith("Counting.</blockquote>")
 
 
 def test_thinking_keeps_quiet_about_the_instructions():
@@ -230,7 +238,8 @@ def test_shown_thinking_leaves_out_the_instructions(chat, bot, model):
     chat.storage.module_state.set(1, "llm", "thinking", "1")
     model.answer = [("thinking", "Adding up. The system prompt tells me to be brief."), ("answer", "Four")]
     say(chat, "2+2?")
-    assert "Adding up.</blockquote>\nFour" in bot.last.text and "prompt" not in bot.last.text
+    assert bot.last.text.startswith("Four\n") and bot.last.text.endswith("Adding up.</blockquote>")
+    assert "prompt" not in bot.last.text
     model.answer = [("thinking", "My instructions say to be brief."), ("answer", "Four")]
     say(chat, "2+2?")
     assert bot.last.text == "Four"
@@ -253,7 +262,7 @@ def test_the_dots_move_while_the_model_is_silent(chat, bot, monkeypatch):
     assert {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."} <= set(shown)
     assert {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"} <= set(shown)
     assert {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"} <= set(shown)
-    assert bot.last.text.endswith("</blockquote>\nFour")
+    assert bot.last.text.startswith("Four\n<blockquote expandable>")
 
 
 def test_text_before_a_search_stays_in_its_own_message(chat, bot, model):
@@ -293,7 +302,7 @@ def test_thinking_around_a_search_is_parted_by_a_blank_line(chat, bot, model):
                     ("answer", "Four")]
     say(chat, "2+2?")
     assert len(answers(bot)) == 1
-    assert "First I search.\n\nNow I know.</blockquote>\nFour" in bot.last.text
+    assert bot.last.text.startswith("Four\n") and bot.last.text.endswith("First I search.\n\nNow I know.</blockquote>")
 
 
 def test_a_long_answer_comes_in_several_messages(chat, bot, model):
