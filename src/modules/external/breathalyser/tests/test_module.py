@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from core.api import Ctx
+from core.chart import colored_runs
 from core.testing import make_callback, make_message
 from modules.external.breathalyser import module as breathalyser
 
@@ -321,7 +322,7 @@ def test_the_curve_takes_the_color_of_each_state():
     assert breathalyser.color_of(0.1) == breathalyser.colors['sober']
     assert breathalyser.color_of(0.3) == breathalyser.colors['after_use']
     assert breathalyser.color_of(0.5) == breathalyser.colors['insobriety']
-    runs = breathalyser.colored_runs([(0, 0.0), (1, 0.8)], [0.2, 0.5], breathalyser.color_of)
+    runs = colored_runs([(0, 0.0), (1, 0.8)], [0.2, 0.5], breathalyser.color_of)
     assert [color for _, _, color in runs] == [breathalyser.colors[key] for key in ("sober", "after_use", "insobriety")]
 
 

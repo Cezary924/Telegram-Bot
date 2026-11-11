@@ -152,6 +152,7 @@ def test_a_correct_schema_passes(tmp_path):
 @pytest.mark.parametrize("line, is_allowed", [
     ("from core.api import Module", True),
     ("from core.testing import FakeBot", True),
+    ("from core.chart import canvas", True),
     ("from core.db.connection import Database", False),
     ("from core.config import Config", False),
     ("import core.router", False),
@@ -213,6 +214,15 @@ def test_the_core_and_the_standard_library_need_no_declaration(tmp_path):
     module.path = str(tmp_path)
     (tmp_path / "module.py").write_text(
         "import os\nimport sqlite3\nfrom core.api import Module\n", encoding='utf8')
+    assert contract.check_requirements(module) == []
+
+
+def test_drawing_charts_needs_matplotlib_declared(tmp_path):
+    module = Module(name="module1")
+    module.path = str(tmp_path)
+    (tmp_path / "module.py").write_text("from core.chart import canvas\n", encoding='utf8')
+    assert "'matplotlib' is imported but no package" in contract.check_requirements(module)[0]
+    (tmp_path / "requirements.txt").write_text("matplotlib==3.11.2\n", encoding='utf8')
     assert contract.check_requirements(module) == []
 
 

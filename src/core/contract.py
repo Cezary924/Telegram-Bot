@@ -13,7 +13,8 @@ from core.i18n import default_language, load_locale_file, supported_languages
 from core.loader import discover, external_package, internal_package, locales_name, manifest_name, schema_name
 from core.module import Module
 
-allowed_core_imports = {"core.api", "core.testing"}
+allowed_core_imports = {"core.api", "core.chart", "core.testing"}
+core_packages = {"core.chart": "matplotlib"}
 tests_name = "tests"
 requirements_name = "requirements.txt"
 version_pattern = re.compile(r"[<>=!~;\[ ]")
@@ -240,12 +241,17 @@ def runtime_files(module: Module) -> list[str]:
     return files
 
 
+def packages_behind(name: str) -> set[str]:
+    return {package for facade, package in core_packages.items() if name == facade or name.startswith(facade + ".")}
+
+
 def imported_packages(module: Module) -> set[str]:
     local = ("core", internal_package.split(".")[0])
     found = set()
     for path in runtime_files(module):
         for name in imported_names(path):
             root = name.split(".")[0]
+            found |= packages_behind(name)
             if root not in local and root not in sys.stdlib_module_names:
                 found.add(root)
     return found

@@ -466,6 +466,24 @@ escapują to, co owijają; ```escape``` służy do reszty, którą moduł skleja
 znacznikiem i nigdy nie jest escapowany drugi raz. Przyciski i menu komend Telegrama przyjmują czysty tekst - rdzeń sam
 zdejmuje z nich znaczniki.
 
+## 📈 Wykresy
+
+```core.chart``` rysuje wykresy w jednym stylu. ```canvas(tytuł, jednostka, grid=)``` daje gotowe płótno, a
+```picture(figure)``` zamienia je na PNG do ```View(photo=)```. Do tego są ```date_ticks``` i ```date_axis``` dla dat na
+osi, ```bar_values``` dla liczb nad słupkami, ```goal_line``` i ```moment_line``` dla linii celu i chwili oraz
+```colored_line```, która koloruje linię według progów. Kolory bierze się z ```palette```. Moduł, który go importuje,
+wypisuje ```matplotlib``` w swoim ```requirements.txt```.
+
+```python
+from core.chart import bar_values, canvas, date_ticks, palette, picture
+
+figure, axes = canvas(ctx.t("chart_title"), "kcal", grid="y")
+bars = axes.bar(days, totals, width=0.8, color=palette['blue'])
+bar_values(axes, bars, ["{:.0f}".format(total) for total in totals])
+date_ticks(axes, days, "%d.%m")
+return View(photo=picture(figure))
+```
+
 ## 🗄️ Tabele
 
 Moduł jest właścicielem tabel z prefiksem ```module_<nazwa>_```. Umieść je w ```schema.sql``` obok ```module.py```, a
@@ -530,7 +548,7 @@ youtube: false
 - każdy tekst to jedna goła linijka, bez cudzysłowów, łamania linii, tagów i Markdownu,
 - nazwy callbacków zostawiają miejsce na argumenty w ramach limitu 64 bajtów Telegrama,
 - ```schema.sql``` tworzy wyłącznie obiekty z prefiksem modułu,
-- moduł zewnętrzny importuje z rdzenia tylko ```core.api``` i ```core.testing```, a z innych modułów tylko te wypisane w
-  ```requires``` albo ```uses```,
+- moduł zewnętrzny importuje z rdzenia tylko ```core.api```, ```core.chart``` i ```core.testing```, a z innych modułów
+  tylko te wypisane w ```requires``` albo ```uses```,
 - każdy pakiet, który moduł importuje poza katalogiem ```tests```, jest wypisany w jego ```requirements.txt```,
 - moduł ma katalog ```tests```.
