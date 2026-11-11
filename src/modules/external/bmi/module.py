@@ -1,10 +1,7 @@
-import io
 from datetime import datetime
 
-from matplotlib.dates import AutoDateLocator, ConciseDateFormatter, date2num
-from matplotlib.figure import Figure
-
 from core.api import Answers, Button, Ctx, Module, Outcome, Question, View, bold, escape, italic, labelled, plain
+from core.chart import canvas, colored_line, date_axis, palette, picture
 
 module = Module(name="bmi", place=50, is_guarded=True, uses=["bodytracker"],
                 icons={'name': "🩺", 'count': "🧮", 'history': "📜", 'chart': "📈", 'save_new': "💾"},
@@ -16,8 +13,7 @@ saved_keys = ("height", "weight")
 height_limits = (50, 250)
 weight_limits = (20, 400)
 history_size = 10
-colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
-          'normal': "#0ca30c", 'over': "#fab219", 'obese': "#d03b3b"}
+colors = {'normal': palette['green'], 'over': palette['yellow'], 'obese': palette['red']}
 category_colors = {'severe_thinness': "obese", 'underweight': "over", 'normal': "normal", 'overweight': "over",
                    'obesity_1': "obese", 'obesity_2': "obese", 'obesity_3': "obese"}
 
@@ -148,28 +144,12 @@ def history(ctx: Ctx) -> View:
     return View(text=labelled(ctx.t("history_text"), len(found)) + "\n\n" + "\n".join(lines))
 
 
-def colored_runs(points: list[tuple[float, float]], edges: list[float],
-                 coloring) -> list[tuple[list[float], list[float], str]]:
-    found: list[tuple[list[float], list[float], str]] = []
-    for (x0, y0), (x1, y1) in zip(points, points[1:]):
-        cuts = sorted(cut for cut in ((limit - y0) / (y1 - y0) for limit in edges if y0 != y1) if 0 < cut < 1)
-        for start, end in zip([0.0] + cuts, cuts + [1.0]):
-            color = coloring(y0 + (y1 - y0) * (start + end) / 2)
-            if not found or found[-1][2] != color:
-                found.append(([x0 + (x1 - x0) * start], [y0 + (y1 - y0) * start], color))
-            found[-1][0].append(x0 + (x1 - x0) * end)
-            found[-1][1].append(y0 + (y1 - y0) * end)
-    return found
-
-
 def color_of(value: float) -> str:
     return colors[category_colors[category(value)]]
 
 
 def draw(found: list[tuple[datetime, float]], title: str) -> bytes:
-    figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
-    axes = figure.subplots()
-    axes.set_facecolor(colors['surface'])
+    figure, axes = canvas(title, "BMI", grid="x")
     values = [value for _, value in found]
     bottom, top = min(values + [17.0]) - 1, max(values + [31.0]) + 1
     axes.axhspan(bottom, 16, color=colors['obese'], alpha=0.10, linewidth=0)
@@ -178,29 +158,14 @@ def draw(found: list[tuple[datetime, float]], title: str) -> bytes:
     axes.axhspan(25, 30, color=colors['over'], alpha=0.14, linewidth=0)
     axes.axhspan(30, top, color=colors['obese'], alpha=0.10, linewidth=0)
     for limit in (16, 18.5, 25, 30):
-        axes.axhline(limit, color=colors['axis'], linewidth=0.8)
+        axes.axhline(limit, color=palette['axis'], linewidth=0.8)
         axes.annotate("{:g}".format(limit), (1, limit), xycoords=("axes fraction", "data"), xytext=(4, 0),
-                      textcoords="offset points", va="center", color=colors['muted'], fontsize=8)
-    moments = [date2num(moment) for moment, _ in found]
-    for xs, ys, color in colored_runs(list(zip(moments, values)), [limit for limit, _ in categories], color_of):
-        axes.plot(xs, ys, color=color, linewidth=2)
-    axes.scatter(moments, values, c=[color_of(value) for value in values], s=30, zorder=3)
+                      textcoords="offset points", va="center", color=palette['muted'], fontsize=8)
+    colored_line(axes, found, [limit for limit, _ in categories], color_of)
+    axes.scatter([moment for moment, _ in found], values, c=[color_of(value) for value in values], s=30, zorder=3)
     axes.set_ylim(bottom, top)
-    axes.set_title(title, color=colors['ink'], loc="left")
-    axes.set_ylabel("BMI", color=colors['muted'])
-    axes.grid(axis="x", color=colors['grid'], linewidth=0.8)
-    axes.tick_params(colors=colors['muted'])
-    for side in ("top", "right"):
-        axes.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        axes.spines[side].set_color(colors['axis'])
-    locator = AutoDateLocator()
-    axes.xaxis.set_major_locator(locator)
-    axes.xaxis.set_major_formatter(ConciseDateFormatter(locator))
-    figure.tight_layout()
-    picture = io.BytesIO()
-    figure.savefig(picture, format="png", facecolor=colors['surface'])
-    return picture.getvalue()
+    date_axis(axes)
+    return picture(figure)
 
 
 @module.callback("chart", is_background=True)

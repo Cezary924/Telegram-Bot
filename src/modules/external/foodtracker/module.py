@@ -1,12 +1,10 @@
-import io
 from dataclasses import replace
 from datetime import date, datetime, timedelta
 from functools import partial
 
-from matplotlib.figure import Figure
-
 from core.api import (Answers, Button, Ctx, Html, Module, Outcome, Question, View, escape, italic, labelled,
                       past_moment, plain)
+from core.chart import bar_values, canvas, date_ticks, goal_line, palette, picture
 
 module = Module(name="foodtracker", place=70, is_guarded=True, uses=["bodytracker", "calories", "drinktracker"],
                 icons={'name': "🍽️", 'add': "➕", 'today': "📅", 'history': "📜", 'chart': "📈",
@@ -19,13 +17,10 @@ activities = ("sedentary", "light", "moderate", "active", "very_active")
 told_days = 14
 kcal_limits = (1, 5000)
 chart_days = 30
-tick_count = 8
 page_size = 8
 moment_format = "%Y-%m-%d %H:%M"
 goal_key = "goal"
 activity_key = "activity"
-colors = {'surface': "#fcfcfb", 'ink': "#0b0b0b", 'muted': "#898781", 'grid': "#e1e0d9", 'axis': "#c3c2b7",
-          'food': "#2a78d6", 'alcohol': "#eb6834", 'goal': "#0b0b0b"}
 
 
 def table(ctx: Ctx) -> str:
@@ -305,38 +300,19 @@ def act_days(ctx: Ctx) -> Outcome:
 # ----- over time -----
 
 def draw(days: list[tuple[date, float, float]], wanted: float | None, texts: dict) -> bytes:
-    figure = Figure(figsize=(8, 4.5), dpi=120, facecolor=colors['surface'])
-    axes = figure.subplots()
-    axes.set_facecolor(colors['surface'])
+    figure, axes = canvas(texts['title'], "kcal", grid="y")
     moments = [day for day, _, _ in days]
     food = [value for _, value, _ in days]
-    bars = axes.bar(moments, food, width=0.8, color=colors['food'], label=texts['food'])
+    bars = axes.bar(moments, food, width=0.8, color=palette['blue'], label=texts['food'])
     if any(drunk for _, _, drunk in days):
-        bars = axes.bar(moments, [drunk for _, _, drunk in days], width=0.8, bottom=food, color=colors['alcohol'],
-                        edgecolor=colors['surface'], linewidth=1, label=texts['alcohol'])
-        axes.legend(frameon=False, loc="upper left", labelcolor=colors['ink'], fontsize=8)
-    axes.bar_label(bars, labels=["{:.0f}".format(eaten + drunk) if eaten + drunk else "" for _, eaten, drunk in days],
-                   padding=2, color=colors['ink'], fontsize=8)
-    axes.margins(y=0.12)
+        bars = axes.bar(moments, [drunk for _, _, drunk in days], width=0.8, bottom=food, color=palette['orange'],
+                        edgecolor=palette['surface'], linewidth=1, label=texts['alcohol'])
+        axes.legend(frameon=False, loc="upper left", labelcolor=palette['ink'], fontsize=8)
+    bar_values(axes, bars, ["{:.0f}".format(eaten + drunk) if eaten + drunk else "" for _, eaten, drunk in days])
     if wanted is not None:
-        axes.axhline(wanted, color=colors['goal'], linewidth=1.5, linestyle="--")
-        axes.annotate(texts['goal'] + " " + "{:.0f}".format(wanted), (1, wanted), xycoords=("axes fraction", "data"),
-                      xytext=(0, 4), textcoords="offset points", ha="right", color=colors['ink'], fontsize=8)
-    axes.set_title(texts['title'], color=colors['ink'], loc="left")
-    axes.set_ylabel("kcal", color=colors['muted'])
-    axes.grid(axis="y", color=colors['grid'], linewidth=0.8)
-    axes.set_axisbelow(True)
-    axes.tick_params(colors=colors['muted'])
-    for side in ("top", "right"):
-        axes.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        axes.spines[side].set_color(colors['axis'])
-    picked = moments[::-(-len(moments) // tick_count)]
-    axes.set_xticks(picked, labels=[day.strftime("%d.%m") for day in picked])
-    figure.tight_layout()
-    picture = io.BytesIO()
-    figure.savefig(picture, format="png", facecolor=colors['surface'])
-    return picture.getvalue()
+        goal_line(axes, wanted, texts['goal'] + " " + "{:.0f}".format(wanted))
+    date_ticks(axes, moments, "%d.%m")
+    return picture(figure)
 
 
 @module.callback("chart", is_background=True)
@@ -361,9 +337,9 @@ def chart(ctx: Ctx) -> View:
     lines = [escape(day + " - " + kcal_text(food.get(day, 0.0) + drunk.get(day, 0.0))) +
              (" (" + ctx.t("with_alcohol", kcal=kcal_text(drunk[day])) + ")" if drunk.get(day) else "")
              for day in sorted(set(food) | set(drunk))]
-    goal_line = [labelled(ctx.t("labels.goal"), kcal_text(wanted))] if wanted is not None else []
+    goal_text = [labelled(ctx.t("labels.goal"), kcal_text(wanted))] if wanted is not None else []
     ctx.log("Calories chart shown")
-    return View(text="\n".join(goal_line + lines), photo=photo)
+    return View(text="\n".join(goal_text + lines), photo=photo)
 
 
 # ----- settings -----
