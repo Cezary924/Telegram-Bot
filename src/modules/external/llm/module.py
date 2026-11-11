@@ -29,8 +29,8 @@ module = Module(name="llm", place=20, is_guarded=True, is_assistant=True,
 priority = -100
 continue_within = 15 * 60
 ask_within = 60 * 60
-history_messages = 30
-history_characters = 24000
+history_messages = 20
+history_characters = 10000
 edit_every = 3.0
 tick = 1.5
 message_limit = 4096
@@ -39,6 +39,7 @@ live_tail = 3500
 thinking_tail = 300
 timeouts = (10, 900)
 conversation_key = "conversation"
+window_key = "window"
 last_key = "last_at"
 thinking_key = "thinking"
 pending_prefix = "pending."
@@ -102,6 +103,10 @@ def settings_table(ctx: Ctx | JobCtx) -> str:
     return ctx.db.table("settings")
 
 
+def contexts_table(ctx: Ctx) -> str:
+    return ctx.db.table("contexts")
+
+
 def is_chat(text: str) -> bool:
     return bool(text.strip()) and not text.startswith("/")
 
@@ -137,15 +142,24 @@ def remember(ctx: Ctx, conversation: int, role: str, content: str) -> int:
                            datetime.now().isoformat(timespec="seconds"))).lastrowid or 0
 
 
-def remember_action(ctx: Ctx, conversation: int, tool: str, arguments: dict, said: dict) -> None:
-    remember(ctx, conversation, action_role, json.dumps({'tool': tool, 'arguments': arguments, 'said': said},
-                                                        ensure_ascii=False, default=str))
+def remember_action(ctx: Ctx, conversation: int, tool: str, arguments: dict, said: dict, call: str = "") -> None:
+    done = {'tool': tool, 'arguments': arguments, 'said': said} | ({'call': call} if call else {})
+    remember(ctx, conversation, action_role, json.dumps(done, ensure_ascii=False, default=str))
 
 
-def replayed(row: sqlite3.Row) -> list[dict]:
+def heard(ctx: Ctx, moment: str, context: str | None, content: str) -> str:
+    about = "" if context is None else \
+        "[" + bare(ctx, "prompt.context") + ":\n" + (context or bare(ctx, "prompt.nothing")) + "]\n\n"
+    return "[" + bare(ctx, "prompt.now") + ": " + clock(ctx, moment) + "]\n" + about + content
+
+
+def replayed(ctx: Ctx, row: sqlite3.Row, context: str | None) -> list[dict]:
+    if row['role'] == "user":
+        return [{'role': "user", 'content': heard(ctx, row['created_at'], context, row['content'])}]
     if row['role'] != action_role:
         return [{'role': row['role'], 'content': row['content']}]
-    done, call = json.loads(row['content']), "call_" + str(row['id'])
+    done = json.loads(row['content'])
+    call = done.get('call') or "call_" + str(row['id'])
     return [{'role': "assistant", 'content': None,
              'tool_calls': [{'id': call, 'type': "function",
                              'function': {'name': done['tool'],
@@ -154,16 +168,33 @@ def replayed(row: sqlite3.Row) -> list[dict]:
              'content': json.dumps(done['said'], ensure_ascii=False)}]
 
 
-def history(ctx: Ctx, conversation: int) -> list[dict]:
-    rows = ctx.db.query_all("SELECT id, role, content FROM " + table(ctx) + " WHERE user_id = ? AND conversation = ? "
-                            "ORDER BY id DESC LIMIT ?;", (ctx.user.id, conversation, history_messages))
+def weight(row: sqlite3.Row) -> int:
+    return len(row['content']) + len(row['context'] or "")
+
+
+def trimmed(rows: list[sqlite3.Row]) -> list[sqlite3.Row]:
     kept, total = [], 0
-    for row in rows:
-        total += len(row['content'])
-        if kept and total > history_characters:
+    for row in reversed(rows):
+        total += weight(row)
+        if kept and (len(kept) >= history_messages // 2 or total > history_characters // 2):
             break
-        kept.append(replayed(row))
-    return [message for messages in reversed(kept) for message in messages]
+        kept.append(row)
+    kept.reverse()
+    return kept[next((index for index, row in enumerate(kept) if row['role'] == "user"), 0):]
+
+
+def window(ctx: Ctx, conversation: int) -> list[sqlite3.Row]:
+    kept = (ctx.state.get(window_key) or "").split(":")
+    start = int(kept[1]) if len(kept) == 2 and kept[0] == str(conversation) and kept[1].isdigit() else 0
+    rows = ctx.db.query_all("SELECT m.id, m.role, m.content, m.created_at, c.content AS context FROM " + table(ctx) +
+                            " m LEFT JOIN " + contexts_table(ctx) + " c ON c.message_id = m.id "
+                            "WHERE m.user_id = ? AND m.conversation = ? AND m.id >= ? ORDER BY m.id;",
+                            (ctx.user.id, conversation, start))
+    if len(rows) <= history_messages and sum(weight(row) for row in rows) <= history_characters:
+        return rows
+    rows = trimmed(rows)
+    ctx.state.set(window_key, str(conversation) + ":" + str(rows[0]['id']))
+    return rows
 
 
 # ----- media -----
@@ -354,18 +385,29 @@ def gather(calls: dict[int, dict], pieces: list[dict]) -> None:
         call['arguments'] += given if isinstance(given, str) else json.dumps(given, ensure_ascii=False)
 
 
+def reading(event: dict) -> dict:
+    timings, usage = event.get('timings') or {}, event.get('usage') or {}
+    took = timings.get('prompt_ms', usage.get('timing_prompt_processing'))
+    found = {'tokens': usage.get('prompt_tokens'), 'computed': timings.get('prompt_n'),
+             'cached': timings.get('cache_n', (usage.get('prompt_tokens_details') or {}).get('cached_tokens')),
+             'seconds': round(took / 1000, 2) if isinstance(took, (int, float)) else None}
+    return {key: value for key, value in found.items() if value is not None}
+
+
 def stream(ctx: Ctx, messages: list[dict], thinking: bool,
            tools: list[dict] | None = None) -> Iterator[tuple[str, str | list[dict]]]:
-    headers = {'Authorization': "Bearer " + ctx.token("llm_key")} if ctx.has_token("llm_key") else {}
+    headers = {'Extra-Usage': "true"}
+    if ctx.has_token("llm_key"):
+        headers['Authorization'] = "Bearer " + ctx.token("llm_key")
     payload = {'model': ctx.setting("llm_model") or "", 'messages': messages, 'stream': True,
-               'chat_template_kwargs': {'enable_thinking': thinking}}
+               'stream_options': {'include_usage': True}, 'chat_template_kwargs': {'enable_thinking': thinking}}
     if not thinking:
         payload['reasoning_effort'] = "none"
     if tools:
         payload['tools'] = tools
     url = (ctx.setting("llm_url") or "").rstrip("/") + "/chat/completions"
     calls: dict[int, dict] = {}
-    finished = ""
+    finished, read = "", {}
     with requests.post(url, json=payload, headers=headers, stream=True, timeout=timeouts) as response:
         response.raise_for_status()
         for raw in response.iter_lines():
@@ -376,6 +418,7 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool,
             if data == "[DONE]":
                 break
             event = json.loads(data)
+            read |= reading(event)
             if event.get('type') == "mcp_tool_result":
                 calls.clear()
                 finished = ""
@@ -392,6 +435,8 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool,
             if delta.get('content'):
                 yield "answer", delta['content']
             finished = first.get('finish_reason') or finished
+    if read:
+        ctx.log("Prompt " + ", ".join(key + " " + str(value) for key, value in read.items()))
     if finished == "tool_calls" and calls:
         yield "calls", [call | {'id': call['id'] or "call_" + uuid.uuid4().hex[:12]}
                         for _, call in sorted(calls.items())]
@@ -439,35 +484,35 @@ def entry(ctx: Ctx, found: Module) -> str:
         bare(ctx, found.name + ":" + found.description)
 
 
-def clock(ctx: Ctx) -> str:
-    now = datetime.now().astimezone()
+def clock(ctx: Ctx, moment: str) -> str:
+    now = datetime.fromisoformat(moment).astimezone()
     offset = now.strftime("%z")
     return now.strftime(date_format) + ", " + bare(ctx, "weekdays." + weekdays[now.weekday()]) + ", " + \
         (now.tzname() or "") + " (UTC" + offset[:3] + ":" + offset[3:] + ")"
 
 
+def others(ctx: Ctx) -> list[Module]:
+    return [found for found in ctx.assistant.modules() if found.name != module.name]
+
+
 def prompt(ctx: Ctx, is_acting: bool) -> str:
-    others = [found for found in ctx.assistant.modules() if found.name != module.name]
-    listed = [line for line in (entry(ctx, found) for found in others) if line]
-    known = [(found, ctx.assistant.context(found.name)) for found in others
-             if found.summary is not None and is_open(ctx, found.name)]
-    known = ["[" + bare(ctx, found.name + ":" + found.title) + "]\n" + text for found, text in known if text]
-    name = " ".join(part for part in (ctx.user.first_name, ctx.user.last_name) if part)
+    listed = [line for line in (entry(ctx, found) for found in others(ctx)) if line]
     parts = [(ctx.setting("llm_prompt") or "").strip(),
-             bare(ctx, "prompt.modules") + ":\n" + "\n".join(listed) if listed else "",
-             bare(ctx, "prompt.actions") if is_acting else "",
              bare(ctx, "prompt.rules"),
-             bare(ctx, "prompt.user") + ": " + name + ", " + bare(ctx, "core:language_label"),
-             bare(ctx, "prompt.context") + ":\n" + "\n".join(known) if known else ""]
+             bare(ctx, "prompt.modules") + ":\n" + "\n".join(listed) if listed else "",
+             bare(ctx, "prompt.actions") if is_acting else ""]
     return "\n\n".join(part for part in parts if part)
 
 
-def stamped(ctx: Ctx, message: dict) -> dict:
-    line = "[" + bare(ctx, "prompt.now") + ": " + clock(ctx) + "]\n"
-    content = message['content']
-    if isinstance(content, str):
-        return message | {'content': line + content}
-    return message | {'content': [{'type': "text", 'text': line + content[0]['text']}] + content[1:]}
+def whom(ctx: Ctx) -> str:
+    name = " ".join(part for part in (ctx.user.first_name, ctx.user.last_name) if part)
+    return "[" + bare(ctx, "prompt.user") + ": " + name + ", " + bare(ctx, "core:language_label") + "]\n"
+
+
+def context_of(ctx: Ctx) -> str:
+    known = [(found, ctx.assistant.context(found.name)) for found in others(ctx)
+             if found.summary is not None and is_open(ctx, found.name)]
+    return "\n".join("[" + bare(ctx, found.name + ":" + found.title) + "]\n" + text for found, text in known if text)
 
 
 def told(outcome: Outcome) -> dict:
@@ -521,7 +566,7 @@ def perform(ctx: Ctx, conversation: int, found: Module, action: Action, call: di
                              buttons=[Button(ctx.t("core:yes_button"), "confirm", key),
                                       Button(ctx.t("core:no_button"), "cancel", key)])
     said = told(outcome)
-    done.append((action.tool, arguments, said))
+    done.append((action.tool, arguments, said, call['id']))
     ctx.log("Action " + action.tool + " " + said['status'])
     return said
 
@@ -594,47 +639,58 @@ def folded(ctx: Ctx, thinking: str, room: int) -> str:
     if not shown or room < 200:
         return ""
     title = ctx.t("reasoning")
-    return "<blockquote expandable>" + escape(title + "\n" + tail(shown, room - len(title) - 60)) + "</blockquote>\n"
+    return "\n<blockquote expandable>" + escape(title + "\n" + tail(shown, room - len(title) - 60)) + "</blockquote>"
 
 
 def delivered(ctx: Ctx, thinking: str, answer: str) -> list[str]:
     parts = [to_html(part) for part in parts_of(answer.strip())]
-    return [folded(ctx, thinking, message_limit - len(parts[0]) - 100) + parts[0]] + parts[1:]
+    return parts[:-1] + [parts[-1] + folded(ctx, thinking, message_limit - len(parts[-1]) - 100)]
 
 
-def talk(ctx: Ctx, conversation: int, live: int | None, attached: list[dict]) -> None:
+def talk(ctx: Ctx, conversation: int, asked: int, live: int | None, attached: list[dict]) -> None:
     actions = offered(ctx)
     tools = {action.tool: (found, action) for found, action in actions}
     described = tools_for(ctx, actions)
-    messages: list[dict] = [{'role': "system", 'content': prompt(ctx, bool(actions))}] + history(ctx, conversation)
+    rows, known = window(ctx, conversation), context_of(ctx)
+    contexts = {}
+    if known != next((row['context'] for row in reversed(rows) if row['context'] is not None), ""):
+        ctx.db.execute("INSERT INTO " + contexts_table(ctx) + " (message_id, content) VALUES (?, ?);", (asked, known))
+        contexts[asked] = known
+    messages: list[dict] = [{'role': "system", 'content': prompt(ctx, bool(actions))}] + \
+        [message for row in rows for message in replayed(ctx, row, contexts.get(row['id'], row['context']))]
     thinks = is_thinking(ctx)
-    asked = max((index for index, each in enumerate(messages) if each['role'] == "user"), default=None)
-    if asked is not None:
+    spoken = [index for index, each in enumerate(messages) if each['role'] == "user"]
+    if spoken:
+        messages[spoken[0]]['content'] = whom(ctx) + messages[spoken[0]]['content']
         if attached:
-            messages[asked]['content'] = [{'type': "text", 'text': messages[asked]['content']}] + attached
-        messages[asked] = stamped(ctx, messages[asked])
+            messages[spoken[-1]]['content'] = [{'type': "text", 'text': messages[spoken[-1]]['content']}] + attached
     rounds, failures, done, asking = [{'thinking': "", 'answer': ""}], [], [], {}
 
     def read() -> None:
-        is_waiting = False
+        is_waiting, is_refused = False, False
         try:
-            for number in range(tool_rounds + 1):
+            for number in range(tool_rounds + 2):
                 calls: list[dict] = []
-                offer = described if number < tool_rounds and not is_waiting else None
-                for kind, piece in stream(ctx, messages, thinks, offer):
+                may_call, has_answer = number < tool_rounds and not is_waiting and not is_refused, False
+                for kind, piece in stream(ctx, messages, thinks, described):
                     latest = rounds[-1]
                     if isinstance(piece, list):
                         calls = [call for call in piece if call['name'] in tools]
                     elif kind != "tool":
                         latest[kind] += piece
+                        has_answer = has_answer or (kind == "answer" and bool(piece.strip()))
                     elif latest['answer'].strip():
                         rounds.append({'thinking': "", 'answer': ""})
                     elif latest['thinking'].strip() and not latest['thinking'].endswith("\n\n"):
                         latest['thinking'] = latest['thinking'].rstrip() + "\n\n"
-                if not calls or number == tool_rounds:
+                if not calls or (not may_call and (has_answer or is_refused)):
                     return
-                results = [perform(ctx, conversation, *tools[call['name']], call, done, asking) for call in calls]
-                is_waiting = all(result['status'] == "pending_confirmation" for result in results)
+                if may_call:
+                    results = [perform(ctx, conversation, *tools[call['name']], call, done, asking) for call in calls]
+                    is_waiting = all(result['status'] == "pending_confirmation" for result in results)
+                else:
+                    results = [{'status': "refused", 'problem': bare(ctx, "prompt.answer_now")} for _ in calls]
+                    is_refused = True
                 messages.append({'role': "assistant", 'content': None, 'tool_calls': [wired(call) for call in calls]})
                 messages.extend({'role': "tool", 'tool_call_id': call['id'], 'name': call['name'],
                                  'content': json.dumps(result, ensure_ascii=False, default=str)}
@@ -660,8 +716,8 @@ def talk(ctx: Ctx, conversation: int, live: int | None, attached: list[dict]) ->
             ctx.edit(live, live_text(ctx, showing['thinking'], showing['answer'], frame))
             edited = time.monotonic()
     answers = [] if failures else [each['answer'].strip() for each in rounds if each['answer'].strip()]
-    for tool, arguments, said in done:
-        remember_action(ctx, conversation, tool, arguments, said)
+    for tool, arguments, said, called in done:
+        remember_action(ctx, conversation, tool, arguments, said, called)
     if answers:
         remember(ctx, conversation, "assistant", "\n\n".join(answers))
     if failures:
@@ -721,7 +777,7 @@ def respond(ctx: Ctx, conversation: int, items: list[dict]) -> tuple[int, list[t
         return None
     asked = remember(ctx, conversation, "user", "\n".join(text for _, text, _ in prepared))
     ctx.state.set(last_key, datetime.now().isoformat(timespec="seconds"))
-    talk(ctx, conversation, live, [part for _, _, parts in prepared for part in parts])
+    talk(ctx, conversation, asked, live, [part for _, _, parts in prepared for part in parts])
     return asked, prepared
 
 

@@ -15,21 +15,32 @@ from core.testing import make_callback, make_message, not_none
 from modules.external.llm import module as llm
 
 real_stream = llm.stream
+whose = re.compile(r"^\[(?:The user|Użytkownik): [^\n]*]\n")
 stamp = re.compile(r"^\[(?:Now it is|Teraz jest): [^\n\]]*]\n")
+about = re.compile(r"^\[(?:What the modules know about the user|Co moduły wiedzą o użytkowniku):\n(.*?)]\n\n",
+                   re.DOTALL)
 other_modules = ("bmi", "bodytracker", "breathalyser", "calculator", "calories", "counter", "drinktracker",
                  "foodtracker")
 
 
-def unstamped(message: dict, clocks: list[str]) -> dict:
+def unstamped(message: dict, clocks: list[str], contexts: list[str], users: list[str]) -> dict:
     content = message['content']
     if message['role'] != "user":
         return dict(message)
     text = content if isinstance(content, str) else content[0]['text']
+    named = whose.match(text)
+    if named is not None:
+        users.append(named.group(0))
+        text = text[named.end():]
     found = stamp.match(text)
     if found is None:
         return dict(message)
     clocks.append(found.group(0))
     rest = text[found.end():]
+    known = about.match(rest)
+    if known is not None:
+        contexts.append(known.group(1))
+        rest = rest[known.end():]
     return message | {'content': rest if isinstance(content, str) else [content[0] | {'text': rest}] + content[1:]}
 
 
@@ -38,6 +49,9 @@ class Model:
         self.asked: list[list[dict]] = []
         self.systems: list[str] = []
         self.clocks: list[str] = []
+        self.contexts: list[list[str]] = []
+        self.users: list[str] = []
+        self.raw: list[list[dict]] = []
         self.tools: list[list[dict] | None] = []
         self.thinking: list[bool] = []
         self.answer: list[tuple] = [("answer", "Hello there")]
@@ -46,7 +60,10 @@ class Model:
 
     def stream(self, _ctx, messages, thinking, tools=None):
         self.systems += [one['content'] for one in messages if one['role'] == "system"]
-        self.asked.append([unstamped(one, self.clocks) for one in messages if one['role'] != "system"])
+        self.raw.append([dict(one) for one in messages])
+        self.contexts.append([])
+        self.asked.append([unstamped(one, self.clocks, self.contexts[-1], self.users) for one in messages
+                           if one['role'] != "system"])
         self.tools.append(tools)
         self.thinking.append(thinking)
         if self.error is not None:
@@ -192,13 +209,21 @@ def test_thinking_is_off_by_default_and_on_when_chosen(chat, bot, model):
     assert model.thinking == [False, True]
 
 
-def test_thinking_is_folded_above_the_answer(chat, bot, model):
+def test_thinking_is_folded_below_the_answer(chat, bot, model):
     chat.storage.module_state.set(1, "llm", "thinking", "1")
     model.answer = [("thinking", "Two and <two>"), ("answer", "Four")]
     say(chat, "2+2?")
-    assert bot.last.text.startswith("<blockquote expandable>💭 Reasoning\n")
-    assert "Two and &lt;two&gt;</blockquote>\nFour" in bot.last.text
+    assert bot.last.text == "Four\n<blockquote expandable>💭 Reasoning\nTwo and &lt;two&gt;</blockquote>"
     assert stored(chat)[-1] == (1, "assistant", "Four")
+
+
+def test_a_long_answer_ends_with_the_thinking(chat, bot, model):
+    chat.storage.module_state.set(1, "llm", "thinking", "1")
+    model.answer = [("thinking", "Counting."), ("answer", "\n\n".join(["word " * 300] * 4))]
+    say(chat, "count")
+    parts = answers(bot)
+    assert len(parts) > 1 and all("blockquote" not in part for part in parts[:-1])
+    assert parts[0].startswith("word") and parts[-1].endswith("Counting.</blockquote>")
 
 
 def test_thinking_keeps_quiet_about_the_instructions():
@@ -213,7 +238,8 @@ def test_shown_thinking_leaves_out_the_instructions(chat, bot, model):
     chat.storage.module_state.set(1, "llm", "thinking", "1")
     model.answer = [("thinking", "Adding up. The system prompt tells me to be brief."), ("answer", "Four")]
     say(chat, "2+2?")
-    assert "Adding up.</blockquote>\nFour" in bot.last.text and "prompt" not in bot.last.text
+    assert bot.last.text.startswith("Four\n") and bot.last.text.endswith("Adding up.</blockquote>")
+    assert "prompt" not in bot.last.text
     model.answer = [("thinking", "My instructions say to be brief."), ("answer", "Four")]
     say(chat, "2+2?")
     assert bot.last.text == "Four"
@@ -236,7 +262,7 @@ def test_the_dots_move_while_the_model_is_silent(chat, bot, monkeypatch):
     assert {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."} <= set(shown)
     assert {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"} <= set(shown)
     assert {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"} <= set(shown)
-    assert bot.last.text.endswith("</blockquote>\nFour")
+    assert bot.last.text.startswith("Four\n<blockquote expandable>")
 
 
 def test_text_before_a_search_stays_in_its_own_message(chat, bot, model):
@@ -276,7 +302,7 @@ def test_thinking_around_a_search_is_parted_by_a_blank_line(chat, bot, model):
                     ("answer", "Four")]
     say(chat, "2+2?")
     assert len(answers(bot)) == 1
-    assert "First I search.\n\nNow I know.</blockquote>\nFour" in bot.last.text
+    assert bot.last.text.startswith("Four\n") and bot.last.text.endswith("First I search.\n\nNow I know.</blockquote>")
 
 
 def test_a_long_answer_comes_in_several_messages(chat, bot, model):
@@ -558,11 +584,48 @@ def test_the_new_conversation_button_starts_over(chat, bot, model):
     assert model.asked[-1] == [{'role': "user", 'content': "second"}]
 
 
-def test_the_history_keeps_to_its_size(chat, bot, model, monkeypatch):
-    monkeypatch.setattr(llm, "history_characters", 25)
+def test_the_history_is_cut_by_half_once_full_and_then_only_grows(chat, bot, model, monkeypatch):
+    monkeypatch.setattr(llm, "history_characters", 45)
+    for text in ["a" * 10, "b" * 10, "c" * 10, "d" * 10]:
+        say(chat, text)
+    assert [len(asked) for asked in model.asked] == [1, 3, 1, 3]
+    assert [one['content'] for one in model.asked[-1]] == ["c" * 10, "Hello there", "d" * 10]
+
+
+def test_the_history_is_cut_by_count_too(chat, bot, model, monkeypatch):
+    monkeypatch.setattr(llm, "history_messages", 4)
+    for text in ["a", "b", "c", "d"]:
+        say(chat, text)
+    assert [len(asked) for asked in model.asked] == [1, 3, 1, 3]
+
+
+def test_a_resumed_conversation_gets_its_own_window(chat, bot, model, monkeypatch):
+    monkeypatch.setattr(llm, "history_characters", 45)
     for text in ["a" * 10, "b" * 10, "c" * 10]:
         say(chat, text)
-    assert [one['content'] for one in model.asked[-1]] == ["Hello there", "c" * 10]
+    press(chat, "llm:fresh")
+    say(chat, "new")
+    press(chat, "llm:resume:1")
+    say(chat, "d" * 10)
+    assert [one['content'] for one in model.asked[-1]] == ["c" * 10, "Hello there", "d" * 10]
+
+
+def prefix_kept(before: list[dict], after: list[dict]) -> bool:
+    return after[:len(before)] == before
+
+
+def test_each_turn_starts_with_the_whole_previous_one(chat, bot, model):
+    model.script = [[("answer", "One")], calls(("reminder_list", {})), [("answer", "Nothing set")],
+                    calls(("reminder_add", {'content': "Results", 'date': tomorrow()})), [("answer", "Confirm")],
+                    [("answer", "Three")], [("answer", "Four")]]
+    for text in ["first", "what is set?", "remind me tomorrow"]:
+        say(chat, text)
+    press(chat, "llm:confirm:" + pending_key(chat))
+    for text in ["next", "last"]:
+        say(chat, text)
+    turns = [model.raw[0], model.raw[2], model.raw[4], model.raw[5], model.raw[6]]
+    assert all(prefix_kept(before, after) for before, after in zip(turns, turns[1:]))
+    assert all(tools == model.tools[0] for tools in model.tools)
 
 
 # ----- settings -----
@@ -892,7 +955,41 @@ def test_the_stream_is_read_as_server_sent_events(chat, monkeypatch):
     assert sent['url'] == "http://model.local/v1/chat/completions"
     assert sent['json']['model'] == "small" and sent['json']['stream'] is True
     assert sent['json']['chat_template_kwargs'] == {'enable_thinking': True}
+    assert sent['json']['stream_options'] == {'include_usage': True}
     assert "reasoning_effort" not in sent['json']
+
+
+@pytest.mark.parametrize("event, found", [
+    ({'timings': {'prompt_n': 12, 'cache_n': 3400, 'prompt_ms': 512.4}}, {'computed': 12, 'cached': 3400,
+                                                                          'seconds': 0.51}),
+    ({'usage': {'prompt_tokens': 3469, 'timing_prompt_processing': 2678.1}}, {'tokens': 3469, 'seconds': 2.68}),
+    ({'usage': {'prompt_tokens': 90, 'prompt_tokens_details': {'cached_tokens': 80}}}, {'tokens': 90, 'cached': 80}),
+    ({'choices': [{'delta': {'content': "Hi"}}]}, {})])
+def test_the_reading_of_the_prompt_comes_from_either_server(event, found):
+    assert llm.reading(event) == found
+
+
+def test_the_reading_of_the_prompt_is_logged(chat, monkeypatch, capsys):
+    wire(chat, monkeypatch, ['data: {"choices":[{"delta":{"content":"Hi"}}]}',
+                             'data: {"choices":[],"usage":{"prompt_tokens":3469,"timing_prompt_processing":2678.1}}',
+                             "data: [DONE]"])
+    assert "Prompt tokens 3469, seconds 2.68: First (1)." in capsys.readouterr().out
+
+
+def test_a_call_without_words_where_none_is_wanted_is_refused_once(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Results", 'date': tomorrow()})),
+                    calls(("reminder_list", {})), [("answer", "Confirm it below.")]]
+    say(chat, "remind me")
+    assert len(model.asked) == 3 and model.tools[2] == model.tools[0]
+    assert results(model, 2)[-1]['status'] == "refused"
+    assert answers(bot)[-2] == "Confirm it below." and len(stored(chat)) == 3
+
+
+def test_calls_in_the_last_round_are_left_undone(chat, bot, model):
+    model.answer = calls(("reminder_list", {})) + [("answer", "Here")]
+    say(chat, "loop")
+    assert len(model.asked) == llm.tool_rounds + 1
+    assert len(results(model, llm.tool_rounds)) == llm.tool_rounds
 
 
 def test_thinking_off_is_asked_for_in_both_ways(chat, monkeypatch):
@@ -917,13 +1014,13 @@ def test_the_stream_is_read_as_utf_8_whatever_the_server_claims(chat, monkeypatc
 
 def test_no_key_is_sent_when_none_is_set(chat, monkeypatch):
     sent, _ = wire(chat, monkeypatch, ["data: [DONE]"])
-    assert sent['headers'] == {}
+    assert sent['headers'] == {'Extra-Usage': "true"}
 
 
 def test_a_key_is_sent_when_one_is_set(chat, monkeypatch):
     configure(chat, monkeypatch, {'llm_key': "not-a-real-key"}, llm_url="http://model.local/v1", llm_model="small")
     sent, _ = wire(chat, monkeypatch, ["data: [DONE]"])
-    assert sent['headers'] == {'Authorization': "Bearer not-a-real-key"}
+    assert sent['headers'] == {'Extra-Usage': "true", 'Authorization': "Bearer not-a-real-key"}
 
 
 def test_a_broken_line_from_the_server_counts_as_no_answer(chat, bot, monkeypatch):
@@ -1021,18 +1118,18 @@ def test_the_system_prompt_tells_the_modules_the_user_and_the_time(chat, bot, mo
     system = model.systems[0]
     assert "/reminder - 🔔 Reminders - Reminds you about anything at the time you set" in system
     assert "/llm" not in system and "/admin" not in system
-    assert "The user: First Last, 🇬🇧 English" in system
+    assert "The user:" not in system and model.users[0] == "[The user: First Last, 🇬🇧 English]\n"
     assert "Now it is" not in system
     assert model.asked[0] == [{'role': "user", 'content': "hello"}]
 
 
-def test_the_time_comes_with_the_message_and_stays_out_of_the_history(chat, bot, model):
+def test_each_message_keeps_the_time_it_was_written_and_the_store_keeps_none(chat, bot, model):
     say(chat, "hello")
     assert model.clocks[0].startswith("[Now it is: " + datetime.now().strftime("%Y-%m-%d"))
     assert model.clocks[0].endswith(")]\n")
     assert stored(chat)[0] == (1, "user", "hello")
     say(chat, "again")
-    assert len(model.clocks) == 2
+    assert len(model.clocks) == 3 and model.clocks[1] == model.clocks[0]
 
 
 def test_the_time_comes_with_a_photo_too(chat, bot, model):
@@ -1046,13 +1143,21 @@ def test_the_configured_prompt_comes_first(chat, bot, model, monkeypatch):
     configure(chat, monkeypatch, llm_url="http://model.local/v1", llm_model="small", llm_prompt="You are Gemma.\n")
     say(chat, "hello")
     system = model.systems[0]
-    assert system.startswith("You are Gemma.\n\nModules of this Telegram bot")
+    assert system.startswith("You are Gemma.\n\nNumbers, ids and names of the tools")
+    assert system.index("Numbers, ids") < system.index("Modules of this Telegram bot") < system.index("With the tools")
+
+
+def test_the_user_is_named_once_at_the_start_of_the_history(chat, bot, model):
+    for text in ["hello", "again"]:
+        say(chat, text)
+    assert model.users == ["[The user: First Last, 🇬🇧 English]\n"] * 2
+    assert model.raw[1][1] == model.raw[0][1]
 
 
 def test_the_prompt_is_in_the_language_of_the_user(chat, bot, model):
     chat.storage.settings.set_language(1, "pl")
     say(chat, "cześć")
-    assert "Użytkownik: First Last, 🇵🇱 Polski" in model.systems[0]
+    assert model.users[0] == "[Użytkownik: First Last, 🇵🇱 Polski]\n"
     assert "/reminder - 🔔 Przypomnienia - " in model.systems[0]
 
 
@@ -1089,8 +1194,19 @@ def test_the_context_of_the_modules_goes_into_the_prompt(chat, bot, model):
     say(chat, "remind me")
     press(chat, "llm:confirm:" + pending_key(chat))
     say(chat, "what is next?")
-    assert "What the modules know about the user:\n[🔔 Reminders]\nThe next reminders:\n" + tomorrow() + \
-        " - Collect <the> results" in model.systems[-1]
+    assert model.contexts[-1][-1].startswith("[🔔 Reminders]\nThe next reminders:\n" + tomorrow() +
+                                             " - Collect <the> results")
+    assert "What the modules know" not in model.systems[-1]
+
+
+def test_the_context_comes_again_only_when_it_changes(chat, bot, model):
+    model.script = [calls(("reminder_add", {'content': "Results", 'date': tomorrow()})), [("answer", "Confirm.")]]
+    say(chat, "remind me")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    say(chat, "what is next?")
+    say(chat, "and after that?")
+    assert len(model.contexts[-1]) == 1 and model.contexts[-1] == model.contexts[-2]
+    assert stored(chat)[-2][2] == "and after that?"
 
 
 def test_a_read_only_action_runs_and_its_result_goes_back(chat, bot, model):
@@ -1133,7 +1249,7 @@ def pending_key(app) -> str:
 def test_adding_a_reminder_waits_for_the_buttons(chat, bot, model):
     add_reminder(model)
     say(chat, "remind me tomorrow at 3 pm to collect the results")
-    assert len(model.asked) == 2 and model.tools[1] is None
+    assert len(model.asked) == 2 and model.tools[1] == model.tools[0]
     assert reminders(chat) == []
     asked = bot.sent[-1]
     assert asked.text == ("<b>🔔 Reminders:</b>\n\nDo you want me to set this reminder?\nContent: <i>Collect the "
@@ -1249,11 +1365,22 @@ def test_a_module_switched_off_in_the_settings_gives_nothing(chat, bot, model):
     press(chat, "llm:share:reminder")
     assert bot.last.buttons[0] == ("⬜ 🔔 Reminders", "llm:share:reminder")
     say(chat, "what is next?")
-    assert tool_names(model, -1) == [] and "The next reminders" not in model.systems[-1]
+    assert tool_names(model, -1) == [] and model.contexts[-1] == []
     press(chat, "llm:share:reminder")
     say(chat, "and now?")
     assert tool_names(model, -1) == ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
-    assert "The next reminders" in model.systems[-1]
+    assert "The next reminders" in model.contexts[-1][-1]
+
+
+def test_a_module_switched_off_later_says_there_is_nothing_anymore(chat, bot, model):
+    add_reminder(model)
+    say(chat, "remind me tomorrow")
+    press(chat, "llm:confirm:" + pending_key(chat))
+    say(chat, "what is next?")
+    chat.storage.module_state.set(1, "llm", "off.reminder", "1")
+    say(chat, "and now?")
+    assert len(model.contexts[-1]) == 2 and "The next reminders" in model.contexts[-1][0]
+    assert model.contexts[-1][1] == "nothing anymore"
 
 
 def test_only_a_module_with_something_for_the_assistant_can_be_switched(chat, bot, model):
@@ -1265,8 +1392,11 @@ def test_only_a_module_with_something_for_the_assistant_can_be_switched(chat, bo
 def test_the_rounds_of_tools_are_capped(chat, bot, model):
     model.answer = calls(("reminder_list", {}))
     say(chat, "loop")
-    assert len(model.asked) == llm.tool_rounds + 1
-    assert [bool(tools) for tools in model.tools] == [True] * llm.tool_rounds + [False]
+    assert len(model.asked) == llm.tool_rounds + 2
+    assert all(tools == model.tools[0] for tools in model.tools)
+    assert results(model, llm.tool_rounds + 1)[-1] == {'status': "refused", 'problem': "No more tools now - answer "
+                                                                                       "the user with what you "
+                                                                                       "already know"}
     assert answers(bot) == ["The language model returned nothing 🤷"]
 
 
@@ -1439,7 +1569,7 @@ def test_after_only_confirmations_the_model_answers_the_rest_without_tools(chat,
     model.script = [calls(("reminder_add", {'content': "Results", 'date': tomorrow()})),
                     [("answer", "And yes, it will be sunny.")]]
     say(chat, "remind me tomorrow, and will it be sunny?")
-    assert len(model.asked) == 2 and model.tools[0] and model.tools[1] is None
+    assert len(model.asked) == 2 and model.tools[0] and model.tools[1] == model.tools[0]
     assert results(model) == [{'status': "pending_confirmation", 'summary': "Do you want me to set this reminder?\n"
                                "Content: Results\nDate: " + tomorrow()}]
     assert answers(bot)[-2] == "And yes, it will be sunny."
