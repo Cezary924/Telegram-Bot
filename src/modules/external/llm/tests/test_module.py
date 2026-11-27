@@ -246,22 +246,31 @@ def test_shown_thinking_leaves_out_the_instructions(chat, bot, model):
 
 
 def test_the_dots_move_while_the_model_is_silent(chat, bot, monkeypatch):
+    analyzing = {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."}
+    thinking = {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"}
+    writing = {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"}
+
+    def shown() -> set[str]:
+        return {message.text for message in bot.edited}
+
+    def until(texts: set[str]) -> None:
+        deadline = time.monotonic() + 5
+        while not texts <= shown() and time.monotonic() < deadline:
+            time.sleep(0.005)
+
     def slow(_ctx, _messages, _thinking, _tools=None):
-        time.sleep(0.1)
+        until(analyzing)
         yield "thinking", "hmm"
-        time.sleep(0.1)
+        until(thinking)
         yield "answer", "Fo"
-        time.sleep(0.1)
+        until(writing)
         yield "answer", "ur"
 
     monkeypatch.setattr(llm, "stream", slow)
     monkeypatch.setattr(llm, "tick", 0.01)
     monkeypatch.setattr(llm, "edit_every", 0.01)
     say(chat, "2+2?")
-    shown = [message.text for message in bot.edited]
-    assert {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."} <= set(shown)
-    assert {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"} <= set(shown)
-    assert {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"} <= set(shown)
+    assert analyzing <= shown() and thinking <= shown() and writing <= shown()
     assert bot.last.text.startswith("Four\n<blockquote expandable>")
 
 
