@@ -11,7 +11,7 @@ import time
 import uuid
 from collections.abc import Iterator
 from datetime import datetime, timedelta
-from urllib.parse import parse_qs, urljoin, urlsplit, urlunsplit
+from urllib.parse import SplitResult, parse_qs, urljoin, urlsplit, urlunsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -576,13 +576,18 @@ def page_text(data: bytes, kind: str) -> tuple[str, str]:
     return title, tidy(root.get_text())
 
 
+def is_on(parts: SplitResult, *domains: str) -> bool:
+    host = parts.hostname or ""
+    return any(host == domain or host.endswith("." + domain) for domain in domains)
+
+
 def unwrapped(link: str) -> str:
     parts = urlsplit(link)
     query = parse_qs(parts.query)
-    if parts.netloc.endswith("duckduckgo.com") and query.get('uddg'):
+    if is_on(parts, "duckduckgo.com") and query.get('uddg'):
         return query['uddg'][0]
     coded = (query.get('u') or [""])[0][2:]
-    if parts.netloc.endswith("bing.com") and coded:
+    if is_on(parts, "bing.com") and coded:
         try:
             return base64.urlsafe_b64decode(coded + "=" * (-len(coded) % 4)).decode()
         except (ValueError, UnicodeDecodeError):
@@ -598,7 +603,7 @@ def results_from(page: str, items: str, title: str, snippet: str) -> list[dict]:
             continue
         url = unwrapped(str(link.get('href') or ""))
         parts = urlsplit(url)
-        if parts.scheme not in ("http", "https") or parts.netloc.endswith(("duckduckgo.com", "bing.com")):
+        if parts.scheme not in ("http", "https") or is_on(parts, "duckduckgo.com", "bing.com"):
             continue
         results.append({'title': " ".join(link.get_text().split()), 'url': url,
                         'snippet': shortened(text.get_text() if text else "", snippet_size)})
