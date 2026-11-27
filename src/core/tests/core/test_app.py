@@ -9,7 +9,7 @@ from core.app import App, quiet_restart, stopped_key, told_key
 from core.db.storage import Storage
 from core.module import Module
 from core.roles import Role
-from core.testing import FakeBot, make_message
+from core.testing import FakeBot, make_message, printed
 from core.version import Version
 from core.tests.conftest import fixtures_dir, fixtures_package
 
@@ -131,7 +131,7 @@ def test_a_job_reaches_its_handler_through_the_scheduler(app, capsys):
     job = app.scheduler.find("module2.job1")
     assert job is not None and job.interval == 3600 and not job.is_aligned
     job.handler()
-    assert "Tick in 'module2'." in capsys.readouterr().out
+    assert "Tick in 'module2'." in printed(capsys)
 
 
 def test_publishing_commands_survives_a_refusing_bot(app, capsys):
@@ -142,7 +142,7 @@ def test_publishing_commands_survives_a_refusing_bot(app, capsys):
 
     app.services.bot.set_my_commands = refuse
     app.publish_commands()
-    assert "Could not publish the command list - RuntimeError." in capsys.readouterr().out
+    assert "Could not publish the command list - RuntimeError." in printed(capsys)
 
 
 def test_notifying_admins_survives_a_blocked_chat(app, capsys):
@@ -154,7 +154,7 @@ def test_notifying_admins_survives_a_blocked_chat(app, capsys):
 
     app.services.bot.send_message = refuse
     app.notify_admins("bot_started")
-    assert "Could not notify the admin - RuntimeError." in capsys.readouterr().out
+    assert "Could not notify the admin - RuntimeError." in printed(capsys)
 
 
 def test_stopping_closes_everything(app):
@@ -195,7 +195,7 @@ def test_a_restart_nobody_was_told_about_stays_quiet(app, bot, capsys):
     app.storage.state.set(told_key, "0")
     app.announce_start()
     assert bot.sent == []
-    assert "so nobody is told the Bot is back" in capsys.readouterr().out
+    assert "so nobody is told the Bot is back" in printed(capsys)
 
 
 def test_a_shutdown_the_admin_heard_about_is_paired_with_its_return(app, bot):

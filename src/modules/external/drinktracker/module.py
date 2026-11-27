@@ -294,11 +294,15 @@ def insert(ctx: Ctx, drink: dict, food: str | None) -> int:
 
 def drink_lines(ctx: Ctx, drink: dict, food: str | None) -> list[str]:
     grams = grams_of(drink['volume'], drink['strength'])
-    lines = [labelled(ctx.t("labels.drink"), kind_name(ctx, drink['kind'], drink['volume'], drink['strength'])),
-             labelled(ctx.t("labels.when"), datetime.fromisoformat(drink['when']).strftime(moment_format)),
-             labelled(ctx.t("labels.alcohol"), "{:.1f} g".format(grams)),
-             labelled(ctx.t("labels.energy"), "{:.0f} kcal".format(kcal_of(drink['kind'], drink['volume'], grams)))]
-    return lines + ([labelled(ctx.t("food"), ctx.t("food_level." + food))] if food else [])
+    kind = kind_name(ctx, drink['kind'], drink['volume'], drink['strength'])
+    lines: list[str] = [labelled(ctx.t("labels.drink"), kind),
+                        labelled(ctx.t("labels.when"), datetime.fromisoformat(drink['when']).strftime(moment_format)),
+                        labelled(ctx.t("labels.alcohol"), "{:.1f} g".format(grams)),
+                        labelled(ctx.t("labels.energy"), "{:.0f} kcal".format(kcal_of(drink['kind'], drink['volume'],
+                                                                                      grams)))]
+    if food:
+        lines.append(labelled(ctx.t("food"), ctx.t("food_level." + food)))
+    return lines
 
 
 def saved_text(ctx: Ctx, drink: dict, added: int) -> str:

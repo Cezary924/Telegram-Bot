@@ -70,7 +70,8 @@ def moment_line(axes: Axes, moment: datetime, text: str) -> None:
                   color=palette['muted'], fontsize=8)
 
 
-def colored_runs(points: list[tuple[float, float]], edges: list[float], coloring: Callable[[float], str]) -> list[Run]:
+def colored_runs(points: list[tuple[float, float]], edges: Sequence[float],
+                 coloring: Callable[[float], str]) -> list[Run]:
     found: list[Run] = []
     for (x0, y0), (x1, y1) in zip(points, points[1:]):
         cuts = sorted(cut for cut in ((limit - y0) / (y1 - y0) for limit in edges if y0 != y1) if 0 < cut < 1)
@@ -83,7 +84,7 @@ def colored_runs(points: list[tuple[float, float]], edges: list[float], coloring
     return found
 
 
-def colored_line(axes: Axes, points: list[tuple[datetime, float]], edges: list[float],
+def colored_line(axes: Axes, points: list[tuple[datetime, float]], edges: Sequence[float],
                  coloring: Callable[[float], str]) -> None:
     for xs, ys, color in colored_runs([(date2num(moment), value) for moment, value in points], edges, coloring):
         axes.plot([num2date(x).replace(tzinfo=None) for x in xs], ys, color=color, linewidth=2)

@@ -260,7 +260,9 @@ def gone(ctx: Ctx) -> View:
 @module.context()
 def summary(ctx: Ctx) -> str:
     day = date.today().isoformat()
-    food, drunk, wanted = daily(ctx, date.today()).get(day, 0.0), alcohol(ctx, date.today()).get(day, 0.0), goal(ctx)
+    food = daily(ctx, date.today()).get(day, 0.0)
+    drunk = alcohol(ctx, date.today()).get(day, 0.0)
+    wanted = goal(ctx)
     if not food and not drunk and wanted is None:
         return ""
     lines = [labelled(ctx.t("context.today"), kcal_text(food + drunk))

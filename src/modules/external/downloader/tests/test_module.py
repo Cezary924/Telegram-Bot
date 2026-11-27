@@ -1,13 +1,12 @@
 import json
 import os
-from typing import cast
 
 import pytest
 from yt_dlp import YoutubeDL
 from yt_dlp.networking import Request
 
 from core.api import Role
-from core.testing import make_callback, make_message
+from core.testing import make_callback, make_message, printed
 from modules.external.downloader import module as downloader
 
 link1 = "https://example.com/watch?v=1"
@@ -103,7 +102,7 @@ def test_a_failure_without_ffmpeg_names_the_reason(app, bot, monkeypatch, capsys
 
     monkeypatch.setattr(downloader, "download", fail)
     send(app, link1)
-    assert "ffmpeg is missing or does not run" in capsys.readouterr().out
+    assert "ffmpeg is missing or does not run" in printed(capsys)
 
 
 def test_a_failure_with_ffmpeg_says_nothing_about_it(app, bot, monkeypatch, capsys):
@@ -114,7 +113,7 @@ def test_a_failure_with_ffmpeg_says_nothing_about_it(app, bot, monkeypatch, caps
 
     monkeypatch.setattr(downloader, "download", fail)
     send(app, link1)
-    assert "ffmpeg" not in capsys.readouterr().out
+    assert "ffmpeg" not in printed(capsys)
 
 
 def test_a_failure_is_reported(app, bot, monkeypatch):
@@ -499,7 +498,7 @@ class Web:
 
 
 def as_tool(fake) -> YoutubeDL:
-    return cast(YoutubeDL, fake)
+    return fake
 
 
 def tiktok_page(*urls: str) -> bytes:
@@ -607,7 +606,7 @@ def test_pictures_come_as_one_album_and_films_after_them(mixed_post, bot, capsys
     send(mixed_post, link1)
     assert bot.albums == [["00.jpg", "01.jpg"]]
     assert [(file.kind, file.name) for file in bot.files] == [("video", "film.mp4")]
-    assert "Downloaded 2 photos, a video" in capsys.readouterr().out
+    assert "Downloaded 2 photos, a video" in printed(capsys)
 
 
 def test_a_post_of_pictures_only_is_sent_without_asking(app, bot, monkeypatch):
@@ -623,5 +622,5 @@ def test_a_post_of_pictures_only_is_sent_without_asking(app, bot, monkeypatch):
 @pytest.mark.parametrize("pieces, expected", [
     ([("a", "video")], "a video"), ([("a", "audio")], "a sound"),
     ([("a", "photo"), ("b", "photo"), ("c", "video")], "2 photos, a video")])
-def test_the_log_counts_what_was_sent(pieces, expected):
+def test_the_log_counts_what_was_sent(pieces: list[tuple[str, str]], expected: str):
     assert downloader.summary(pieces) == expected

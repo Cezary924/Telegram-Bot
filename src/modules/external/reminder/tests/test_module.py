@@ -386,7 +386,7 @@ def test_adding_asks_with_what_it_would_set(app, bot):
 
 def test_adding_sets_the_reminder_once_confirmed(app, bot):
     date = later()
-    done = reminder.act_add(as_user(app), content1, date).then()
+    done = not_none(reminder.act_add(as_user(app), content1, date).then)()
     assert done.startswith("The reminder has been set ✅\nContent:")
     assert [(row['user_id'], row['content'], row['date']) for row in rows(app)] == [(1, content1, date)]
 
@@ -414,7 +414,7 @@ def test_deleting_asks_and_deletes_once_confirmed(app, bot):
     outcome = reminder.act_delete(as_user(app), 1)
     assert outcome.status == "asking" and str(outcome.result).startswith("Do you really want to delete this reminder?")
     assert len(rows(app)) == 1
-    assert outcome.then() == "The reminder has been deleted ✅"
+    assert not_none(outcome.then)() == "The reminder has been deleted ✅"
     assert rows(app) == []
 
 
@@ -441,22 +441,22 @@ def test_editing_asks_with_the_reminder_as_it_would_be(app, bot):
     assert outcome.result == ("Do you want me to change the reminder into this?\nContent: <i>" + content1 +
                               "</i>\nDate: <i>" + date + "</i>")
     assert rows(app)[0]['date'] == first
-    assert outcome.then().startswith("The reminder has been changed ✅")
+    assert not_none(outcome.then)().startswith("The reminder has been changed ✅")
     assert (rows(app)[0]['content'], rows(app)[0]['date']) == (content1, date)
 
 
 def test_editing_the_content_keeps_the_date(app, bot):
     date = set_one(app, bot)
-    reminder.act_edit(as_user(app), 1, " " + content2 + " ", None).then()
+    not_none(reminder.act_edit(as_user(app), 1, " " + content2 + " ", None).then)()
     assert (rows(app)[0]['content'], rows(app)[0]['date']) == (content2, date)
 
 
 def test_a_new_date_lets_a_sent_reminder_ring_again(app, bot):
     set_one(app, bot)
     app.storage.database.execute("UPDATE " + table_of(app) + " SET is_notified = 1;")
-    reminder.act_edit(as_user(app), 1, content2, None).then()
+    not_none(reminder.act_edit(as_user(app), 1, content2, None).then)()
     assert rows(app)[0]['is_notified'] == 1
-    reminder.act_edit(as_user(app), 1, None, later(3)).then()
+    not_none(reminder.act_edit(as_user(app), 1, None, later(3)).then)()
     assert rows(app)[0]['is_notified'] == 0
 
 

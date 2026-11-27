@@ -26,7 +26,7 @@ pip install -r requirements.txt
    telegram_username: nazwa_uzytkownika_telegram
    ```
    > Nazwę użytkownika wpisz bez ```@```. Osoba, do której należy, zostaje pierwszym Administratorem Bota, o ile żadnego
-   Administratora jeszcze nie ma.
+   > Administratora jeszcze nie ma.
     - plik ```tokens.yaml``` w folderze *config* i wprowadź do niego poniższy kod:
    ```
    telegram: token_telegram

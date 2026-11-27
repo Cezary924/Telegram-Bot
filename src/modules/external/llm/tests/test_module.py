@@ -11,7 +11,7 @@ import pytest
 import requests
 
 from core.api import Ctx, JobCtx, Module, Outcome, Role, User
-from core.testing import make_callback, make_message, not_none
+from core.testing import make_callback, make_message, not_none, printed
 from modules.external.llm import module as llm
 
 real_stream = llm.stream
@@ -973,7 +973,7 @@ def test_the_reading_of_the_prompt_is_logged(chat, monkeypatch, capsys):
     wire(chat, monkeypatch, ['data: {"choices":[{"delta":{"content":"Hi"}}]}',
                              'data: {"choices":[],"usage":{"prompt_tokens":3469,"timing_prompt_processing":2678.1}}',
                              "data: [DONE]"])
-    assert "Prompt tokens 3469, seconds 2.68: First (1)." in capsys.readouterr().out
+    assert "Prompt tokens 3469, seconds 2.68: First (1)." in printed(capsys)
 
 
 def test_a_call_without_words_where_none_is_wanted_is_refused_once(chat, bot, model):

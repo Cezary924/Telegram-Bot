@@ -2,7 +2,7 @@ import pytest
 
 from core.context import JobCtx
 from core.module import Module
-from core.testing import FakeBot
+from core.testing import FakeBot, printed
 from core.ui.view import View
 
 
@@ -51,9 +51,9 @@ def test_send_respects_the_notification_setting(job_ctx, services, user):
 
 def test_log_names_the_module(job_ctx, capsys):
     job_ctx.log("Tick")
-    assert "Tick in 'module1'." in capsys.readouterr().out
+    assert "Tick in 'module1'." in printed(capsys)
 
 
 def test_error_names_the_module(job_ctx, capsys):
     job_ctx.error("Something broke")
-    assert "ERROR: Something broke in 'module1'." in capsys.readouterr().out
+    assert "ERROR: Something broke in 'module1'." in printed(capsys)

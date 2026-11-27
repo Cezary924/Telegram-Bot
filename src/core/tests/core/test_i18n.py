@@ -1,6 +1,7 @@
 import pytest
 
 from core.i18n import Catalog, flatten, load_locale_file
+from core.testing import printed
 from core.ui.html import Html, italic
 
 escaped_newline = "\\n"
@@ -77,14 +78,14 @@ def test_another_namespace_can_be_named_explicitly(catalog):
 
 def test_missing_key_is_returned_as_is(catalog, capsys):
     assert catalog.text("module1", "key9", "en") == "module1:key9"
-    assert "Missing translation" in capsys.readouterr().out
+    assert "Missing translation" in printed(capsys)
 
 
 def test_missing_key_is_reported_only_once(catalog, capsys):
     catalog.text("module1", "key9", "en")
     capsys.readouterr()
     catalog.text("module1", "key9", "en")
-    assert capsys.readouterr().out == ""
+    assert printed(capsys) == ""
 
 
 def test_values_are_formatted_in(catalog):

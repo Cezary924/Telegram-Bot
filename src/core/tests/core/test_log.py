@@ -1,35 +1,36 @@
 import sys
 
 from core import log
+from core.testing import printed
 
 
 def test_print_log_frames_the_info(capsys):
     log.print_log("Something happened.")
-    out = capsys.readouterr().out
+    out = printed(capsys)
     assert "Something happened." in out
     assert out.rstrip().endswith("|" + "=" * (log.line_length - 2) + "|")
 
 
 def test_print_log_includes_ascii_message(capsys):
     log.print_log("URL received.", "https://example.com")
-    assert "'https://example.com'" in capsys.readouterr().out
+    assert "'https://example.com'" in printed(capsys)
 
 
 def test_print_log_skips_non_ascii_message(capsys):
     log.print_log("Message received.", "zażółć gęślą jaźń")
-    assert "zażółć" not in capsys.readouterr().out
+    assert "zażółć" not in printed(capsys)
 
 
 def test_print_error_prefixes(capsys):
     log.print_error("Module error - TikTok.")
-    assert "ERROR: Module error - TikTok." in capsys.readouterr().out
+    assert "ERROR: Module error - TikTok." in printed(capsys)
 
 
 def test_print_banner(capsys):
     log.print_banner("Bot", True)
-    assert "Bot has been started." in capsys.readouterr().out
+    assert "Bot has been started." in printed(capsys)
     log.print_banner("Bot", False)
-    assert "Bot has been stopped." in capsys.readouterr().out
+    assert "Bot has been stopped." in printed(capsys)
 
 
 def test_loading_frame_has_constant_width():
@@ -56,7 +57,7 @@ def test_logger_writes_to_file_and_terminal(tmp_path, capsys):
     logger.flush()
     logger.close()
     assert path.read_text() == "hello\n"
-    assert capsys.readouterr().out.endswith("hello\n")
+    assert printed(capsys).endswith("hello\n")
 
 
 def test_logger_names_its_own_file(tmp_path, monkeypatch):
@@ -84,7 +85,7 @@ def test_writing_after_closing_reaches_the_terminal_only(tmp_path, monkeypatch, 
     logger.close()
     logger.write("text1")
     logger.flush()
-    assert "text1" in capsys.readouterr().out
+    assert "text1" in printed(capsys)
 
 
 def test_closing_twice_is_harmless(tmp_path, monkeypatch):
@@ -104,9 +105,9 @@ def test_what_is_held_waits_for_the_release(tmp_path, monkeypatch, capsys):
     logger.hold()
     logger.write("first")
     logger.write("second")
-    assert capsys.readouterr().out == ""
+    assert printed(capsys) == ""
     logger.release()
-    assert capsys.readouterr().out == "firstsecond"
+    assert printed(capsys) == "firstsecond"
 
 
 def test_a_direct_write_jumps_the_queue(tmp_path, monkeypatch, capsys):
@@ -116,7 +117,7 @@ def test_a_direct_write_jumps_the_queue(tmp_path, monkeypatch, capsys):
     with logger.direct():
         logger.write("banner")
     logger.release()
-    assert capsys.readouterr().out == "bannerqueued"
+    assert printed(capsys) == "bannerqueued"
 
 
 def test_holding_carries_on_after_a_direct_write(tmp_path, monkeypatch, capsys):
@@ -125,9 +126,9 @@ def test_holding_carries_on_after_a_direct_write(tmp_path, monkeypatch, capsys):
     with logger.direct():
         logger.write("banner")
     logger.write("still queued")
-    assert capsys.readouterr().out == "banner"
+    assert printed(capsys) == "banner"
     logger.release()
-    assert capsys.readouterr().out == "still queued"
+    assert printed(capsys) == "still queued"
 
 
 def test_nothing_is_lost_when_the_logger_closes_while_holding(tmp_path, monkeypatch, capsys):
@@ -135,14 +136,14 @@ def test_nothing_is_lost_when_the_logger_closes_while_holding(tmp_path, monkeypa
     logger.hold()
     logger.write("queued")
     logger.close()
-    assert "queued" in capsys.readouterr().out
+    assert "queued" in printed(capsys)
     assert list(tmp_path.glob("log_*.log"))[0].read_text() == "queued"
 
 
 def test_writing_without_holding_goes_straight_out(tmp_path, monkeypatch, capsys):
     logger = make_logger(tmp_path, monkeypatch)
     logger.write("now")
-    assert capsys.readouterr().out == "now"
+    assert printed(capsys) == "now"
 
 
 def test_the_file_carries_the_lines_before_the_logger_closes(tmp_path, monkeypatch):
@@ -172,7 +173,7 @@ def test_a_token_never_reaches_the_log(capsys):
     log.print_error("Could not notify the admin - ConnectionError.",
                     "HTTPSConnectionPool(host='api.telegram.org', port=443): Max retries "
                     "exceeded with url: /bot" + pretend_token + "/sendMessage?chat_id=1")
-    out = capsys.readouterr().out
+    out = printed(capsys)
     assert pretend_token not in out
     assert "bot<hidden>/sendMessage" in out
 
@@ -180,6 +181,6 @@ def test_a_token_never_reaches_the_log(capsys):
 def test_a_bare_token_never_reaches_the_log(capsys):
     log.print_error("Polling stopped - ApiException.",
                     "A request to the Telegram API was unsuccessful. Token is " + pretend_token)
-    out = capsys.readouterr().out
+    out = printed(capsys)
     assert pretend_token not in out
     assert "Token is <hidden>" in out

@@ -135,7 +135,7 @@ def quoted_keys(node, prefix: str = "") -> list[str]:
 def repeated_keys(node, prefix: str = "") -> list[str]:
     if not isinstance(node, yaml.MappingNode):
         return []
-    names = [name.value for name, _ in node.value]
+    names: list[str] = [name.value for name, _ in node.value]
     found = [prefix + name for name in sorted(set(names)) if names.count(name) > 1]
     return found + [key for name, value in node.value for key in repeated_keys(value, prefix + name.value + ".")]
 

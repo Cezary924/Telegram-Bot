@@ -1,6 +1,7 @@
 import threading
 
 from core.scheduler import Scheduler
+from core.testing import printed
 
 
 def test_no_jobs_starts_nothing():
@@ -69,7 +70,7 @@ def test_a_failing_job_keeps_running(capsys):
     scheduler.start()
     assert done.wait(2)
     scheduler.stop()
-    assert "Job failed in 'job1' - RuntimeError." in capsys.readouterr().out
+    assert "Job failed in 'job1' - RuntimeError." in printed(capsys)
 
 
 def test_one_failing_job_does_not_stop_another():

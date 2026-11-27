@@ -9,7 +9,11 @@ from core.db.storage import Storage
 from core.utils import not_none
 
 __all__ = ["FakeBot", "SentFile", "SentMessage", "make_callback", "make_message", "make_storage",
-           "not_none", "reachable_date"]
+           "not_none", "printed", "reachable_date"]
+
+
+def printed(capsys) -> str:
+    return capsys.readouterr().out
 
 
 def make_storage() -> Storage:

@@ -1,6 +1,7 @@
 import itertools
 import math
 import re
+from collections.abc import Sequence
 from datetime import date, datetime, timedelta
 
 from core.api import (Answers, Button, Ctx, Module, Outcome, Problem, Question, View, age_limits, bold, labelled,
@@ -90,7 +91,8 @@ def advance(drinks: list[tuple[float, float, str]], factor: float, rate: float, 
 def simulate(drinks: list[tuple[float, float, str]], factor: float, elimination: float) -> list[tuple[float, float]]:
     last = max((start for start, _, _ in drinks), default=0.0)
     rate = burning(drinks, elimination)
-    level, points = 0.0, [(0.0, 0.0)]
+    level = 0.0
+    points: list[tuple[float, float]] = [(0.0, 0.0)]
     while points[-1][0] < horizon_hours:
         previous = points[-1][0]
         moment = previous + step_hours
@@ -102,7 +104,7 @@ def simulate(drinks: list[tuple[float, float, str]], factor: float, elimination:
     return points
 
 
-def level_at(points: list[tuple[float, float]], hours: float) -> float:
+def level_at(points: Sequence[tuple[float, float]], hours: float) -> float:
     return next((level for moment, level in points if moment >= hours), 0.0)
 
 
@@ -239,13 +241,13 @@ def curve_of(ctx: Ctx, drinks: list, body: tuple) -> tuple[datetime, list[tuple[
 def report_lines(ctx: Ctx, first: datetime, points: list[tuple[float, float]], now: datetime) -> list[str]:
     sober = first + timedelta(hours=points[-1][0])
     top_moment, top = peak(points)
-    lines = [labelled(ctx.t("labels.peak"), shown_level(top) + ", " + (first + timedelta(hours=top_moment))
-                      .strftime(moment_format)),
-             labelled(ctx.t("labels.sober"), sober.strftime(moment_format))]
+    peaks = (first + timedelta(hours=top_moment)).strftime(moment_format)
+    lines: list[str] = [labelled(ctx.t("labels.peak"), shown_level(top) + ", " + peaks),
+                        labelled(ctx.t("labels.sober"), sober.strftime(moment_format))]
     if now < sober:
         current = level_at(points, (now - first).total_seconds() / 3600)
-        lines = [labelled(ctx.t("labels.now"), shown_level(current)),
-                 labelled(ctx.t("labels.level"), ctx.t("level." + level_name(current)))] + lines
+        lines[:0] = [labelled(ctx.t("labels.now"), shown_level(current)),
+                     labelled(ctx.t("labels.level"), ctx.t("level." + level_name(current)))]
     return lines
 
 
@@ -364,9 +366,9 @@ def estimated(ctx: Ctx, answers: Answers) -> View:
                       elimination_of(ctx))
     ctx.close_screen()
     ctx.log("Alcohol estimated")
-    return View(text="\n".join(report_lines(ctx, first, points, datetime.now())
-                               + ["", *inputs(ctx, answers, first, drinks), "", limits_text(ctx), "",
-                                  ctx.t("warning")]), photo=drawing(ctx, first, points),
+    lines = report_lines(ctx, first, points, datetime.now())
+    lines += [""] + inputs(ctx, answers, first, drinks) + ["", limits_text(ctx), "", ctx.t("warning")]
+    return View(text="\n".join(lines), photo=drawing(ctx, first, points),
                 buttons=save_buttons(ctx, answers))
 
 

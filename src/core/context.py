@@ -125,7 +125,7 @@ def heading_for(services: Services, module_name: str, view, language: str) -> li
     module = services.registry.get(module_name)
     if module is None:
         return []
-    segments = [services.catalog.text(module_name, module.title, language)]
+    segments: list[str] = [services.catalog.text(module_name, module.title, language)]
     hub = hub_for(services, module, view.name)
     if hub is not None:
         segments[:0] = [services.catalog.text(hub.name, hub.title, language)] + \
@@ -199,8 +199,8 @@ def send_album_to(services: Services, user_id: int, pictures: list[str]) -> None
         try:
             for picture in group:
                 handles.append(open(picture, 'rb'))
-            bot.send_media_group(user_id, [telebot.types.InputMediaPhoto(telebot.types.InputFile(handle))
-                                           for handle in handles])
+            album: list = [telebot.types.InputMediaPhoto(telebot.types.InputFile(handle)) for handle in handles]
+            bot.send_media_group(user_id, album)
         finally:
             for handle in handles:
                 handle.close()

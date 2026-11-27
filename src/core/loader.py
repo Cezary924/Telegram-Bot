@@ -24,7 +24,8 @@ def discover(directory: str) -> list[str]:
     if not os.path.isdir(directory):
         return []
     names = []
-    for name in sorted(os.listdir(directory)):
+    entries: list[str] = os.listdir(directory)
+    for name in sorted(entries):
         path = os.path.join(directory, name)
         if name.startswith("_") or not os.path.isdir(path):
             continue

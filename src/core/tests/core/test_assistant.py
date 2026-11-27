@@ -3,7 +3,7 @@ import pytest
 from core.context import Ctx, User
 from core.module import Module, Outcome
 from core.roles import Role
-from core.testing import not_none
+from core.testing import not_none, printed
 
 
 def person(role: Role = Role.GUEST) -> User:
@@ -128,7 +128,7 @@ def test_access_taken_away_stops_a_confirmed_action(assistant, services, user, s
 
 def test_a_failing_action_is_refused_and_logged(assistant, capsys):
     assert assistant.act("notes", "broken", {}) == Outcome.refused("Error. Please, try again later.")
-    assert "Action failed in 'notes' - RuntimeError." in capsys.readouterr().out
+    assert "Action failed in 'notes' - RuntimeError." in printed(capsys)
 
 
 def test_the_context_is_plain_and_short(assistant, monkeypatch):
@@ -143,10 +143,14 @@ def test_the_context_needs_access(assistant, services, user):
     assert assistant.context("talker") == "" and assistant.context("missing") == ""
 
 
+def failing(_ctx):
+    raise ZeroDivisionError("division by zero")
+
+
 def test_a_failing_context_is_left_out(assistant, notes, capsys):
-    notes.summary = lambda ctx: 1 / 0
+    notes.summary = failing
     assert assistant.context("notes") == ""
-    assert "Context failed in 'notes' - ZeroDivisionError." in capsys.readouterr().out
+    assert "Context failed in 'notes' - ZeroDivisionError." in printed(capsys)
 
 
 def test_an_optional_argument_left_out_comes_as_none(assistant):

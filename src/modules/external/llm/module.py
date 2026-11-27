@@ -300,7 +300,8 @@ def converted(ctx: Ctx, data: bytes, arguments: list[str], output: str) -> list[
         if done.returncode != 0:
             raise Unreadable(done.stderr.decode("utf-8", "replace")[-300:])
         results = []
-        for name in sorted(os.listdir(path)):
+        names: list[str] = os.listdir(path)
+        for name in sorted(names):
             if name != "source":
                 with open(os.path.join(path, name), "rb") as handle:
                     results.append(handle.read())

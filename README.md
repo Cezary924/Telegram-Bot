@@ -26,7 +26,7 @@ pip install -r requirements.txt
    telegram_username: your_telegram_username
    ```
    > Write the username without the ```@```. The person it belongs to becomes the first Administrator of the Bot, as
-   long as there is no Administrator yet.
+   > long as there is no Administrator yet.
     - the ```tokens.yaml``` file in the *config* folder and write the following code to it:
    ```
    telegram: your_telegram_token
