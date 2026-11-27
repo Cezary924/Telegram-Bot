@@ -67,10 +67,6 @@ media:
   document: Plik
   sticker: Naklejka
   animation: GIF
-  video: Film
-  video_note: Wiadomość wideo
-  voice: Wiadomość głosowa
-  audio: Nagranie
   location: Lokalizacja
   venue: Miejsce
   contact: Kontakt
@@ -78,8 +74,7 @@ media:
   dice: Rzut
 describe:
   picture: Opisz w jednym lub dwóch zdaniach, co jest na tym obrazie. Odpowiedz samym opisem.
-  film: Opisz w jednym lub dwóch zdaniach, co dzieje się na tym filmie - to jego kolejne klatki, czasem też dźwięk. Odpowiedz samym opisem.
-  sound: Napisz w jednym lub dwóch zdaniach, co jest powiedziane na tym nagraniu albo co na nim słychać. Odpowiedz samym opisem.
+  film: Opisz w jednym lub dwóch zdaniach, co dzieje się na tym filmie - to jego kolejne klatki. Odpowiedz samym opisem.
 
 modules: Moduły
 modules_text: Asystent czyta, co te moduły o Tobie wiedzą, i działa w nich, gdy go poprosisz. Dotknij modułu, żeby go wpuścić albo wykluczyć

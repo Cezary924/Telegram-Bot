@@ -444,50 +444,50 @@ def test_a_file_telegram_will_not_give_is_unreadable(chat, bot, model):
     assert model.asked == []
 
 
-def test_a_voice_message_goes_as_sound(chat, bot, model, monkeypatch):
-    bot.downloads["voice1"] = b"ogg1"
+@pytest.mark.parametrize("media", [{'voice': {'file_id': "v1", 'file_unique_id': "v1", 'duration': 4}},
+                                   {'audio': {'file_id': "a1", 'file_unique_id': "a1", 'duration': 4}},
+                                   {'video': {'file_id': "v1", 'file_unique_id': "v1", 'width': 9, 'height': 6,
+                                              'duration': 8}},
+                                   {'video_note': {'file_id': "n1", 'file_unique_id': "n1", 'length': 9,
+                                                   'duration': 8}}])
+def test_voice_and_video_messages_get_the_usual_fallback(chat, bot, model, media):
+    send(chat, media, "what is it?")
+    assert answers(bot) == ["Sorry, I do not understand... 💔"]
+    assert model.asked == [] and stored(chat) == []
+
+
+@pytest.mark.parametrize("mime", ["video/mp4", "audio/mpeg"])
+def test_a_video_or_sound_file_is_refused_before_it_is_downloaded(chat, bot, model, mime):
+    send(chat, {'document': {'file_id': "doc1", 'file_unique_id': "doc1", 'file_name': "clip",
+                             'mime_type': mime, 'file_size': 12}})
+    assert answers(bot) == ["I cannot read this kind of file yet 🤷"]
+    assert model.asked == [] and stored(chat) == []
+
+
+def gif(file_id: str = "gif1") -> dict:
+    return {'animation': {'file_id': file_id, 'file_unique_id': file_id, 'width': 9, 'height': 6, 'duration': 8}}
+
+
+def test_a_gif_goes_as_frames(chat, bot, model, monkeypatch):
+    bot.downloads["gif1"] = b"mp4"
     seen = []
 
     def convert(_ctx, data, arguments, output):
         seen.append((data, output, arguments))
-        return [b"wav1"]
+        return [b"f1", b"f2"]
 
     monkeypatch.setattr(llm, "converted", convert)
-    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
-    assert seen[0][:2] == (b"ogg1", "sound.wav") and "16000" in seen[0][2]
-    assert model.asked[0][-1]['content'][1] == {'type': "input_audio",
-                                                'input_audio': {'data': base64.b64encode(b"wav1").decode(),
-                                                                'format': "wav"}}
-    assert model.asked[1][0]['content'][0]['text'].startswith("Write in one or two sentences what is said")
-
-
-def test_a_video_goes_as_frames_and_its_sound(chat, bot, model, monkeypatch):
-    bot.downloads["video1"] = b"mp4"
-    monkeypatch.setattr(llm, "converted", lambda _ctx, _data, _arguments, output:
-                        [b"f1", b"f2"] if output.startswith("frame") else [b"wav1"])
-    send(chat, {'video': {'file_id': "video1", 'file_unique_id': "video1", 'width': 9, 'height': 6, 'duration': 8}})
-    kinds = [part['type'] for part in model.asked[0][-1]['content']]
-    assert kinds == ["text", "image_url", "image_url", "input_audio"]
-
-
-def test_a_video_without_sound_still_goes_as_frames(chat, bot, model, monkeypatch):
-    bot.downloads["video1"] = b"mp4"
-
-    def convert(_ctx, _data, _arguments, output):
-        if output == "sound.wav":
-            raise llm.Unreadable("no audio stream")
-        return [b"f1"]
-
-    monkeypatch.setattr(llm, "converted", convert)
-    send(chat, {'video': {'file_id': "video1", 'file_unique_id': "video1", 'width': 9, 'height': 6, 'duration': 8}})
-    assert [part['type'] for part in model.asked[0][-1]['content']] == ["text", "image_url"]
+    send(chat, gif())
+    assert seen[0][:2] == (b"mp4", "frame%d.jpg") and "fps=4/8,scale='min(768,iw)':-2" in seen[0][2]
+    assert model.asked[0][-1]['content'][1:] == [picture(b"f1"), picture(b"f2")]
+    assert model.asked[1][0]['content'][0]['text'].startswith("Describe in one or two sentences what happens")
 
 
 def test_a_conversion_that_fails_is_unreadable(chat, bot, model, monkeypatch):
-    bot.downloads["voice1"] = b"ogg1"
+    bot.downloads["gif1"] = b"mp4"
     failed = SimpleNamespace(returncode=1, stderr=b"bad data")
     monkeypatch.setattr(llm.subprocess, "run", lambda *_args, **_values: failed)
-    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    send(chat, gif())
     assert answers(bot) == ["I could not read this message 💔"]
     assert model.asked == []
 
@@ -496,9 +496,9 @@ def test_a_conversion_without_ffmpeg_is_unreadable(chat, bot, model, monkeypatch
     def missing(*_args, **_values):
         raise FileNotFoundError("ffmpeg")
 
-    bot.downloads["voice1"] = b"ogg1"
+    bot.downloads["gif1"] = b"mp4"
     monkeypatch.setattr(llm.subprocess, "run", missing)
-    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    send(chat, gif())
     assert answers(bot) == ["I could not read this message 💔"]
 
 

@@ -67,10 +67,6 @@ media:
   document: File
   sticker: Sticker
   animation: GIF
-  video: Video
-  video_note: Video message
-  voice: Voice message
-  audio: Recording
   location: Location
   venue: Place
   contact: Contact
@@ -78,8 +74,7 @@ media:
   dice: Roll
 describe:
   picture: Describe in one or two sentences what is in this picture. Answer with the description only.
-  film: Describe in one or two sentences what happens in this video - these are its frames in order, sometimes with its sound. Answer with the description only.
-  sound: Write in one or two sentences what is said in this recording or what can be heard in it. Answer with the description only.
+  film: Describe in one or two sentences what happens in this video - these are its frames in order. Answer with the description only.
 
 modules: Modules
 modules_text: The assistant reads what these modules know about you and acts in them when you ask. Tap a module to let it in or keep it out

@@ -54,12 +54,10 @@ keep_choices = [0, 7, 30, 90]
 default_keep = 90
 forget_every = 60 * 60
 date_format = "%Y-%m-%d %H:%M"
-media_kinds = ("photo", "document", "sticker", "animation", "video", "video_note", "voice", "audio", "location",
-               "venue", "contact", "poll", "dice")
-filed_kinds = ("animation", "video", "video_note", "voice", "audio", "document")
+media_kinds = ("photo", "document", "sticker", "animation", "location", "venue", "contact", "poll", "dice")
+filed_kinds = ("animation", "document")
 frames_per_film = 4
 frame_scale = "scale='min(768,iw)':-2"
-sound_seconds = 180
 writing_size = 1024 * 1024
 writing_characters = 12000
 description_size = 300
@@ -287,11 +285,10 @@ def family(item: dict) -> str:
     if kind == "photo" or (kind == "sticker" and item['form'] == "static") or \
             (kind == "document" and mime.startswith("image/")):
         return "picture"
-    if kind in ("video", "animation", "video_note") or (kind == "sticker" and item['form'] == "video") or \
-            (kind == "document" and mime.startswith("video/")):
+    if kind == "animation" or (kind == "sticker" and item['form'] == "video"):
         return "film"
-    if kind in ("voice", "audio") or (kind == "document" and mime.startswith("audio/")):
-        return "sound"
+    if kind == "document" and mime.startswith(("video/", "audio/")):
+        return "recording"
     return "file" if kind == "document" else "words"
 
 
@@ -352,19 +349,12 @@ def picture_part(data: bytes, mime: str) -> dict:
     return {'type': "image_url", 'image_url': {'url': "data:" + mime + ";base64," + base64.b64encode(data).decode()}}
 
 
-def sound_part(data: bytes) -> dict:
-    return {'type': "input_audio", 'input_audio': {'data': base64.b64encode(data).decode(), 'format': "wav"}}
-
-
-def sound_of(ctx: Ctx, data: bytes) -> list[dict]:
-    arguments = ["-vn", "-ac", "1", "-ar", "16000", "-t", str(sound_seconds)]
-    return [sound_part(sound) for sound in converted(ctx, data, arguments, "sound.wav")]
-
-
 def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:
     kind, what = item['kind'], family(item)
     if what == "words":
         return note(ctx, item), []
+    if what == "recording":
+        raise Unsupported(item['mime'])
     if item.get('size', 0) > ctx.download_limit:
         raise TooBig(kind)
     data = ctx.download(item['file_id'])
@@ -379,15 +369,7 @@ def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:
         rate = "fps=" + str(frames_per_film) + "/" + str(item['duration']) if item.get('duration') else "fps=2"
         frames = converted(ctx, data, ["-vf", rate + "," + frame_scale, "-frames:v", str(frames_per_film)],
                            "frame%d.jpg")
-        parts = [picture_part(frame, "image/jpeg") for frame in frames]
-        if kind in ("video", "video_note", "document"):
-            try:
-                parts += sound_of(ctx, data)
-            except Unreadable:
-                pass
-        return note(ctx, item), parts
-    if what == "sound":
-        return note(ctx, item), sound_of(ctx, data)
+        return note(ctx, item), [picture_part(frame, "image/jpeg") for frame in frames]
     if len(data) > writing_size or b"\0" in data:
         raise Unsupported(item.get('mime') or kind)
     try:
