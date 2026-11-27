@@ -1929,6 +1929,7 @@ def test_a_short_result_is_kept_whole_in_the_history():
 def test_the_web_rules_come_with_the_web_tools_only(chat, bot, model, monkeypatch):
     say(chat, "hello")
     assert "With the web tools you search the web" in model.systems[-1]
+    assert "Count relative times (in 20 minutes, tomorrow, on Monday)" in model.systems[-1]
     offered = llm.offered
     monkeypatch.setattr(llm, "offered", lambda ctx: [pair for pair in offered(ctx) if pair[0].name != "llm"])
     say(chat, "again")
