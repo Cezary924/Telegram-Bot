@@ -1770,9 +1770,9 @@ def test_bing_results_are_read_from_the_page():
 
 def test_only_the_real_hosts_of_the_engines_are_unwrapped_and_skipped():
     hidden = base64.urlsafe_b64encode(b"https://example.com/").decode().rstrip("=")
-    assert llm.unwrapped("https://evilbing.com/ck/a?u=a1" + hidden) == "https://evilbing.com/ck/a?u=a1" + hidden
-    assert llm.unwrapped("https://x.com:1@bing.com.evil.org/?u=a1" + hidden).startswith("https://x.com")
-    assert llm.unwrapped("https://notduckduckgo.com/l/?uddg=https%3A%2F%2Fa.com").startswith("https://not")
+    lookalikes = ["https://evilbing.com/ck/a?u=a1" + hidden, "https://x.com:1@bing.com.evil.org/?u=a1" + hidden,
+                  "https://notduckduckgo.com/l/?uddg=https%3A%2F%2Fa.com"]
+    assert [llm.unwrapped(link) for link in lookalikes] == lookalikes
     assert llm.unwrapped("https://www.bing.com/ck/a?u=a1" + hidden) == "https://example.com/"
     page = bing_page(("https://notbing.com/", "Real", ""), ("https://www.bing.com/maps", "Maps", ""))
     assert [found['url'] for found in llm.results_from(page, "li.b_algo", "h2 a", "p")] == ["https://notbing.com/"]
