@@ -1010,10 +1010,9 @@ def test_thinking_off_is_asked_for_in_both_ways(chat, monkeypatch):
 def test_a_stream_with_tool_events_and_reasoning_is_read_too(chat, monkeypatch):
     _, pieces = wire(chat, monkeypatch, [
         'data: {"choices":[{"delta":{"reasoning":"so"}}]}',
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"search"}}]}}]}',
-        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"reminder_list"}}]}}]}',
         'data: {"choices":[{"delta":{"content":"Hi"}}]}', "data: [DONE]"])
-    assert pieces == [("thinking", "so"), ("tool", ""), ("tool", ""), ("answer", "Hi")]
+    assert pieces == [("thinking", "so"), ("tool", ""), ("answer", "Hi")]
 
 
 def test_the_stream_is_read_as_utf_8_whatever_the_server_claims(chat, monkeypatch):
@@ -1058,15 +1057,6 @@ def test_a_tool_call_without_an_index_is_still_read(chat, monkeypatch):
         'data: {"choices":[{"delta":{"tool_calls":[{"index":null,"id":"c1","function":{"name":"reminder_list",'
         '"arguments":"{}"}}]},"finish_reason":"tool_calls"}]}', "data: [DONE]"])
     assert pieces[-1] == ("calls", [{'id': "c1", 'name': "reminder_list", 'arguments': "{}"}])
-
-
-def test_tool_calls_of_the_server_itself_are_never_handed_over(chat, monkeypatch):
-    _, pieces = wire(chat, monkeypatch, [
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s1","function":{"name":"search",'
-        '"arguments":"{}"}}]},"finish_reason":"tool_calls"}]}',
-        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
-        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":"stop"}]}', "data: [DONE]"])
-    assert pieces == [("tool", ""), ("tool", ""), ("answer", "Hi")]
 
 
 def test_tool_calls_count_only_when_the_round_ends_for_them(chat, monkeypatch):
@@ -1547,16 +1537,6 @@ def test_the_outcome_comes_as_a_new_message_when_the_question_cannot_be_rewritte
     press(chat, "llm:confirm:" + pending_key(chat))
     assert bot.last.text.startswith("<b>🔔 Reminders:</b>\n\nThe reminder has been set ✅")
     assert len(reminders(chat)) == 1
-
-
-def test_our_call_after_a_server_search_needs_its_own_end_for_tools(chat, monkeypatch):
-    _, pieces = wire(chat, monkeypatch, [
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s1","function":{"name":"search"}}]},'
-        '"finish_reason":"tool_calls"}]}',
-        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"reminder_list"}}]}}]}',
-        "data: [DONE]"])
-    assert [kind for kind, _ in pieces] == ["tool", "tool", "tool"]
 
 
 def test_calls_without_an_id_get_ids_that_never_repeat(chat, monkeypatch):

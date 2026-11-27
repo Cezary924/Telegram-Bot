@@ -420,11 +420,6 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool,
                 break
             event = json.loads(data)
             read |= reading(event)
-            if event.get('type') == "mcp_tool_result":
-                calls.clear()
-                finished = ""
-                yield "tool", ""
-                continue
             first = (event.get('choices') or [{}])[0]
             delta = first.get('delta') or {}
             if delta.get('tool_calls'):
