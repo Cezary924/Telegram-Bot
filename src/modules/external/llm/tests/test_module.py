@@ -202,11 +202,11 @@ def test_the_status_is_rewritten_when_it_cannot_be_deleted(chat, bot, model, mon
     assert bot.edited[-1].text == "Hello there"
 
 
-def test_thinking_is_off_by_default_and_on_when_chosen(chat, bot, model):
+def test_thinking_is_on_by_default_and_off_when_chosen(chat, bot, model):
     say(chat, "hello")
-    chat.storage.module_state.set(1, "llm", "thinking", "1")
+    chat.storage.module_state.set(1, "llm", "thinking", "0")
     say(chat, "again")
-    assert model.thinking == [False, True]
+    assert model.thinking == [True, False]
 
 
 def test_thinking_is_folded_below_the_answer(chat, bot, model):
@@ -648,12 +648,12 @@ def test_the_command_explains_and_leads_to_the_settings(chat, bot, model):
 def test_thinking_is_switched_in_the_settings(chat, bot, model):
     say(chat, "/settings")
     press(chat, "core:settings:llm")
-    assert "Thinking: <i>⚡ Without thinking</i>" in bot.last.text
+    assert "Thinking: <i>💭 With thinking</i>" in bot.last.text
     press(chat, "llm:thinking_mode")
     assert [data for _, data in bot.last.buttons][:2] == ["llm:thinking:0", "llm:thinking:1"]
-    press(chat, "llm:thinking:1")
-    assert "Thinking: <i>💭 With thinking</i>" in bot.last.text
-    assert chat.storage.module_state.get(1, "llm", "thinking") == "1"
+    press(chat, "llm:thinking:0")
+    assert "Thinking: <i>⚡ Without thinking</i>" in bot.last.text
+    assert chat.storage.module_state.get(1, "llm", "thinking") == "0"
 
 
 def test_an_unknown_thinking_choice_is_refused(chat, bot, model):

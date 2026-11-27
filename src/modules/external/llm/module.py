@@ -393,7 +393,7 @@ def describe(ctx: Ctx, item: dict, parts: list[dict]) -> str:
 
 
 def is_thinking(ctx: Ctx) -> bool:
-    return ctx.state.get(thinking_key) == "1"
+    return ctx.state.get(thinking_key) != "0"
 
 
 def gather(calls: dict[int, dict], pieces: list[dict]) -> None:
