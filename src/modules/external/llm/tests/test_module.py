@@ -1908,6 +1908,24 @@ def test_the_main_part_of_a_page_is_read():
     assert llm.page_text(table, "text/html")[1] == "Code | Rate |\nEUR | 4,4673 |"
 
 
+def test_a_long_result_is_kept_short_in_the_history(chat, model, web):
+    text = "\n".join("Line " + str(number) + " " + "x" * 90 for number in range(50))
+    web.pages["https://example.com/a"] = Got(text.encode(), kind="text/plain")
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said[0]['result']['text'] == text
+    action = next(json.loads(content) for _, role, content in stored(chat) if role == "action")
+    assert action['said']['cut'] is True and len(action['said']['result']) == llm.kept_size
+    say(chat, "and?")
+    replayed = [one for one in model.asked[-1] if one['role'] == "tool"]
+    assert json.loads(replayed[0]['content'])['cut'] is True
+
+
+def test_a_short_result_is_kept_whole_in_the_history():
+    said = {'status': "done", 'result': [{'title': "A", 'url': "https://a.com/"}]}
+    assert llm.for_history(said) is said
+    assert llm.for_history({'status': "refused", 'problem': "x" * 5000})['problem'] == "x" * 5000
+
+
 def test_the_web_rules_come_with_the_web_tools_only(chat, bot, model, monkeypatch):
     say(chat, "hello")
     assert "With the web tools you search the web" in model.systems[-1]

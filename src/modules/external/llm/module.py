@@ -66,6 +66,7 @@ description_size = 300
 album_wait = 1.5
 convert_timeout = 120
 tool_rounds = 6
+kept_size = 2000
 seen_key = "seen"
 seen_size = 50
 duckduckgo_url = "https://html.duckduckgo.com/html/"
@@ -173,8 +174,16 @@ def remember(ctx: Ctx, conversation: int, role: str, content: str) -> int:
                            datetime.now().isoformat(timespec="seconds"))).lastrowid or 0
 
 
+def for_history(said: dict) -> dict:
+    if 'result' not in said:
+        return said
+    result = said['result']
+    text = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
+    return said if len(text) <= kept_size else said | {'result': shortened(text, kept_size), 'cut': True}
+
+
 def remember_action(ctx: Ctx, conversation: int, tool: str, arguments: dict, said: dict, call: str = "") -> None:
-    done = {'tool': tool, 'arguments': arguments, 'said': said} | ({'call': call} if call else {})
+    done = {'tool': tool, 'arguments': arguments, 'said': for_history(said)} | ({'call': call} if call else {})
     remember(ctx, conversation, action_role, json.dumps(done, ensure_ascii=False, default=str))
 
 
