@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from core.api import Ctx, years_before
-from core.testing import make_callback, make_message
+from core.testing import make_callback, make_message, not_none
 from modules.external.drinktracker import module as drinktracker
 
 
@@ -517,7 +517,7 @@ def test_the_assistant_asks_about_food_when_a_session_starts(app, bot):
     outcome = drinktracker.act_add_drink(as_user(app), "beer", None, None, None, "meal")
     assert outcome.status == "asking" and "Food: <i>A big meal</i>" in outcome.result
     assert drinks(app) == []
-    assert outcome.then().startswith("The drink has been logged ✅")
+    assert not_none(outcome.then)().startswith("The drink has been logged ✅")
     assert [(row['kind'], row['volume'], row['food']) for row in drinks(app)] == [("beer", 500, "meal")]
 
 
@@ -526,7 +526,7 @@ def test_the_food_is_left_alone_in_the_middle_of_a_session(app, bot):
     add(app, bot, when=hours_ago(1))
     outcome = drinktracker.act_add_drink(as_user(app), "custom", 200, 13, None, "empty")
     assert outcome.status == "asking" and "Food" not in outcome.result
-    outcome.then()
+    not_none(outcome.then)()
     assert [row['food'] for row in drinks(app)] == ["little", None]
 
 

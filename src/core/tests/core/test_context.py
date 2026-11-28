@@ -7,7 +7,7 @@ from core.context import AdvancedCtx, Ctx, User, create_context, user_from_row
 from core.module import Module
 from core.profile import Profile
 from core.roles import Role
-from core.testing import FakeBot, make_message, not_none
+from core.testing import FakeBot, make_message, not_none, printed
 from core.ui.view import View
 from core.version import Version
 
@@ -189,12 +189,12 @@ def test_the_file_limit_is_the_one_telegram_allows(ctx):
 
 def test_log_names_the_user(ctx, capsys):
     ctx.log("Something happened")
-    assert "Something happened: First (1)." in capsys.readouterr().out
+    assert "Something happened: First (1)." in printed(capsys)
 
 
 def test_error_names_the_module(ctx, capsys):
     ctx.error("Something broke")
-    assert "ERROR: Something broke in 'module1'." in capsys.readouterr().out
+    assert "ERROR: Something broke in 'module1'." in printed(capsys)
 
 
 def test_internal_module_gets_the_advanced_context(services, module, person):
@@ -373,7 +373,7 @@ def test_a_message_that_cannot_be_delivered_is_reported_not_raised(services, mod
     module.is_internal = True
     services.storage.users.save(2, "Other", "Person", "other")
     assert AdvancedCtx(services, module, person).notify(2, "text1") is False
-    assert "Could not deliver a message to 2 - RuntimeError." in capsys.readouterr().out
+    assert "Could not deliver a message to 2 - RuntimeError." in printed(capsys)
 
 
 def test_a_caption_is_the_text_of_media(services, module, person, user):
@@ -397,7 +397,7 @@ def test_a_file_the_user_sent_is_downloaded(ctx, services):
 def test_a_file_telegram_will_not_give_is_none(ctx, services, capsys):
     services.bot = FakeBot()
     assert ctx.download("missing") is None
-    assert "Could not download a file from 1 - ApiTelegramException." in capsys.readouterr().out
+    assert "Could not download a file from 1 - ApiTelegramException." in printed(capsys)
 
 
 def test_a_live_message_can_be_sent_quietly_and_removed(ctx, services):
@@ -511,19 +511,23 @@ def test_asking_for_something_not_exposed_is_an_error(services, partner, person,
         ctx.ask("module2", "nothing")
 
 
+def failing(_own):
+    raise ZeroDivisionError("division by zero")
+
+
 def test_a_used_module_that_fails_answers_nothing(services, person, user, capsys):
     partner = Module(name="module2")
-    partner.expose("profile")(lambda own: 1 / 0)
+    partner.expose("profile")(failing)
     services.registry.add(partner)
     services.is_strict = False
     ctx = Ctx(services, Module(name="module1", uses=["module2"]), person)
     assert ctx.ask("module2", "profile") is None
-    assert "Asking 'module2' for 'profile' failed in 'module1'" in capsys.readouterr().out
+    assert "Asking 'module2' for 'profile' failed in 'module1'" in printed(capsys)
 
 
 def test_a_used_module_that_fails_in_tests_raises(services, person, user):
     partner = Module(name="module2")
-    partner.expose("profile")(lambda own: 1 / 0)
+    partner.expose("profile")(failing)
     services.registry.add(partner)
     with pytest.raises(ZeroDivisionError):
         Ctx(services, Module(name="module1", uses=["module2"]), person).ask("module2", "profile")

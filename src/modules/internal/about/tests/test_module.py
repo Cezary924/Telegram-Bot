@@ -3,7 +3,7 @@ import requests
 
 from core.context import AdvancedCtx, User
 from core.roles import Role
-from core.testing import make_message, not_none
+from core.testing import make_message, not_none, printed
 from core.version import Version
 from modules.internal.about import module as about
 
@@ -93,7 +93,7 @@ def test_about_survives_a_missing_network(known_version, offline, capsys):
     text = known_version.services.bot.last.text
     assert "Version status: <i>Error. Please, try again later.</i>" in text
     assert "Version: <i>v1.2 (100)</i>" in text
-    assert "Could not read the published version - ConnectionError in 'about'." in capsys.readouterr().out
+    assert "Could not read the published version - ConnectionError in 'about'." in printed(capsys)
 
 
 def test_about_speaks_polish(known_version, monkeypatch):

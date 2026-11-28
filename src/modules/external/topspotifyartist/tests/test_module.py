@@ -1,6 +1,6 @@
 import pytest
 
-from core.testing import make_message, not_none
+from core.testing import make_message, not_none, printed
 from modules.external.topspotifyartist import module as game
 
 
@@ -158,7 +158,7 @@ def test_the_job_refreshes_the_chart(app, monkeypatch, capsys):
     assert job.interval == 24 * 3600
     job.handler()
     assert len(game.chart.artists) == 2
-    assert "Chart refreshed with 2 artists" in capsys.readouterr().out
+    assert "Chart refreshed with 2 artists" in printed(capsys)
 
 
 def test_a_failing_refresh_keeps_the_old_chart(app, monkeypatch, capsys):
@@ -170,7 +170,7 @@ def test_a_failing_refresh_keeps_the_old_chart(app, monkeypatch, capsys):
     monkeypatch.setattr(game, "fetch_chart", refuse)
     not_none(app.scheduler.find("topspotifyartist.refresh")).handler()
     assert len(game.chart.artists) == 1
-    assert "Could not refresh the chart - ConnectionError in 'topspotifyartist'." in capsys.readouterr().out
+    assert "Could not refresh the chart - ConnectionError in 'topspotifyartist'." in printed(capsys)
 
 
 class Answer:

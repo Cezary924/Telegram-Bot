@@ -5,7 +5,7 @@ from core.config import Config
 from core.loader import Loader, discover
 from core.module import Module
 from core.registry import Registry
-from core.testing import not_none
+from core.testing import not_none, printed
 from core.tests.conftest import fixtures_dir
 
 
@@ -41,7 +41,7 @@ def test_loads_the_working_modules(registry):
 
 def test_the_two_kinds_are_reported_apart(loader, module_sources, capsys):
     loader.load(Registry(), module_sources)
-    out = capsys.readouterr().out
+    out = printed(capsys)
     assert "Internal modules loaded: module1." in out
     assert "External modules loaded: module11, module2." in out
     assert out.index("Internal modules") < out.index("External modules")
@@ -49,7 +49,7 @@ def test_the_two_kinds_are_reported_apart(loader, module_sources, capsys):
 
 def test_a_kind_without_modules_says_so(loader, tmp_path, capsys):
     loader.load(Registry(), [(str(tmp_path), "nowhere", True), (str(tmp_path), "nowhere", False)])
-    out = capsys.readouterr().out
+    out = printed(capsys)
     assert "Internal modules loaded: none." in out
     assert "External modules loaded: none." in out
 
@@ -133,7 +133,7 @@ def test_modules_that_use_each_other_are_both_installed(loader):
 def test_an_entry_without_a_directory_is_reported(services, module_sources, config, tmp_path, capsys):
     (tmp_path / "modules.yaml").write_text("module9: false\n", encoding='utf8')
     Loader(Config(), services.catalog, services.storage).load(Registry(), module_sources)
-    assert "Module 'module9' is listed in modules.yaml but has no directory." in capsys.readouterr().out
+    assert "Module 'module9' is listed in modules.yaml but has no directory." in printed(capsys)
 
 
 def test_skips_a_module_whose_name_disagrees_with_its_directory(loader, registry):

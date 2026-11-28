@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from core.api import Ctx, Outcome, Profile, plain, years_before
-from core.testing import make_callback, make_message
+from core.testing import make_callback, make_message, not_none
 from modules.external.bodytracker import module as bodytracker
 
 
@@ -341,14 +341,14 @@ def test_the_assistant_logs_a_weight_once_confirmed(app, bot):
     assert outcome.status == "asking"
     assert outcome.result == "Log this weight?\nWeight: <i>80.5 kg</i>\nWhen: <i>2026-10-29 08:00</i>"
     assert weights(app) == []
-    assert outcome.then().startswith("The weight has been logged ✅\nWeight:")
+    assert not_none(outcome.then)().startswith("The weight has been logged ✅\nWeight:")
     assert [(row['weight'], row['measured_at']) for row in weights(app)] == [(80.5, "2026-10-29T08:00:00")]
 
 
 def test_the_assistant_logs_a_height_for_now(app, bot):
     outcome = bodytracker.act_log_height(as_user(app), 181, None)
     assert str(outcome.result).startswith("Log this height?\nHeight: <i>181 cm</i>")
-    outcome.then()
+    not_none(outcome.then)()
     measured = datetime.fromisoformat(heights(app)[0]['measured_at'])
     assert datetime.now() - measured < timedelta(minutes=1)
 

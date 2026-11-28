@@ -1,7 +1,9 @@
 import base64
+import ipaddress
 import json
 import os
 import re
+import socket
 import sqlite3
 import subprocess
 import threading
@@ -9,8 +11,10 @@ import time
 import uuid
 from collections.abc import Iterator
 from datetime import datetime, timedelta
+from urllib.parse import SplitResult, parse_qs, urljoin, urlsplit, urlunsplit
 
 import requests
+from bs4 import BeautifulSoup
 
 from core.api import Action, Button, Ctx, Html, JobCtx, Module, Outcome, View, bold, escape, italic, labelled, plain
 
@@ -50,18 +54,42 @@ keep_choices = [0, 7, 30, 90]
 default_keep = 90
 forget_every = 60 * 60
 date_format = "%Y-%m-%d %H:%M"
-media_kinds = ("photo", "document", "sticker", "animation", "video", "video_note", "voice", "audio", "location",
-               "venue", "contact", "poll", "dice")
-filed_kinds = ("animation", "video", "video_note", "voice", "audio", "document")
+media_kinds = ("photo", "document", "sticker", "animation", "location", "venue", "contact", "poll", "dice")
+filed_kinds = ("animation", "document")
 frames_per_film = 4
 frame_scale = "scale='min(768,iw)':-2"
-sound_seconds = 180
 writing_size = 1024 * 1024
 writing_characters = 12000
 description_size = 300
 album_wait = 1.5
 convert_timeout = 120
-tool_rounds = 4
+tool_rounds = 6
+kept_size = 2000
+seen_key = "seen"
+seen_size = 50
+duckduckgo_url = "https://html.duckduckgo.com/html/"
+bing_url = "https://www.bing.com/search"
+regions = {'pl': ("pl-pl", "pl-PL", "pl-PL,pl;q=0.9,en;q=0.8")}
+default_region = ("us-en", "en-US", "en-US,en;q=0.9")
+search_results = 5
+search_gap = 1.0
+snippet_size = 300
+web_timeouts = (5, 15)
+web_deadline = 25
+web_size = 2 * 1024 * 1024
+web_part = 6000
+web_redirects = 5
+web_kinds = ("text/html", "application/xhtml+xml", "text/plain")
+browser = {'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                         "Chrome/139.0.0.0 Safari/537.36",
+           'Accept': "text/html,application/xhtml+xml;q=0.9,text/plain;q=0.8,*/*;q=0.5"}
+dropped_tags = ["script", "style", "noscript", "template", "svg", "iframe", "nav", "header", "footer", "aside", "form"]
+main_parts = "article, main, [role=main], #content, #main, .post-content, .entry-content, .article-body"
+main_size = 200
+block_tags = ["address", "article", "blockquote", "br", "dd", "div", "dl", "dt", "figcaption", "h1", "h2", "h3", "h4",
+              "h5", "h6", "hr", "li", "main", "ol", "p", "pre", "section", "table", "tr", "ul"]
+link_pattern = re.compile(r"https?://[^\s<>\"']+")
+link_ends = ".,;:!?)]}'\""
 confirm_within = 24 * 60 * 60
 action_prefix = "action."
 action_role = "action"
@@ -93,6 +121,8 @@ answering_lock = threading.Lock()
 albums: dict[str, list[dict]] = {}
 albums_lock = threading.Lock()
 settling_lock = threading.Lock()
+searched = [0.0]
+search_lock = threading.Lock()
 
 
 def table(ctx: Ctx | JobCtx) -> str:
@@ -142,8 +172,16 @@ def remember(ctx: Ctx, conversation: int, role: str, content: str) -> int:
                            datetime.now().isoformat(timespec="seconds"))).lastrowid or 0
 
 
+def for_history(said: dict) -> dict:
+    if 'result' not in said:
+        return said
+    result = said['result']
+    text = result if isinstance(result, str) else json.dumps(result, ensure_ascii=False, default=str)
+    return said if len(text) <= kept_size else said | {'result': shortened(text, kept_size), 'cut': True}
+
+
 def remember_action(ctx: Ctx, conversation: int, tool: str, arguments: dict, said: dict, call: str = "") -> None:
-    done = {'tool': tool, 'arguments': arguments, 'said': said} | ({'call': call} if call else {})
+    done = {'tool': tool, 'arguments': arguments, 'said': for_history(said)} | ({'call': call} if call else {})
     remember(ctx, conversation, action_role, json.dumps(done, ensure_ascii=False, default=str))
 
 
@@ -247,11 +285,10 @@ def family(item: dict) -> str:
     if kind == "photo" or (kind == "sticker" and item['form'] == "static") or \
             (kind == "document" and mime.startswith("image/")):
         return "picture"
-    if kind in ("video", "animation", "video_note") or (kind == "sticker" and item['form'] == "video") or \
-            (kind == "document" and mime.startswith("video/")):
+    if kind == "animation" or (kind == "sticker" and item['form'] == "video"):
         return "film"
-    if kind in ("voice", "audio") or (kind == "document" and mime.startswith("audio/")):
-        return "sound"
+    if kind == "document" and mime.startswith(("video/", "audio/")):
+        return "recording"
     return "file" if kind == "document" else "words"
 
 
@@ -300,7 +337,8 @@ def converted(ctx: Ctx, data: bytes, arguments: list[str], output: str) -> list[
         if done.returncode != 0:
             raise Unreadable(done.stderr.decode("utf-8", "replace")[-300:])
         results = []
-        for name in sorted(os.listdir(path)):
+        names: list[str] = os.listdir(path)
+        for name in sorted(names):
             if name != "source":
                 with open(os.path.join(path, name), "rb") as handle:
                     results.append(handle.read())
@@ -311,19 +349,12 @@ def picture_part(data: bytes, mime: str) -> dict:
     return {'type': "image_url", 'image_url': {'url': "data:" + mime + ";base64," + base64.b64encode(data).decode()}}
 
 
-def sound_part(data: bytes) -> dict:
-    return {'type': "input_audio", 'input_audio': {'data': base64.b64encode(data).decode(), 'format': "wav"}}
-
-
-def sound_of(ctx: Ctx, data: bytes) -> list[dict]:
-    arguments = ["-vn", "-ac", "1", "-ar", "16000", "-t", str(sound_seconds)]
-    return [sound_part(sound) for sound in converted(ctx, data, arguments, "sound.wav")]
-
-
 def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:
     kind, what = item['kind'], family(item)
     if what == "words":
         return note(ctx, item), []
+    if what == "recording":
+        raise Unsupported(item['mime'])
     if item.get('size', 0) > ctx.download_limit:
         raise TooBig(kind)
     data = ctx.download(item['file_id'])
@@ -338,15 +369,7 @@ def parts_for(ctx: Ctx, item: dict) -> tuple[str, list[dict]]:
         rate = "fps=" + str(frames_per_film) + "/" + str(item['duration']) if item.get('duration') else "fps=2"
         frames = converted(ctx, data, ["-vf", rate + "," + frame_scale, "-frames:v", str(frames_per_film)],
                            "frame%d.jpg")
-        parts = [picture_part(frame, "image/jpeg") for frame in frames]
-        if kind in ("video", "video_note", "document"):
-            try:
-                parts += sound_of(ctx, data)
-            except Unreadable:
-                pass
-        return note(ctx, item), parts
-    if what == "sound":
-        return note(ctx, item), sound_of(ctx, data)
+        return note(ctx, item), [picture_part(frame, "image/jpeg") for frame in frames]
     if len(data) > writing_size or b"\0" in data:
         raise Unsupported(item.get('mime') or kind)
     try:
@@ -370,7 +393,7 @@ def describe(ctx: Ctx, item: dict, parts: list[dict]) -> str:
 
 
 def is_thinking(ctx: Ctx) -> bool:
-    return ctx.state.get(thinking_key) == "1"
+    return ctx.state.get(thinking_key) != "0"
 
 
 def gather(calls: dict[int, dict], pieces: list[dict]) -> None:
@@ -419,11 +442,6 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool,
                 break
             event = json.loads(data)
             read |= reading(event)
-            if event.get('type') == "mcp_tool_result":
-                calls.clear()
-                finished = ""
-                yield "tool", ""
-                continue
             first = (event.get('choices') or [{}])[0]
             delta = first.get('delta') or {}
             if delta.get('tool_calls'):
@@ -440,6 +458,245 @@ def stream(ctx: Ctx, messages: list[dict], thinking: bool,
     if finished == "tool_calls" and calls:
         yield "calls", [call | {'id': call['id'] or "call_" + uuid.uuid4().hex[:12]}
                         for _, call in sorted(calls.items())]
+
+
+# ----- web -----
+
+class Blocked(Exception):
+    def __init__(self, key: str, **values) -> None:
+        super().__init__(key)
+        self.key, self.values = key, values
+
+
+def normal(url: str) -> str:
+    parts = urlsplit(url.strip())
+    return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path, parts.query, ""))
+
+
+def links_in(text: str) -> list[str]:
+    return [found.rstrip(link_ends) for found in link_pattern.findall(text)]
+
+
+def seen(ctx: Ctx) -> list[str]:
+    try:
+        known = json.loads(ctx.state.get(seen_key) or "[]")
+    except ValueError:
+        return []
+    return known if isinstance(known, list) else []
+
+
+def remember_seen(ctx: Ctx, urls: list[str]) -> None:
+    added = [normal(url) for url in urls]
+    if added:
+        known = [url for url in seen(ctx) if url not in added] + added
+        ctx.state.set(seen_key, json.dumps(known[-seen_size:]))
+
+
+def is_public(address: str) -> bool:
+    try:
+        found = ipaddress.ip_address(address.split("%")[0])
+    except ValueError:
+        return False
+    if isinstance(found, ipaddress.IPv6Address) and found.ipv4_mapped is not None:
+        return is_public(str(found.ipv4_mapped))
+    return found.is_global and not found.is_multicast
+
+
+def checked(url: str) -> None:
+    parts = urlsplit(url)
+    try:
+        port = parts.port or (443 if parts.scheme == "https" else 80)
+    except ValueError as error:
+        raise Blocked("address") from error
+    if parts.scheme not in ("http", "https") or not parts.hostname or parts.username or parts.password:
+        raise Blocked("address")
+    try:
+        found = socket.getaddrinfo(parts.hostname, port, type=socket.SOCK_STREAM)
+    except (OSError, UnicodeError) as error:
+        raise Blocked("unreachable") from error
+    if not found or not all(is_public(str(address[0])) for *_, address in found):
+        raise Blocked("private")
+
+
+def peer_of(response: requests.Response) -> str:
+    try:
+        return str(response.raw.connection.sock.getpeername()[0])
+    except (AttributeError, IndexError, OSError, TypeError):
+        return ""
+
+
+def body_of(response: requests.Response) -> bytes:
+    chunks, size, until = [], 0, time.monotonic() + web_deadline
+    for chunk in response.iter_content(64 * 1024):
+        chunks.append(chunk)
+        size += len(chunk)
+        if size >= web_size or time.monotonic() > until:
+            break
+    return b"".join(chunks)[:web_size]
+
+
+def downloaded(ctx: Ctx, url: str) -> tuple[str, str, bytes]:
+    headers = browser | {'Accept-Language': regions.get(ctx.user.language, default_region)[2]}
+    with requests.Session() as session:
+        session.trust_env = False
+        for _ in range(web_redirects + 1):
+            checked(url)
+            with session.get(url, headers=headers, timeout=web_timeouts, stream=True, allow_redirects=False) as got:
+                if not is_public(peer_of(got)):
+                    raise Blocked("private")
+                if got.is_redirect:
+                    url = urljoin(url, got.headers['location'])
+                    continue
+                if got.status_code >= 400:
+                    raise Blocked("status", code=got.status_code)
+                kind = got.headers.get('content-type', "").split(";")[0].strip().lower()
+                if kind not in web_kinds:
+                    raise Blocked("kind")
+                return url, kind, body_of(got)
+    raise Blocked("redirects")
+
+
+def tidy(text: str) -> str:
+    return "\n".join(line for line in (" ".join(each.split()) for each in text.splitlines()) if line)
+
+
+def page_text(data: bytes, kind: str) -> tuple[str, str]:
+    if kind == "text/plain":
+        return "", tidy(data.decode("utf-8", "replace"))
+    soup = BeautifulSoup(data, "html.parser")
+    title = " ".join(soup.title.get_text().split()) if soup.title else ""
+    for found in soup(dropped_tags):
+        found.decompose()
+    root = next((found for found in soup.select(main_parts) if len(found.get_text(strip=True)) >= main_size),
+                soup.body or soup)
+    for found in root.find_all(["td", "th"]):
+        found.insert_after(" | ")
+    for found in root.find_all(block_tags):
+        found.insert_after("\n")
+    return title, tidy(root.get_text())
+
+
+def is_on(parts: SplitResult, *domains: str) -> bool:
+    host = parts.hostname or ""
+    return any(host == domain or host.endswith("." + domain) for domain in domains)
+
+
+def unwrapped(link: str) -> str:
+    parts = urlsplit(link)
+    query = parse_qs(parts.query)
+    if is_on(parts, "duckduckgo.com") and query.get('uddg'):
+        return query['uddg'][0]
+    coded = (query.get('u') or [""])[0][2:]
+    if is_on(parts, "bing.com") and coded:
+        try:
+            return base64.urlsafe_b64decode(coded + "=" * (-len(coded) % 4)).decode()
+        except (ValueError, UnicodeDecodeError):
+            return link
+    return link
+
+
+def results_from(page: str, items: str, title: str, snippet: str) -> list[dict]:
+    results = []
+    for item in BeautifulSoup(page, "html.parser").select(items):
+        link, text = item.select_one(title), item.select_one(snippet)
+        if link is None:
+            continue
+        url = unwrapped(str(link.get('href') or ""))
+        parts = urlsplit(url)
+        if parts.scheme not in ("http", "https") or is_on(parts, "duckduckgo.com", "bing.com"):
+            continue
+        results.append({'title': " ".join(link.get_text().split()), 'url': url,
+                        'snippet': shortened(text.get_text() if text else "", snippet_size)})
+        if len(results) == search_results:
+            break
+    return results
+
+
+def waited() -> None:
+    with search_lock:
+        pause = searched[0] + search_gap - time.monotonic()
+        if pause > 0:
+            time.sleep(pause)
+        searched[0] = time.monotonic()
+
+
+def duckduckgo(query: str, region: tuple[str, str, str]) -> list[dict]:
+    waited()
+    got = requests.post(duckduckgo_url, data={'q': query, 'kl': region[0], 'kp': "-1"},
+                        headers=browser | {'Accept-Language': region[2]}, timeout=web_timeouts)
+    if got.status_code in (202, 403, 429):
+        raise Blocked("blocked")
+    got.raise_for_status()
+    results = results_from(got.text, ".result:not(.result--ad)", ".result__title a", ".result__snippet")
+    if not results and "anomaly" in got.text:
+        raise Blocked("blocked")
+    return results
+
+
+def bing(query: str, region: tuple[str, str, str]) -> list[dict]:
+    market = region[1].lower()
+    got = requests.get(bing_url, params={'q': query, 'setlang': market[:2], 'cc': market[3:]},
+                       headers=browser | {'Accept-Language': region[2]},
+                       cookies={'_EDGE_CD': "m=" + market + "&u=" + market,
+                                '_EDGE_S': "mkt=" + market + "&ui=" + market}, timeout=web_timeouts)
+    if got.status_code in (403, 429):
+        raise Blocked("blocked")
+    got.raise_for_status()
+    return results_from(got.text, "li.b_algo", "h2 a", "p")
+
+
+def searched_for(ctx: Ctx, query: str) -> list[dict]:
+    region = regions.get(ctx.user.language, default_region)
+    try:
+        found = duckduckgo(query, region)
+    except (Blocked, requests.RequestException) as error:
+        ctx.log("DuckDuckGo did not search - " + (error.key if isinstance(error, Blocked) else type(error).__name__))
+        found = []
+    return found or bing(query, region)
+
+
+def refused(ctx: Ctx, error: Exception) -> Outcome:
+    if isinstance(error, Blocked):
+        if error.key in ("blocked", "unreachable"):
+            ctx.error("The web refused - " + error.key)
+        return Outcome.refused(ctx.t("web." + error.key, **error.values))
+    ctx.error("The web did not answer - " + type(error).__name__, str(error))
+    return Outcome.refused(ctx.t("web.unreachable"))
+
+
+@module.action("search", parameters={'query': str})
+def act_search(ctx: Ctx, query: str) -> Outcome:
+    if not query.strip():
+        return Outcome.refused(ctx.t("web.nothing"))
+    try:
+        results = searched_for(ctx, query.strip())
+    except (Blocked, requests.RequestException) as error:
+        return refused(ctx, error)
+    if not results:
+        return Outcome.refused(ctx.t("web.nothing"))
+    remember_seen(ctx, [result['url'] for result in results])
+    return Outcome.done(results)
+
+
+@module.action("fetch", parameters={'url': str, 'part': int}, optional=["part"])
+def act_fetch(ctx: Ctx, url: str, part: int | None) -> Outcome:
+    wanted = normal(url)
+    if wanted not in seen(ctx):
+        return Outcome.refused(ctx.t("web.unknown"))
+    try:
+        address, kind, data = downloaded(ctx, wanted)
+    except (Blocked, requests.RequestException) as error:
+        return refused(ctx, error)
+    title, text = page_text(data, kind)
+    pieces = parts_of(text, web_part, "\n")
+    number = part or 1
+    if not pieces:
+        return Outcome.refused(ctx.t("web.empty"))
+    if not 1 <= number <= len(pieces):
+        return Outcome.refused(ctx.t("web.no_part", parts=len(pieces)))
+    remember_seen(ctx, [address])
+    return Outcome.done({'url': address, 'title': title, 'part': number, 'parts': len(pieces),
+                         'text': pieces[number - 1]})
 
 
 # ----- assistant -----
@@ -459,8 +716,7 @@ def sharing(ctx: Ctx) -> list[Module]:
 
 
 def offered(ctx: Ctx) -> list[tuple[Module, Action]]:
-    return [(found, action) for found, action in ctx.assistant.actions()
-            if found.name != module.name and is_open(ctx, found.name)]
+    return [(found, action) for found, action in ctx.assistant.actions() if is_open(ctx, found.name)]
 
 
 def tools_for(ctx: Ctx, actions: list[tuple[Module, Action]]) -> list[dict]:
@@ -495,12 +751,14 @@ def others(ctx: Ctx) -> list[Module]:
     return [found for found in ctx.assistant.modules() if found.name != module.name]
 
 
-def prompt(ctx: Ctx, is_acting: bool) -> str:
+def prompt(ctx: Ctx, actions: list[tuple[Module, Action]]) -> str:
     listed = [line for line in (entry(ctx, found) for found in others(ctx)) if line]
+    owners = {found.name for found, _ in actions}
     parts = [(ctx.setting("llm_prompt") or "").strip(),
              bare(ctx, "prompt.rules"),
              bare(ctx, "prompt.modules") + ":\n" + "\n".join(listed) if listed else "",
-             bare(ctx, "prompt.actions") if is_acting else ""]
+             bare(ctx, "prompt.actions") if owners - {module.name} else "",
+             bare(ctx, "prompt.web") if module.name in owners else ""]
     return "\n\n".join(part for part in parts if part)
 
 
@@ -593,19 +851,19 @@ def to_html(text: str) -> str:
                    for number, piece in enumerate(pieces))
 
 
-def parts_of(text: str) -> list[str]:
+def parts_of(text: str, size: int = part_size, separator: str = "\n\n") -> list[str]:
     parts, part = [], ""
-    for paragraph in text.split("\n\n"):
-        while len(paragraph) > part_size:
+    for paragraph in text.split(separator):
+        while len(paragraph) > size:
             if part:
                 parts.append(part)
                 part = ""
-            parts.append(paragraph[:part_size])
-            paragraph = paragraph[part_size:]
-        if part and len(part) + len(paragraph) + 2 > part_size:
+            parts.append(paragraph[:size])
+            paragraph = paragraph[size:]
+        if part and len(part) + len(paragraph) + len(separator) > size:
             parts.append(part)
             part = ""
-        part = part + "\n\n" + paragraph if part else paragraph
+        part = part + separator + paragraph if part else paragraph
     if part:
         parts.append(part)
     return parts
@@ -656,7 +914,7 @@ def talk(ctx: Ctx, conversation: int, asked: int, live: int | None, attached: li
     if known != next((row['context'] for row in reversed(rows) if row['context'] is not None), ""):
         ctx.db.execute("INSERT INTO " + contexts_table(ctx) + " (message_id, content) VALUES (?, ?);", (asked, known))
         contexts[asked] = known
-    messages: list[dict] = [{'role': "system", 'content': prompt(ctx, bool(actions))}] + \
+    messages: list[dict] = [{'role': "system", 'content': prompt(ctx, actions)}] + \
         [message for row in rows for message in replayed(ctx, row, contexts.get(row['id'], row['context']))]
     thinks = is_thinking(ctx)
     spoken = [index for index, each in enumerate(messages) if each['role'] == "user"]
@@ -776,6 +1034,7 @@ def respond(ctx: Ctx, conversation: int, items: list[dict]) -> tuple[int, list[t
         finish(ctx, live, [ctx.t(problem)])
         return None
     asked = remember(ctx, conversation, "user", "\n".join(text for _, text, _ in prepared))
+    remember_seen(ctx, links_in("\n".join(item['text'] for item in items)))
     ctx.state.set(last_key, datetime.now().isoformat(timespec="seconds"))
     talk(ctx, conversation, asked, live, [part for _, _, parts in prepared for part in parts])
     return asked, prepared

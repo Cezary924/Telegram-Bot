@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass, field, replace
+from collections.abc import Mapping
 from typing import Callable
 
 from core import callbacks
@@ -269,7 +270,7 @@ class Module:
 
         return decorator
 
-    def action(self, name: str, parameters: dict[str, type] | None = None, description: str | None = None,
+    def action(self, name: str, parameters: Mapping[str, type] | None = None, description: str | None = None,
                role: Role = Role.GUEST, is_confirmed: bool = False, optional: list[str] | None = None) -> Callable:
         if not action_pattern.fullmatch(name):
             raise ValueError("Action name must be lowercase letters, digits and underscores: " + name)

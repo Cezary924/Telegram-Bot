@@ -9,7 +9,7 @@ from core import middleware
 from core.config import Config
 from core.registry import Registry
 from core.router import Router
-from core.testing import FakeBot, make_callback, make_message, not_none
+from core.testing import FakeBot, make_callback, make_message, not_none, printed
 
 module1 = Module(name="module1")
 
@@ -419,7 +419,7 @@ def test_a_normal_handler_runs_on_the_calling_thread(router, bot, settled):
 def test_a_failing_handler_does_not_kill_the_bot(router, bot, services, settled, capsys):
     router.handle_message(make_message("/boom"))
     assert bot.last.text == core_text(services, "error")
-    assert "Handler failed in 'module1' - RuntimeError." in capsys.readouterr().out
+    assert "Handler failed in 'module1' - RuntimeError." in printed(capsys)
     router.handle_message(make_message("/command1"))
     assert bot.last.text == "text1"
 
@@ -509,7 +509,7 @@ def test_a_failing_matcher_is_skipped(router, bot, services, settled, capsys):
         0, type(services.registry.get("module1").matchers[0])(
             explode, broken_matcher, Role.GUEST, 99, 0, False))
     router.handle_message(make_message("value1"))
-    assert "Matcher failed in 'module1' - RuntimeError." in capsys.readouterr().out
+    assert "Matcher failed in 'module1' - RuntimeError." in printed(capsys)
     assert bot.last.text == core_text(services, "unknown_message")
     services.registry.get("module1").matchers.pop(0)
 
@@ -796,7 +796,7 @@ def test_a_button_press_that_can_no_longer_be_answered_is_still_handled(router, 
 def test_the_failure_to_answer_is_logged(router, services, settled, capsys):
     refusing_bot(services, "query is too old")
     router.handle_callback(make_callback("module1:action1"))
-    assert "Could not answer a button press" in capsys.readouterr().out
+    assert "Could not answer a button press" in printed(capsys)
 
 
 def test_a_broken_handler_never_reaches_the_polling_thread(router, capsys):
@@ -804,7 +804,7 @@ def test_a_broken_handler_never_reaches_the_polling_thread(router, capsys):
         raise RuntimeError("boom")
 
     router.guarded(explode)(make_message("/command1"))
-    assert "Handling an update failed - RuntimeError." in capsys.readouterr().out
+    assert "Handling an update failed - RuntimeError." in printed(capsys)
 
 
 def test_a_working_handler_passes_through_the_guard(router):

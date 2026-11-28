@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from core.api import Ctx, years_before
-from core.testing import make_callback, make_message
+from core.testing import make_callback, make_message, not_none
 from modules.external.foodtracker import module as foodtracker
 
 
@@ -260,7 +260,7 @@ def test_the_assistant_adds_a_meal_once_confirmed(app, bot):
     outcome = foodtracker.act_add_meal(as_user(app), 650, when)
     assert outcome.result == "Save this meal?\nMeal: <i>650 kcal</i>\nWhen: <i>" + when + "</i>"
     assert meals(app) == []
-    assert "650 kcal" in outcome.then()
+    assert "650 kcal" in not_none(outcome.then)()
     assert [row['kcal'] for row in meals(app)] == [650]
 
 

@@ -90,7 +90,7 @@ class Profile:
     def read_height(self, text: str) -> float | None:
         if self.height_unit == "cm":
             return number(text.lower().removesuffix("cm").strip())
-        found = [number(part) for part in number_pattern.findall(text)]
+        found = [float(part.replace(",", ".")) for part in number_pattern.findall(text)]
         if not 1 <= len(found) <= 2 or (len(found) == 2 and found[1] >= 12):
             return None
         return (found[0] * 12 + (found[1] if len(found) == 2 else 0)) * inch

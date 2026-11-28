@@ -72,7 +72,8 @@ class Catalog:
         if not os.path.isdir(path):
             return []
         languages = []
-        for name in sorted(os.listdir(path)):
+        names: list[str] = os.listdir(path)
+        for name in sorted(names):
             if not name.endswith(".yaml"):
                 continue
             language = name[: -len(".yaml")]

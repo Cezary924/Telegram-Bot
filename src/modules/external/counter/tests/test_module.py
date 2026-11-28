@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 
 from core.api import Ctx
-from core.testing import make_callback, make_message
+from core.testing import make_callback, make_message, not_none
 from modules.external.counter import module as counter
 
 
@@ -606,7 +606,8 @@ def test_the_assistant_counts_once_confirmed(app, bot):
     assert outcome.status == "asking"
     assert outcome.result == "Count this?\nCounter: <i>Coffee ☕</i>\nAmount: <i>+2</i>\nAfter that: <i>2 / 2</i>"
     assert changes(app) == []
-    assert outcome.then() == "Counted +2\nCoffee ☕: <i>2 / 2 today</i>\n▰▰▰▰▰▰▰▰▰▰ 100%\nThe goal has been reached 🎉"
+    done = not_none(outcome.then)()
+    assert done == "Counted +2\nCoffee ☕: <i>2 / 2 today</i>\n▰▰▰▰▰▰▰▰▰▰ 100%\nThe goal has been reached 🎉"
     assert amounts(app) == [2]
 
 

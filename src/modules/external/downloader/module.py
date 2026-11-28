@@ -74,7 +74,8 @@ def hint() -> str:
 
 
 def downloaded_file(path: str, limit: int) -> str | None:
-    for name in sorted(os.listdir(path)):
+    names: list[str] = os.listdir(path)
+    for name in sorted(names):
         full_path = os.path.join(path, name)
         if not os.path.isfile(full_path) or name.endswith(leftovers + thumbnails) or name == cookies_name:
             continue
@@ -117,8 +118,8 @@ def video_format(height: int | None = None) -> str:
 
 
 def heights(info: dict) -> list[int]:
-    found = {one.get('height') for one in info.get('formats') or []
-             if one.get('height') and one.get('vcodec') not in (None, "none")}
+    found: set[int] = {one.get('height') for one in info.get('formats') or []
+                       if one.get('height') and one.get('vcodec') not in (None, "none")}
     return sorted(found, reverse=True)[1:] if found else list(fallback_heights)
 
 

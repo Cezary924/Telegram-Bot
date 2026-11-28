@@ -67,9 +67,10 @@ def open_notifications(ctx: AdvancedCtx) -> View:
 
 
 def sources(ctx: AdvancedCtx) -> list[tuple[str, str]]:
-    return [("core", ctx.t("core:notifications_label"))] + \
-        [(found.name, ctx.t(found.name + ":" + found.notifications))
-         for found in ctx.registry.modules() if found.notifications]
+    listed: list[tuple[str, str]] = [("core", ctx.t("core:notifications_label"))]
+    listed.extend((found.name, ctx.t(found.name + ":" + found.notifications))
+                  for found in ctx.registry.modules() if found.notifications)
+    return listed
 
 
 @module.view("notifications", parent="menu", title="notifications")
